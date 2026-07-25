@@ -29,6 +29,7 @@ from datahub.metadata.schema_classes import (
     AuditStampClass,
     DataProcessInstanceInputClass,
     DataProcessInstancePropertiesClass,
+    DeploymentStatusClass,
     MLFeaturePropertiesClass,
     MLFeatureTablePropertiesClass,
     MLHyperParamClass,
@@ -175,7 +176,7 @@ def build_mcps(upstream_dataset: str) -> list[MetadataChangeProposalWrapper]:
             entityUrn=deployment_urn,
             aspect=MLModelDeploymentPropertiesClass(
                 description="Retention service, serving live traffic.",
-                status="ACTIVE",
+                status=DeploymentStatusClass.IN_SERVICE,
                 createdAt=now_ms(),
                 customProperties={"seeded_by": "fuse-demo"},
             ),
@@ -184,17 +185,46 @@ def build_mcps(upstream_dataset: str) -> list[MetadataChangeProposalWrapper]:
     return mcps
 
 
-def resolve_upstream(client, explicit: str | None, query: str) -> str:
-    if explicit:
-        return explicit
+# Warehouse platforms hold the tables a model trains on. BI platforms sit downstream
+# of them, so a Tableau or PowerBI hit is almost always the wrong upstream.
+SOURCE_PLATFORMS = ("snowflake", "dbt", "bigquery", "postgres", "redshift", "spark", "s3")
+
+
+def _dataset_candidates(client, query: str) -> list[tuple[int, str]]:
+    scored: list[tuple[int, str]] = []
     for urn in client.search.get_urns(query=query):
         text = str(urn)
-        if text.startswith("urn:li:dataset:"):
-            return text
-    raise SystemExit(
-        f"No dataset matched {query!r}. Load the catalog first "
-        "(datahub datapack load showcase-ecommerce) or pass --upstream explicitly."
-    )
+        if not text.startswith("urn:li:dataset:"):
+            continue
+        platform = text.split("dataPlatform:")[-1].split(",")[0]
+        table = text.split(",")[1].split(".")[-1] if "," in text else text
+        score = 0
+        if platform in SOURCE_PLATFORMS:
+            score += 10 - SOURCE_PLATFORMS.index(platform)
+        if query.lower() in table.lower():
+            score += 5
+        scored.append((score, text))
+    scored.sort(key=lambda row: row[0], reverse=True)
+    return scored
+
+
+def resolve_upstream(client, explicit: str | None, query: str, show: bool = False) -> str:
+    if explicit:
+        return explicit
+
+    candidates = _dataset_candidates(client, query)
+    if show:
+        print(f"candidates for {query!r}:")
+        for score, urn in candidates[:20]:
+            print(f"  {score:>3}  {urn}")
+        raise SystemExit(0)
+
+    if not candidates:
+        raise SystemExit(
+            f"No dataset matched {query!r}. Load the catalog first "
+            "(datahub datapack load showcase-ecommerce) or pass --upstream explicitly."
+        )
+    return candidates[0][1]
 
 
 def main() -> None:
@@ -204,20 +234,25 @@ def main() -> None:
     parser.add_argument("--upstream", default=None, help="Dataset URN the features read from")
     parser.add_argument("--query", default="customer", help="Search term used to find it")
     parser.add_argument("--check", action="store_true", help="Build every aspect, emit nothing")
+    parser.add_argument("--list", action="store_true", help="Print upstream candidates and exit")
     args = parser.parse_args()
 
     if args.check:
         mcps = build_mcps("urn:li:dataset:(urn:li:dataPlatform:snowflake,demo.customers,PROD)")
         print(f"built {len(mcps)} aspects, nothing emitted:")
         for mcp in mcps:
+            # Serialise here too: an invalid enum only fails at this step, and finding
+            # that out mid-emit leaves the catalog half-seeded.
+            mcp.to_obj()
             print(f"  {mcp.aspectName:<35} {mcp.entityUrn}")
+        print("all aspects serialised successfully")
         return
 
     from datahub.emitter.rest_emitter import DatahubRestEmitter
     from datahub.sdk import DataHubClient, MLModelGroup
 
     client = DataHubClient(server=args.server, token=args.token or None)
-    upstream = resolve_upstream(client, args.upstream, args.query)
+    upstream = resolve_upstream(client, args.upstream, args.query, show=args.list)
     print(f"upstream dataset: {upstream}")
 
     client.entities.upsert(
