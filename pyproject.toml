@@ -65,3 +65,6 @@ select = ["E", "F", "I", "UP", "B", "SIM"]
 [tool.ruff.lint.per-file-ignores]
 # Typer's API is function calls in argument defaults; that is the documented usage.
 "src/fuse/cli.py" = ["B008"]
+# The DataHub SDK emits an ExperimentalWarning at import time; the filter has to be
+# installed before the import, which is exactly what E402 forbids.
+"demo/seed_ml_lineage.py" = ["E402"]
