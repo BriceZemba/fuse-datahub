@@ -19,6 +19,7 @@ from rich.table import Table
 
 from fuse import __version__
 from fuse.config import settings
+from fuse.datahub import shapes
 from fuse.datahub.mcp_client import DataHubMCP, GMSUnreachable, probe_gms
 from fuse.graph import build_graph
 from fuse.llm.provider import get_llm, llm_available
@@ -289,6 +290,44 @@ def _first_urn(payload: object) -> str | None:
             if found:
                 return found
     return None
+
+
+@app.command()
+def schema(
+    query: str = typer.Argument(..., help="Table name to look up"),
+    limit: int = typer.Option(3, "--limit", help="How many matching datasets to show"),
+) -> None:
+    """Print the real columns of the datasets a name resolves to.
+
+    Useful when writing demo models or migrations: generated code must reference
+    columns DataHub actually knows about, and this is the fastest way to check.
+    """
+
+    async def run() -> None:
+        async with DataHubMCP() as dh:
+            payload = await dh.call("search", query=query, num_results=20)
+            datasets = [
+                e
+                for e in shapes.search_results(payload)
+                if str(e.get("urn", "")).startswith("urn:li:dataset:")
+            ]
+            if not datasets:
+                console.print(f"[yellow]No dataset matched {query!r}[/]")
+                return
+            for entity in datasets[:limit]:
+                urn = entity["urn"]
+                fields = shapes.field_names(await dh.call("list_schema_fields", urn=urn))
+                console.print(
+                    f"\n[bold]{shapes.entity_name(entity)}[/] "
+                    f"[dim]({shapes.platform_of(entity)})[/]\n{urn}"
+                )
+                console.print("  " + ", ".join(fields) if fields else "  (no schema)")
+
+    try:
+        asyncio.run(run())
+    except GMSUnreachable as exc:
+        console.print(f"[red]{exc}[/]")
+        raise typer.Exit(code=2) from exc
 
 
 @app.command()
