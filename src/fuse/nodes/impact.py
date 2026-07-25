@@ -1,14 +1,12 @@
 """Node 4 — score every downstream asset. Deterministic.
 
-The interesting part is `references_column`: instead of assuming a consumer breaks
-because it sits downstream, Fuse parses the consumer's own SQL (from
-`get_dataset_queries`) and checks whether it actually selects the changed column.
-That is the difference between an alert and an alarm.
+Evidence is ranked, not assumed. Strongest is a consumer whose own SQL selects the
+changed column; next is a column-level lineage edge from DataHub; weakest is a plain
+table dependency. The showcase catalog carries no query history, so most real runs
+lean on the column edge — the report always says which one applied.
 """
 
 from __future__ import annotations
-
-from typing import Any
 
 import sqlglot
 from sqlglot import exp
@@ -16,33 +14,17 @@ from sqlglot import exp
 from fuse.risk.engine import RiskEngine
 from fuse.state import Change, FuseState, Impact, ResolvedAsset, max_severity
 
-TYPE_ALIASES = {
-    "mlmodel": "mlModel",
-    "mlmodelgroup": "mlModelGroup",
-    "mlmodeldeployment": "mlModelDeployment",
-    "mlfeature": "mlFeature",
-    "mlfeaturetable": "mlFeatureTable",
-    "datajob": "dataJob",
-    "dataflow": "dataJob",
-    "dashboard": "dashboard",
-    "chart": "chart",
-    "dataset": "dataset",
+VALID_ENTITY_TYPES = {
+    "dataset",
+    "chart",
+    "dashboard",
+    "dataJob",
+    "mlFeature",
+    "mlFeatureTable",
+    "mlModel",
+    "mlModelGroup",
+    "mlModelDeployment",
 }
-
-
-def _query_texts(payload: Any) -> list[tuple[str, str]]:
-    """(query_id, sql) pairs from whatever shape get_dataset_queries returned."""
-    rows = payload if isinstance(payload, list) else (payload or {}).get("queries", [])
-    out: list[tuple[str, str]] = []
-    if isinstance(rows, list):
-        for row in rows:
-            if isinstance(row, dict):
-                sql = row.get("statement") or row.get("sql") or row.get("query") or ""
-                if sql:
-                    out.append((str(row.get("id") or row.get("urn") or "query"), sql))
-            elif isinstance(row, str):
-                out.append(("query", row))
-    return out
 
 
 def sql_references_column(sql: str, column: str, dialect: str = "snowflake") -> bool:
@@ -51,36 +33,13 @@ def sql_references_column(sql: str, column: str, dialect: str = "snowflake") -> 
         tree = sqlglot.parse_one(sql, read=dialect)
     except Exception:
         return column.lower() in sql.lower()
+
     for node in tree.find_all(exp.Column):
         if node.name.lower() == column.lower():
             return True
-    for star in tree.find_all(exp.Star):
-        _ = star  # SELECT * inherits the column, so treat it as a reference
-        return True
+    for _ in tree.find_all(exp.Star):
+        return True  # SELECT * inherits the column
     return False
-
-
-def _owners(detail: dict | None) -> list[str]:
-    if not detail:
-        return []
-    owners = detail.get("owners") or detail.get("ownership", {}).get("owners", [])
-    out = []
-    for owner in owners if isinstance(owners, list) else []:
-        if isinstance(owner, str):
-            out.append(owner)
-        elif isinstance(owner, dict):
-            out.append(owner.get("owner") or owner.get("urn") or "")
-    return [o for o in out if o]
-
-
-def _tier(detail: dict | None) -> str | None:
-    if not detail:
-        return None
-    blob = str(detail.get("tags", "")) + str(detail.get("glossaryTerms", ""))
-    for tier in ("Tier1", "Tier2", "Tier3"):
-        if tier.lower() in blob.lower():
-            return tier
-    return None
 
 
 def assess_impact(state: FuseState) -> dict:
@@ -97,24 +56,30 @@ def assess_impact(state: FuseState) -> dict:
         if change is None:
             continue
         column = change.column or ""
-        detail = entry.get("detail")
 
         evidence: list[str] = []
         references = False
-        for query_id, sql in _query_texts(entry.get("queries")):
+        for query_id, sql in entry.get("queries") or []:
             if column and sql_references_column(sql, column, dialect):
                 references = True
                 evidence.append(f"{query_id} selects {change.model}.{column}")
 
-        entity_type = TYPE_ALIASES.get(str(entry.get("type", "dataset")).lower(), "dataset")
-        owners = _owners(detail)
+        column_edge = bool(entry.get("column_edge"))
+        if column_edge and not references:
+            evidence.append(f"column-level lineage edge from {change.model}.{column}")
+
+        entity_type = entry.get("type", "dataset")
+        if entity_type not in VALID_ENTITY_TYPES:
+            entity_type = "dataset"
+
+        owners = entry.get("owners") or []
         score, severity, reasons = engine.score(
             change=change,
             entity_type=entity_type,
             hops=int(entry.get("hops", 1)),
             references_column=references,
-            column_lineage_edge=bool(entry.get("column_edge")),
-            tier=_tier(detail),
+            column_lineage_edge=column_edge,
+            tier=entry.get("tier"),
             owners=owners,
             recently_queried=bool(entry.get("queries")),
         )
@@ -127,7 +92,7 @@ def assess_impact(state: FuseState) -> dict:
                 references_column=references,
                 evidence=evidence,
                 owners=owners,
-                tier=_tier(detail),
+                tier=entry.get("tier"),
                 severity=severity,
                 score=score,
                 reasons=reasons,

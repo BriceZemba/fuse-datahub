@@ -126,8 +126,9 @@ app = g.compile(checkpointer=MemorySaver(),
 3. Only if still ambiguous, ask the LLM to pick, with the candidate schemas in the prompt. Record `method` so the report can say *how* it resolved.
 **Out:** `resolved`, plus a warning artifact when `confidence < 0.6`.
 
-### 4.3 `lineage` — MCP `get_lineage`, `get_lineage_paths_between`, `get_entities`, GraphQL fallback
-**Does:** downstream traversal from each resolved URN, N hops (default 3, `--hops`). Collect datasets, charts, dashboards, dataJobs **and ML entities** (`mlFeature`, `mlFeatureTable`, `mlModel`, `mlModelGroup`, deployments). Hydrate names, owners, tags, tier and domain via `get_entities`. Fetch column-level edges: MCP first, `POST /api/graphql` `fineGrainedLineages` if the MCP response is table-level only (per Day-2 spike). Pull `get_dataset_queries` for each downstream dataset to obtain real SQL evidence.
+### 4.3 `lineage` — MCP `get_lineage`, `get_entities`, `get_dataset_queries`
+**Does:** downstream traversal from each resolved URN, N hops (default 3, `--hops`, passed as `max_hops`). Collect datasets, charts, dashboards, dataJobs **and ML entities** (`mlFeature`, `mlFeatureTable`, `mlModel`, `mlModelGroup`, deployments). When a column changed, the call is **column-scoped** — `get_lineage` takes `column` natively, so DataHub returns what depends on that field rather than everything downstream of the table; an empty column-scoped result falls back to table-level and records that in the trace. Owners, tags and tier come back on the lineage results themselves, with `get_entities` filling the gaps. `get_dataset_queries` supplies SQL evidence where the instance has query history.
+**Note:** an earlier design carried a `POST /api/graphql` fallback for fine-grained lineage. The Day-2 spike showed the MCP tool covers it, so that module was deleted rather than kept as dead weight.
 **Out:** a lineage graph in state + every response written to `fixtures/`.
 
 ### 4.4 `impact` — deterministic risk engine

@@ -145,15 +145,41 @@ class DataHubMCP:
 
 
 def _coerce(raw: Any) -> Any:
-    """MCP tools return text content; parse JSON when they do."""
-    if isinstance(raw, (dict, list)):
-        return raw
+    """Unwrap an MCP tool result into plain data.
+
+    The DataHub MCP server answers with content blocks — `[{"id": ..., "type": "text",
+    "text": "<json>"}]` — so the payload is a JSON *string* nested one level down.
+    Reading the wrapper instead of its contents is silent failure: parsers find no
+    entities and report an empty catalog, which is exactly what happened before the
+    shapes were recorded (see docs/spike-raw/).
+    """
     if isinstance(raw, str):
-        try:
-            return json.loads(raw)
-        except json.JSONDecodeError:
-            return {"text": raw}
+        return _parse_json(raw)
+
+    if isinstance(raw, list):
+        blocks = [b for b in raw if isinstance(b, dict) and isinstance(b.get("text"), str)]
+        if blocks:
+            parsed = [_parse_json(b["text"]) for b in blocks]
+            return parsed[0] if len(parsed) == 1 else parsed
+        return raw
+
+    if isinstance(raw, dict):
+        # Some clients hand back a single content block rather than a list of them.
+        if isinstance(raw.get("text"), str) and raw.get("type") == "text":
+            return _parse_json(raw["text"])
+        content = raw.get("content")
+        if isinstance(content, list):
+            return _coerce(content)
+        return raw
+
     return {"value": str(raw)}
+
+
+def _parse_json(text: str) -> Any:
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        return {"text": text}
 
 
 def get_client(**kwargs: Any) -> DataHubMCP:

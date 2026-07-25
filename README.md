@@ -88,7 +88,7 @@ Judgment is the LLM's job. Correctness is the code's job. Scores come from [`rul
 | `search` | `resolve` | map a changed dbt model to its real URN |
 | `list_schema_fields` | `resolve`, `codegen`, `validate` | ground generation on real columns; reject invented ones |
 | `get_lineage`, `get_lineage_paths_between` | `trace_lineage` | downstream blast radius, multi-hop |
-| fine-grained (column) lineage | `trace_lineage` | column-precise impact instead of table-level noise |
+| `get_lineage(column=…)` | `trace_lineage` | column-precise impact instead of table-level noise |
 | `get_dataset_queries` | `assess_impact` | hard evidence that a consumer really selects the column |
 | `get_entities` | `trace_lineage` | owners, tiers, domains, tags become risk inputs |
 | ML entities (`mlFeature`, `mlModel`, `mlModelGroup`, deployments) | `assess_impact` | catch silent ML breakage |

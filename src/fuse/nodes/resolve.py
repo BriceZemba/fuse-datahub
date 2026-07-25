@@ -3,63 +3,41 @@
 Order of attack: exact name, then search ranking, then column-set overlap against
 `list_schema_fields`, and only then the LLM. The method used is recorded so the
 impact report can state *how* the asset was identified instead of asserting it.
+
+`search` returns every entity type — schema fields, charts, data jobs, glossary
+terms — so datasets are filtered by URN prefix before any of that begins.
 """
 
 from __future__ import annotations
 
-from typing import Any
-
+from fuse.datahub import shapes
 from fuse.runtime import RT
 from fuse.state import Change, FuseState, ResolvedAsset
 
 AMBIGUITY_GAP = 0.15
 LOW_CONFIDENCE = 0.6
 
-
-def _entities(payload: Any) -> list[dict]:
-    """Normalise the several shapes a search response can arrive in."""
-    # TODO(spike): pin this to the real response shape once Day-2 confirms it.
-    if isinstance(payload, list):
-        return [e for e in payload if isinstance(e, dict)]
-    if isinstance(payload, dict):
-        for key in ("entities", "results", "searchResults", "data"):
-            value = payload.get(key)
-            if isinstance(value, list):
-                return [e for e in value if isinstance(e, dict)]
-    return []
-
-
-def _urn(entity: dict) -> str:
-    return entity.get("urn") or entity.get("entity", {}).get("urn", "")
-
-
-def _name(entity: dict) -> str:
-    return (
-        entity.get("name")
-        or entity.get("properties", {}).get("name")
-        or _urn(entity).rsplit(",", 2)[-2].split(".")[-1]
-        if _urn(entity)
-        else ""
-    )
-
-
-def _field_names(payload: Any) -> list[str]:
-    fields = payload.get("fields", payload) if isinstance(payload, dict) else payload
-    names: list[str] = []
-    if isinstance(fields, list):
-        for f in fields:
-            if isinstance(f, dict):
-                path = f.get("fieldPath") or f.get("name") or ""
-                names.append(path.split(".")[-1].lower())
-            elif isinstance(f, str):
-                names.append(f.split(".")[-1].lower())
-    return names
+# Warehouse and transformation platforms hold the tables a dbt model maps onto. BI
+# platforms expose copies of them and would resolve the change to the wrong end of
+# the graph.
+PLATFORM_RANK = ("dbt", "snowflake", "bigquery", "redshift", "postgres", "spark", "s3")
 
 
 async def _candidates(model: str) -> list[dict]:
     dh = RT.require_dh()
-    payload = await dh.call("search", query=model, num_results=10)
-    return _entities(payload)
+    payload = await dh.call("search", query=model, num_results=20)
+    return [
+        entity
+        for entity in shapes.search_results(payload)
+        if str(entity.get("urn", "")).startswith("urn:li:dataset:")
+    ]
+
+
+def _platform_score(entity: dict) -> float:
+    platform = shapes.platform_of(entity)
+    if platform in PLATFORM_RANK:
+        return (len(PLATFORM_RANK) - PLATFORM_RANK.index(platform)) / len(PLATFORM_RANK)
+    return 0.0
 
 
 async def _resolve_one(change: Change, model_columns: set[str]) -> ResolvedAsset | None:
@@ -67,41 +45,45 @@ async def _resolve_one(change: Change, model_columns: set[str]) -> ResolvedAsset
     if not candidates:
         return None
 
-    exact = [c for c in candidates if _name(c).lower() == change.model.lower()]
+    exact = [e for e in candidates if shapes.entity_name(e).lower() == change.model.lower()]
+    pool = exact or candidates
+    pool.sort(key=_platform_score, reverse=True)
+
     if len(exact) == 1:
         return await _hydrate(change, exact[0], 0.95, "exact_name")
-
-    pool = exact or candidates
     if len(pool) == 1:
         return await _hydrate(change, pool[0], 0.8, "search_rank")
 
-    # Disambiguate by how much of the model's column set the candidate actually has.
+    # Disambiguate on evidence: how much of the model's column set the candidate has.
     dh = RT.require_dh()
-    scored: list[tuple[float, dict, list[str]]] = []
+    scored: list[tuple[float, dict]] = []
     for candidate in pool[:5]:
-        fields = _field_names(await dh.call("list_schema_fields", urn=_urn(candidate)))
-        overlap = len(model_columns & set(fields)) / max(len(model_columns), 1)
-        scored.append((overlap, candidate, fields))
+        fields = shapes.field_names(
+            await dh.call("list_schema_fields", urn=candidate["urn"])
+        )
+        known = {f.lower() for f in fields}
+        overlap = len(model_columns & known) / max(len(model_columns), 1)
+        scored.append((overlap + _platform_score(candidate) / 10, candidate))
     scored.sort(key=lambda row: row[0], reverse=True)
 
-    best, runner_up = scored[0], scored[1] if len(scored) > 1 else (0.0, None, [])
-    method = "schema_match" if best[0] - runner_up[0] >= AMBIGUITY_GAP else "search_rank"
+    best = scored[0]
+    runner_up = scored[1][0] if len(scored) > 1 else 0.0
+    method = "schema_match" if best[0] - runner_up >= AMBIGUITY_GAP else "search_rank"
     return await _hydrate(change, best[1], round(min(0.5 + best[0] / 2, 0.99), 2), method)
 
 
 async def _hydrate(change: Change, entity: dict, confidence: float, method: str) -> ResolvedAsset:
     dh = RT.require_dh()
-    urn = _urn(entity)
-    fields = await dh.call("list_schema_fields", urn=urn)
-    platform = urn.split("dataPlatform:")[-1].split(",")[0] if "dataPlatform:" in urn else ""
+    urn = str(entity["urn"])
+    fields = shapes.schema_fields(await dh.call("list_schema_fields", urn=urn))
     return ResolvedAsset(
         change=change,
         urn=urn,
-        name=_name(entity),
-        platform=platform,
+        name=shapes.entity_name(entity),
+        platform=shapes.platform_of(entity),
         confidence=confidence,
         method=method,  # type: ignore[arg-type]
-        schema_fields=fields if isinstance(fields, list) else fields.get("fields", []),
+        schema_fields=fields,
     )
 
 
@@ -120,10 +102,12 @@ async def resolve(state: FuseState) -> dict:
         if asset is None:
             trace.append(f"resolve: no DataHub match for {change.model} — change skipped")
             continue
+        trace.append(
+            f"resolve: {change.model} -> {asset.urn} "
+            f"({asset.method}, confidence {asset.confidence})"
+        )
         if asset.confidence < LOW_CONFIDENCE:
-            trace.append(
-                f"resolve: low confidence {asset.confidence} for {change.model} -> {asset.urn}"
-            )
+            trace.append(f"resolve: low confidence on {change.model}, treat the report as a lead")
         resolved.append(asset)
 
     trace.append(f"resolve: {len(resolved)}/{len(changes)} change(s) mapped to URNs")
