@@ -17,7 +17,7 @@ from rich.table import Table
 
 from fuse import __version__
 from fuse.config import settings
-from fuse.datahub.mcp_client import DataHubMCP
+from fuse.datahub.mcp_client import DataHubMCP, GMSUnreachable, probe_gms
 from fuse.graph import build_graph
 from fuse.llm.provider import get_llm, llm_available
 from fuse.runtime import RT
@@ -92,7 +92,11 @@ def check(
         "auto_approve": auto_approve,
         "trace": [],
     }
-    result = asyncio.run(_run(state, replay=False, dry_run=dry_run, auto_approve=auto_approve))
+    try:
+        result = asyncio.run(_run(state, replay=False, dry_run=dry_run, auto_approve=auto_approve))
+    except GMSUnreachable as exc:
+        console.print(f"[red]{exc}[/]")
+        raise typer.Exit(code=2) from exc
     _report(result)
 
     severity = result.get("max_severity", "SAFE")
@@ -133,6 +137,16 @@ def doctor() -> None:
     )
 
     async def probe() -> None:
+        reachable, detail = await probe_gms()
+        console.print(f"GMS reachable  : {'yes' if reachable else f'[red]no ({detail})[/]'}")
+        if not reachable:
+            console.print(
+                "\n[yellow]DataHub is not running.[/] Start it with:\n"
+                "  ./scripts/bootstrap-datahub.sh\n"
+                "Then re-run `fuse doctor`. GMS is :8080; :9002 is the UI."
+            )
+            raise typer.Exit(code=1)
+
         async with DataHubMCP() as dh:
             console.print(f"MCP tools      : {len(dh.available)} loaded")
             missing = {"search", "get_lineage", "list_schema_fields"} - set(dh.available)
@@ -142,11 +156,18 @@ def doctor() -> None:
                 console.print(
                     "[yellow]Mutation tools absent — set TOOLS_IS_MUTATION_ENABLED=true[/]"
                 )
+            else:
+                console.print("Write-back     : available")
 
     try:
         asyncio.run(probe())
+    except typer.Exit:
+        raise
+    except GMSUnreachable as exc:
+        console.print(f"[red]{exc}[/]")
+        raise typer.Exit(code=1) from exc
     except Exception as exc:
-        console.print(f"[red]MCP connection failed: {exc}[/]")
+        console.print(f"[red]MCP connection failed: {exc.__class__.__name__}: {exc}[/]")
         raise typer.Exit(code=1) from exc
 
 

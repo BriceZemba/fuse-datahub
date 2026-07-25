@@ -48,6 +48,27 @@ MUTATION_TOOLS = {
 }
 
 
+async def probe_gms(url: str | None = None, timeout: float = 5.0) -> tuple[bool, str]:
+    """Cheap pre-flight check.
+
+    The MCP server connects to GMS at startup and dies with a full stack trace if it
+    can't. Probing first turns that wall of traceback into one actionable line.
+    """
+    import httpx
+
+    endpoint = (url or settings.gms_url).rstrip("/") + "/config"
+    try:
+        async with httpx.AsyncClient(timeout=timeout) as client:
+            response = await client.get(endpoint)
+    except Exception as exc:
+        return False, exc.__class__.__name__
+    return response.status_code < 500, f"HTTP {response.status_code}"
+
+
+class GMSUnreachable(RuntimeError):
+    """GMS is not answering. Raised before spawning the MCP server."""
+
+
 class DataHubMCP:
     """Async facade. Use as ``async with DataHubMCP() as dh: await dh.call("search", ...)``."""
 
@@ -67,6 +88,14 @@ class DataHubMCP:
 
     async def __aenter__(self) -> DataHubMCP:
         if not self.replay:
+            reachable, detail = await probe_gms()
+            if not reachable:
+                raise GMSUnreachable(
+                    f"{settings.gms_url} is not answering ({detail}). "
+                    "Start DataHub with ./scripts/bootstrap-datahub.sh, or point "
+                    "DATAHUB_GMS_URL at a running instance. Note GMS is :8080, the UI is :9002."
+                )
+
             from langchain_mcp_adapters.client import MultiServerMCPClient
 
             self._client = MultiServerMCPClient(
