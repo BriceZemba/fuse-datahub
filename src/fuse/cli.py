@@ -8,6 +8,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import uuid
 from pathlib import Path
 
@@ -169,6 +170,108 @@ def doctor() -> None:
     except Exception as exc:
         console.print(f"[red]MCP connection failed: {exc.__class__.__name__}: {exc}[/]")
         raise typer.Exit(code=1) from exc
+
+
+@app.command()
+def spike(
+    query: str = typer.Option("orders", "--query", help="Search term to probe the catalog with"),
+    out: Path = typer.Option(Path("docs/spike-raw"), "--out"),
+) -> None:
+    """Dump the real MCP tool signatures and response shapes.
+
+    Every parser in `resolve.py` and `lineage.py` is written defensively because the
+    exact response shapes were unknown at design time. This command replaces the
+    guesses with recorded fact, and the responses land in fixtures/ at the same time.
+    """
+    out.mkdir(parents=True, exist_ok=True)
+
+    async def run() -> None:
+        async with DataHubMCP() as dh:
+            signatures = {}
+            for name in dh.available:
+                tool = dh._tools[name]
+                signatures[name] = {
+                    "description": (getattr(tool, "description", "") or "")[:400],
+                    "args": getattr(tool, "args", None),
+                }
+            (out / "00-tool-signatures.json").write_text(
+                json.dumps(signatures, indent=2, default=str), encoding="utf-8"
+            )
+            console.print(f"[bold]{len(signatures)} tools[/] -> {out / '00-tool-signatures.json'}")
+            for name in sorted(signatures):
+                args = signatures[name]["args"]
+                params = ", ".join(args) if isinstance(args, dict) else "?"
+                console.print(f"  {name}({params})")
+
+            probes: list[tuple[str, str, dict]] = [("search", "search", {"query": query})]
+            recorded: dict[str, object] = {}
+
+            for label, tool_name, args in probes:
+                payload = await _try(dh, tool_name, args)
+                recorded[label] = payload
+                (out / f"01-{label}.json").write_text(
+                    json.dumps(payload, indent=2, default=str)[:200_000], encoding="utf-8"
+                )
+
+            urn = _first_urn(recorded.get("search"))
+            console.print(f"\nfirst URN from search: [bold]{urn or 'NONE FOUND'}[/]")
+            if not urn:
+                console.print("[yellow]Catalog looks empty — did the datapack load?[/]")
+                return
+
+            follow_ups = [
+                ("list_schema_fields", {"urn": urn}),
+                ("get_entities", {"urns": [urn]}),
+                ("get_lineage", {"urn": urn, "direction": "DOWNSTREAM"}),
+                ("get_dataset_queries", {"urn": urn}),
+            ]
+            for index, (tool_name, args) in enumerate(follow_ups, start=2):
+                payload = await _try(dh, tool_name, args)
+                (out / f"{index:02d}-{tool_name}.json").write_text(
+                    json.dumps(payload, indent=2, default=str)[:200_000], encoding="utf-8"
+                )
+                head = json.dumps(payload, default=str)[:220]
+                console.print(f"\n[bold]{tool_name}[/] -> {head}...")
+
+        console.print(
+            f"\n[green]Done.[/] Commit {out} and fixtures/, then push:\n"
+            '  git add docs/spike-raw fixtures && git commit -m "chore: record MCP shapes" && '
+            "git push"
+        )
+
+    try:
+        asyncio.run(run())
+    except GMSUnreachable as exc:
+        console.print(f"[red]{exc}[/]")
+        raise typer.Exit(code=2) from exc
+
+
+async def _try(dh: DataHubMCP, tool: str, args: dict) -> object:
+    """Call a tool, capturing the error instead of aborting the whole spike."""
+    try:
+        return await dh.call(tool, **args)
+    except Exception as exc:
+        console.print(f"[yellow]{tool} failed: {exc.__class__.__name__}: {exc}[/]")
+        return {"__error__": f"{exc.__class__.__name__}: {exc}", "__args__": args}
+
+
+def _first_urn(payload: object) -> str | None:
+    """Find the first urn anywhere in a response, whatever its shape."""
+    if isinstance(payload, str) and payload.startswith("urn:li:"):
+        return payload
+    if isinstance(payload, dict):
+        if isinstance(payload.get("urn"), str):
+            return payload["urn"]
+        for value in payload.values():
+            found = _first_urn(value)
+            if found:
+                return found
+    if isinstance(payload, list):
+        for item in payload:
+            found = _first_urn(item)
+            if found:
+                return found
+    return None
 
 
 @app.command()
