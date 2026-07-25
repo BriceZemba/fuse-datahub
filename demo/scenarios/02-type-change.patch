@@ -1,0 +1,9 @@
+diff --git a/models/marts/orders.sql b/models/marts/orders.sql
+--- a/models/marts/orders.sql
++++ b/models/marts/orders.sql
+@@ -13,4 +13,4 @@
+     status,
+     discount_code,
+-    cast(amount as float) as order_amount
++    cast(amount as int) as order_amount
+ from source

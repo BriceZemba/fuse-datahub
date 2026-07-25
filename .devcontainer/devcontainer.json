@@ -1,0 +1,41 @@
+{
+  "name": "fuse-datahub",
+  "image": "mcr.microsoft.com/devcontainers/python:3.11-bookworm",
+
+  // DataHub's quickstart is docker-compose, so the container needs its own Docker.
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+    "ghcr.io/devcontainers/features/node:1": {}
+  },
+
+  // DataHub needs 2 CPUs / 8GB RAM minimum. Ask for 4-core/16GB so the JVM services
+  // are not fighting the dev tooling for memory.
+  "hostRequirements": {
+    "cpus": 4,
+    "memory": "16gb",
+    "storage": "32gb"
+  },
+
+  "forwardPorts": [9002, 8080],
+  "portsAttributes": {
+    "9002": { "label": "DataHub UI", "onAutoForward": "openBrowser" },
+    "8080": { "label": "DataHub GMS (API)", "onAutoForward": "silent" }
+  },
+
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+
+  "customizations": {
+    "vscode": {
+      "extensions": ["ms-python.python", "charliermarsh.ruff"],
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/local/bin/python"
+      }
+    }
+  },
+
+  "remoteEnv": {
+    "DATAHUB_GMS_URL": "http://localhost:8080",
+    "TOOLS_IS_MUTATION_ENABLED": "true",
+    "FUSE_LLM_PROVIDER": "none"
+  }
+}

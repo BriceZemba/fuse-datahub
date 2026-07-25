@@ -1,0 +1,49 @@
+# Blast-radius scoring. Deterministic, reviewable, and quoted verbatim in the report.
+# Every rule that fires appends one line to Impact.reasons, so a score of 78 can
+# always be read back as the sum of named facts.
+
+base:
+  hard_column_reference: 55   # sqlglot proves the consumer selects the changed column
+  column_lineage_edge: 35     # DataHub fine-grained lineage links the column
+  table_only_dependency: 10   # depends on the table, no column-level proof
+
+entity_type:
+  mlModel: 20                 # breaks silently: no error, just worse predictions
+  mlModelDeployment: 20
+  mlFeature: 15
+  mlFeatureTable: 15
+  dashboard: 10
+  chart: 8
+  dataJob: 8
+  dataset: 0
+
+tier:
+  Tier1: 15
+  Tier2: 5
+
+modifiers:
+  per_hop_decay: 3            # subtracted per hop of distance
+  queried_last_30d: 10
+  no_owner: 5                 # nobody is watching this one
+
+change_kind_multiplier:
+  drop_column: 1.0
+  drop_model: 1.0
+  rename_column: 1.0
+  change_grain: 0.9
+  retype_column: 0.7          # raised to 1.0 when the new type is narrower
+  change_filter: 0.6
+  add_column: 0.1
+
+narrowing_types:              # old -> new pairs treated as lossy
+  - [FLOAT, INT]
+  - [DOUBLE, INT]
+  - [BIGINT, INT]
+  - [TIMESTAMP, DATE]
+  - [VARCHAR, CHAR]
+  - [TEXT, VARCHAR]
+  - [DECIMAL, INT]
+
+thresholds:
+  BREAKING: 60
+  RISKY: 30

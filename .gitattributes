@@ -1,0 +1,5 @@
+# Shell scripts must keep LF endings or bash fails with "\r: command not found"
+# when the repo is cloned on Windows and run in a Linux codespace.
+*.sh text eol=lf
+*.patch text eol=lf
+* text=auto

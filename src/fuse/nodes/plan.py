@@ -1,0 +1,92 @@
+"""Node 5 — pick a remediation strategy per impacted asset.
+
+The LLM decides here because the right move genuinely depends on context (is this
+consumer worth a compatibility view, or should it just be rewritten?). Its answer is
+constrained to a fixed vocabulary and validated; a bad answer falls back to rules.
+"""
+
+from __future__ import annotations
+
+import json
+
+from fuse.llm.provider import get_llm
+from fuse.runtime import RT
+from fuse.state import FuseState, Impact, Strategy
+
+VALID: set[str] = {
+    "rewrite_sql",
+    "add_compat_view",
+    "deprecate_with_shim",
+    "backfill",
+    "add_contract_test",
+    "no_action",
+}
+
+PROMPT = """You are a staff data engineer deciding how to protect downstream consumers \
+from a schema change that is already agreed.
+
+Change: {change}
+
+Impacted assets (from DataHub lineage, scored by a deterministic rule engine):
+{impacts}
+
+For each asset choose exactly one strategy from:
+- rewrite_sql        the consumer's SQL can be updated directly
+- add_compat_view    keep the old shape available during a deprecation window
+- deprecate_with_shim keep the column, filled with a sentinel, and mark it deprecated
+- backfill           the consumer needs historical data restated
+- add_contract_test  the consumer is fine, but pin the contract so this can't recur
+- no_action          genuinely unaffected
+
+Answer with JSON only: {{"<urn>": "<strategy>"}}. No prose."""
+
+
+def _fallback(impacts: list[Impact]) -> dict[str, Strategy]:
+    """Rules used when there is no LLM, or when the LLM answers badly."""
+    plan: dict[str, Strategy] = {}
+    for impact in impacts:
+        if impact.severity == "SAFE":
+            plan[impact.urn] = "add_contract_test"
+        elif impact.entity_type in {"mlFeature", "mlFeatureTable", "mlModel", "mlModelDeployment"}:
+            # ML consumers cannot be hot-patched; keep the old shape and alert the owner.
+            plan[impact.urn] = "add_compat_view"
+        elif impact.references_column:
+            plan[impact.urn] = "rewrite_sql"
+        else:
+            plan[impact.urn] = "add_contract_test"
+    return plan
+
+
+async def plan_remediation(state: FuseState) -> dict:
+    impacts: list[Impact] = state.get("impacts", [])
+    trace = list(state.get("trace", []))
+    llm = RT.llm or get_llm()
+
+    if llm is None:
+        trace.append("plan: no LLM configured, using rule-based strategies")
+        return {"plan": _fallback(impacts), "trace": trace}
+
+    summary = "\n".join(
+        f"- {i.urn} | {i.entity_type} | {i.severity} {i.score} | "
+        f"refs_column={i.references_column} | {'; '.join(i.evidence[:2])}"
+        for i in impacts
+    )
+    change = impacts[0].source_change if impacts else "unknown change"
+    try:
+        response = await llm.ainvoke(PROMPT.format(change=change, impacts=summary))
+        text = response.content if hasattr(response, "content") else str(response)
+        raw = json.loads(text[text.find("{") : text.rfind("}") + 1])
+        plan = {
+            urn: strategy
+            for urn, strategy in raw.items()
+            if strategy in VALID and any(i.urn == urn for i in impacts)
+        }
+        missing = [i for i in impacts if i.urn not in plan]
+        if missing:
+            plan.update(_fallback(missing))
+            trace.append(f"plan: filled {len(missing)} gap(s) from rules")
+        trace.append(f"plan: {len(plan)} strategy decision(s)")
+        return {"plan": plan, "trace": trace}
+    except Exception as exc:
+        trace.append(f"plan: LLM planning failed ({exc.__class__.__name__}), using rules")
+        return {"plan": _fallback(impacts), "trace": trace}

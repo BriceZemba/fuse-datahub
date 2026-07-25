@@ -1,0 +1,51 @@
+from fuse.nodes.validate import validate
+from fuse.state import Artifact, Change, ResolvedAsset
+
+SCHEMA = [
+    {"fieldPath": "order_id"},
+    {"fieldPath": "customer_id"},
+    {"fieldPath": "order_amount"},
+    {"fieldPath": "discount_code"},
+]
+
+
+def _state(sql: str, retries: int = 0):
+    change = Change(kind="drop_column", file="orders.sql", model="orders", column="discount_code")
+    asset = ResolvedAsset(change=change, urn="urn:li:dataset:test", schema_fields=SCHEMA)
+    return {
+        "artifacts": [Artifact(path="models/x.sql", kind="dbt_model", content=sql)],
+        "resolved": [asset],
+        "dialect": "snowflake",
+        "retries": retries,
+        "trace": [],
+    }
+
+
+def test_hallucinated_column_is_rejected():
+    result = validate(_state("select order_id, promo_percentage from orders"))
+    assert result["validation_errors"]
+    assert "promo_percentage" in result["validation_errors"][0]
+
+
+def test_dropped_column_cannot_be_reintroduced():
+    result = validate(_state("select order_id, discount_code from orders"))
+    assert any("removes" in e for e in result["validation_errors"])
+
+
+def test_clean_sql_passes():
+    result = validate(_state("select order_id, customer_id, order_amount from orders"))
+    assert result["validation_errors"] == []
+
+
+def test_local_aliases_are_allowed():
+    sql = "with base as (select order_id, order_amount as amt from orders) select amt from base"
+    assert validate(_state(sql))["validation_errors"] == []
+
+
+def test_unparseable_sql_is_rejected():
+    assert validate(_state("select from where"))["validation_errors"]
+
+
+def test_artifacts_are_flagged_after_the_retry_budget():
+    result = validate(_state("select order_id, promo_percentage from orders", retries=2))
+    assert result["artifacts"][0].needs_human is True
