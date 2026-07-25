@@ -43,7 +43,8 @@ class CallCache:
         self.misses += 1
         if self.replay:
             raise ReplayMiss(
-                f"No recorded response for {tool}({json.dumps(args, sort_keys=True, default=str)}). "
+                f"No recorded response for {tool}"
+                f"({json.dumps(args, sort_keys=True, default=str)}). "
                 "Re-record with a live DataHub instance."
             )
         return None

@@ -19,7 +19,11 @@ from fuse.runtime import RT
 from fuse.state import Artifact, FuseState, Impact, ResolvedAsset
 
 TEMPLATES = Path(__file__).resolve().parents[1] / "templates"
-env = Environment(loader=FileSystemLoader(TEMPLATES), undefined=StrictUndefined, keep_trailing_newline=True)
+env = Environment(
+    loader=FileSystemLoader(TEMPLATES),
+    undefined=StrictUndefined,
+    keep_trailing_newline=True,
+)
 
 PROMPT = """Rewrite this SQL so it no longer depends on a column that is being removed.
 

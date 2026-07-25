@@ -37,7 +37,7 @@ dependencies = [
 anthropic = ["langchain-anthropic>=0.2.0"]
 openai = ["langchain-openai>=0.2.0"]
 ollama = ["langchain-ollama>=0.2.0"]
-dev = ["pytest>=8.0", "pytest-asyncio>=0.23", "ruff>=0.5.0"]
+dev = ["pytest>=8.0", "pytest-asyncio>=0.23", "ruff==0.16.0"]
 
 [project.scripts]
 fuse = "fuse.cli:app"
@@ -56,3 +56,12 @@ asyncio_mode = "auto"
 [tool.ruff]
 line-length = 100
 target-version = "py310"
+
+# Selected explicitly: ruff's default rule set changes between releases, and CI that
+# lints against a moving target fails for reasons unrelated to the change under review.
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.ruff.lint.per-file-ignores]
+# Typer's API is function calls in argument defaults; that is the documented usage.
+"src/fuse/cli.py" = ["B008"]

@@ -36,6 +36,8 @@ EntityType = Literal[
     "mlModelDeployment",
 ]
 
+ResolveMethod = Literal["exact_name", "search_rank", "schema_match", "llm_disambiguated"]
+
 Strategy = Literal[
     "rewrite_sql",
     "add_compat_view",
@@ -76,7 +78,7 @@ class ResolvedAsset(BaseModel):
     name: str = ""
     platform: str = ""
     confidence: float = 0.0
-    method: Literal["exact_name", "search_rank", "schema_match", "llm_disambiguated"] = "search_rank"
+    method: ResolveMethod = "search_rank"
     schema_fields: list[dict[str, Any]] = Field(default_factory=list)
 
 

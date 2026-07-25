@@ -14,7 +14,11 @@ from fuse.config import settings
 from fuse.state import Artifact, FuseState, Impact
 
 TEMPLATES = Path(__file__).resolve().parents[1] / "templates"
-env = Environment(loader=FileSystemLoader(TEMPLATES), undefined=StrictUndefined, keep_trailing_newline=True)
+env = Environment(
+    loader=FileSystemLoader(TEMPLATES),
+    undefined=StrictUndefined,
+    keep_trailing_newline=True,
+)
 
 BANNER = {
     "BREAKING": "🔴 **BREAKING** — merging this will break downstream consumers",

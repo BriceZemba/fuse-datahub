@@ -21,7 +21,9 @@ from fuse.state import Change, FuseState
 JINJA_CONFIG = re.compile(r"\{\{\s*config\(.*?\)\s*\}\}", re.DOTALL)
 JINJA_STMT = re.compile(r"\{%.*?%\}", re.DOTALL)
 JINJA_REF = re.compile(r"\{\{\s*ref\(\s*['\"]([\w.]+)['\"]\s*\)\s*\}\}")
-JINJA_SOURCE = re.compile(r"\{\{\s*source\(\s*['\"]([\w]+)['\"]\s*,\s*['\"]([\w]+)['\"]\s*\)\s*\}\}")
+JINJA_SOURCE = re.compile(
+    r"\{\{\s*source\(\s*['\"]([\w]+)['\"]\s*,\s*['\"]([\w]+)['\"]\s*\)\s*\}\}"
+)
 JINJA_ANY = re.compile(r"\{\{.*?\}\}", re.DOTALL)
 
 
@@ -138,7 +140,7 @@ def parse_unified_diff(text: str) -> list[FileDiff]:
     for line in text.splitlines():
         if line.startswith("+++ "):
             path = line[4:].strip()
-            path = path[2:] if path.startswith("b/") else path
+            path = path.removeprefix("b/")
             current = FileDiff(path=path, hunks=[], deleted=path == "/dev/null")
             files.append(current)
             hunk = None
