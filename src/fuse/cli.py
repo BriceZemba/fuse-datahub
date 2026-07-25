@@ -228,6 +228,20 @@ def spike(
 
                 # get_lineage does not traverse MLFeature.sources, so check the ML
                 # aspects directly — this is the path Fuse actually uses.
+                via_graphql = await ml_graph._urns_via_graphql()
+                console.print(f"\nML URNs via GraphQL by type: [bold]{len(via_graphql)}[/]")
+                for candidate in via_graphql[:20]:
+                    console.print(f"  {candidate}")
+
+                probe = await _try(dh, "get_entities", {"urns": [
+                    "urn:li:mlModel:(urn:li:dataPlatform:mlflow,customer_churn_model,PROD)",
+                    "urn:li:mlFeature:(customer_churn,credit_limit)",
+                ]})
+                console.print(
+                    "\nDirect get_entities on the seeded URNs:\n  "
+                    + json.dumps(probe, default=str)[:600]
+                )
+
                 entities = await ml_graph.ml_entities(dh.call)
                 (out / "11-ml-entities.json").write_text(
                     json.dumps(entities, indent=2, default=str)[:400_000], encoding="utf-8"

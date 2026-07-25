@@ -34,14 +34,75 @@ ML_PREFIXES = (
 MAX_ML_ENTITIES = 200
 
 
-async def ml_entities(call: Any, query: str = "*") -> list[dict]:
-    """Every ML entity in the catalog, hydrated."""
-    payload = await call("search", query=query, num_results=MAX_ML_ENTITIES)
-    urns = [
+ML_GRAPHQL_TYPES = "[MLFEATURE, MLFEATURE_TABLE, MLMODEL, MLMODEL_GROUP, MLMODEL_DEPLOYMENT]"
+
+# Keep the projection to `urn` only: every extra GraphQL field is another schema
+# assumption that can break. Details come back through get_entities, whose shape is
+# pinned by tests.
+ML_URN_QUERY = f"""
+query mlUrns($count: Int!) {{
+  searchAcrossEntities(
+    input: {{ query: "*", count: $count, start: 0, types: {ML_GRAPHQL_TYPES} }}
+  ) {{
+    total
+    searchResults {{ entity {{ urn }} }}
+  }}
+}}
+"""
+
+
+async def ml_urns(call: Any) -> list[str]:
+    """URNs of every ML entity in the catalog.
+
+    Keyword search does not surface ML entity types, so this asks GMS directly for
+    them by type. Falls back to the MCP search in case a future server does return
+    them there.
+    """
+    urns = await _urns_via_graphql()
+    if urns:
+        return urns
+
+    payload = await call("search", query="*", num_results=MAX_ML_ENTITIES)
+    return [
         str(e["urn"])
         for e in shapes.search_results(payload)
         if str(e.get("urn", "")).startswith(ML_PREFIXES)
     ]
+
+
+async def _urns_via_graphql() -> list[str]:
+    import httpx
+
+    from fuse.config import settings
+
+    headers = {"Content-Type": "application/json"}
+    if settings.gms_token:
+        headers["Authorization"] = f"Bearer {settings.gms_token}"
+    try:
+        async with httpx.AsyncClient(timeout=30) as client:
+            response = await client.post(
+                f"{settings.gms_url.rstrip('/')}/api/graphql",
+                headers=headers,
+                json={"query": ML_URN_QUERY, "variables": {"count": MAX_ML_ENTITIES}},
+            )
+            response.raise_for_status()
+            payload = response.json()
+    except Exception:
+        return []
+
+    results = (
+        payload.get("data", {}).get("searchAcrossEntities", {}).get("searchResults") or []
+    )
+    return [
+        str(r["entity"]["urn"])
+        for r in results
+        if isinstance(r, dict) and isinstance(r.get("entity"), dict) and r["entity"].get("urn")
+    ]
+
+
+async def ml_entities(call: Any) -> list[dict]:
+    """Every ML entity in the catalog, hydrated."""
+    urns = await ml_urns(call)
     if not urns:
         return []
     return shapes.entities(await call("get_entities", urns=urns))
