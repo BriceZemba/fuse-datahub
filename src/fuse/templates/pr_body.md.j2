@@ -5,11 +5,27 @@
 
 ## Impact
 
+{% set actionable = impacts | rejectattr('severity', 'equalto', 'SAFE') | list %}
+{% set quiet = impacts | selectattr('severity', 'equalto', 'SAFE') | list %}
+{%- if actionable %}
 | Asset | Type | Hops | Severity | Score | Evidence | Owners |
 |---|---|---|---|---|---|---|
-{%- for i in impacts %}
+{%- for i in actionable %}
 | `{{ i.name }}` | {{ i.entity_type }} | {{ i.hops }} | **{{ i.severity }}** | {{ i.score }} | {{ i.evidence | join('; ') if i.evidence else '—' }} | {{ i.owners | join(', ') if i.owners else '_unowned_' }} |
 {%- endfor %}
+{%- else %}
+Nothing downstream scored above SAFE.
+{%- endif %}
+
+{% if quiet %}<details><summary>{{ quiet | length }} further asset(s) scored SAFE — listed for the record</summary>
+
+| Asset | Type | Hops | Score |
+|---|---|---|---|
+{%- for i in quiet %}
+| `{{ i.name }}` | {{ i.entity_type }} | {{ i.hops }} | {{ i.score }} |
+{%- endfor %}
+
+</details>{% endif %}
 
 {% set ml = impacts | selectattr('entity_type', 'in', ['mlFeature', 'mlFeatureTable', 'mlModel', 'mlModelGroup', 'mlModelDeployment']) | list %}
 {%- if ml %}

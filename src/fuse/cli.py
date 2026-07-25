@@ -177,6 +177,7 @@ def doctor() -> None:
 @app.command()
 def spike(
     query: str = typer.Option("orders", "--query", help="Search term to probe the catalog with"),
+    urn: str = typer.Option("", "--urn", help="Probe this URN directly instead of searching"),
     out: Path = typer.Option(Path("docs/spike-raw"), "--out"),
 ) -> None:
     """Dump the real MCP tool signatures and response shapes.
@@ -205,6 +206,27 @@ def spike(
                 params = ", ".join(args) if isinstance(args, dict) else "?"
                 console.print(f"  {name}({params})")
 
+            if urn:
+                # Direct probe: what does DataHub consider downstream of this exact
+                # entity, and does that include ML entities?
+                payload = await _try(dh, "get_lineage", {"urn": urn, "upstream": False,
+                                                         "max_hops": 3})
+                (out / "10-get_lineage-direct.json").write_text(
+                    json.dumps(payload, indent=2, default=str)[:400_000], encoding="utf-8"
+                )
+                pairs = shapes.lineage_results(payload)
+                console.print(f"[bold]{len(pairs)} downstream of[/] {urn}")
+                for entity, degree in pairs:
+                    console.print(
+                        f"  {degree}  {shapes.entity_type(entity):<20} "
+                        f"{shapes.entity_name(entity)}"
+                    )
+                ml = [e for e, _ in pairs if shapes.entity_type(e).startswith("ml")]
+                console.print(
+                    f"\n[bold]{'ML entities found' if ml else 'NO ML entities downstream'}[/]"
+                )
+                return
+
             probes: list[tuple[str, str, dict]] = [("search", "search", {"query": query})]
             recorded: dict[str, object] = {}
 
@@ -219,9 +241,9 @@ def spike(
             console.print(f"\n[bold]raw search response[/] ({len(raw)} chars):")
             console.print(raw[:1500] or "(empty)")
 
-            urn = _first_urn(recorded.get("search"))
-            console.print(f"\nfirst URN from search: [bold]{urn or 'NONE FOUND'}[/]")
-            if not urn:
+            found_urn = _first_urn(recorded.get("search"))
+            console.print(f"\nfirst URN from search: [bold]{found_urn or 'NONE FOUND'}[/]")
+            if not found_urn:
                 console.print(
                     "[yellow]No URN parsed. Either the catalog is empty (re-run "
                     "`datahub datapack load showcase-ecommerce`) or the response is text "
@@ -230,10 +252,10 @@ def spike(
                 return
 
             follow_ups = [
-                ("list_schema_fields", {"urn": urn}),
-                ("get_entities", {"urns": [urn]}),
-                ("get_lineage", {"urn": urn, "upstream": False, "max_hops": 2}),
-                ("get_dataset_queries", {"urn": urn}),
+                ("list_schema_fields", {"urn": found_urn}),
+                ("get_entities", {"urns": [found_urn]}),
+                ("get_lineage", {"urn": found_urn, "upstream": False, "max_hops": 2}),
+                ("get_dataset_queries", {"urn": found_urn}),
             ]
             for index, (tool_name, args) in enumerate(follow_ups, start=2):
                 payload = await _try(dh, tool_name, args)

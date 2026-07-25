@@ -10,11 +10,27 @@ not inferred from file names.
 
 ## Who is affected
 
-| Asset | Type | Hops | Severity | Score | Strategy |
-|---|---|---|---|---|---|
-{%- for i in impacts %}
-| `{{ i.name }}` | {{ i.entity_type }} | {{ i.hops }} | **{{ i.severity }}** | {{ i.score }} | {{ plan.get(i.urn, 'no_action') }} |
+{% set actionable = impacts | rejectattr('severity', 'equalto', 'SAFE') | list %}
+{% set quiet = impacts | selectattr('severity', 'equalto', 'SAFE') | list %}
+{%- if actionable %}
+| Asset | Type | Hops | Severity | Score | Evidence | Strategy |
+|---|---|---|---|---|---|---|
+{%- for i in actionable %}
+| `{{ i.name }}` | {{ i.entity_type }} | {{ i.hops }} | **{{ i.severity }}** | {{ i.score }} | {{ i.evidence | join('; ') if i.evidence else '—' }} | {{ plan.get(i.urn, 'no_action') }} |
 {%- endfor %}
+{%- else %}
+No consumer scored above SAFE.
+{%- endif %}
+
+{% if quiet %}<details><summary>{{ quiet | length }} further asset(s) scored SAFE</summary>
+
+| Asset | Type | Hops | Score |
+|---|---|---|---|
+{%- for i in quiet %}
+| `{{ i.name }}` | {{ i.entity_type }} | {{ i.hops }} | {{ i.score }} |
+{%- endfor %}
+
+</details>{% endif %}
 
 ## Order of operations
 
@@ -26,8 +42,8 @@ not inferred from file names.
 
 ## Owners to notify
 
-{% for i in impacts %}{% if i.owners %}- `{{ i.name }}`: {{ i.owners | join(', ') }}
-{% endif %}{% endfor %}
+{% for i in actionable %}{% if i.owners %}- `{{ i.name }}`: {{ i.owners | join(', ') }}
+{% endif %}{% endfor %}{% if not actionable %}_Nothing scored above SAFE; no notification needed._{% endif %}
 
 ## Rollback
 
