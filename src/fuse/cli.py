@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import re
 import uuid
 from pathlib import Path
 
@@ -213,16 +214,24 @@ def spike(
                     json.dumps(payload, indent=2, default=str)[:200_000], encoding="utf-8"
                 )
 
+            raw = json.dumps(recorded.get("search"), default=str)
+            console.print(f"\n[bold]raw search response[/] ({len(raw)} chars):")
+            console.print(raw[:1500] or "(empty)")
+
             urn = _first_urn(recorded.get("search"))
             console.print(f"\nfirst URN from search: [bold]{urn or 'NONE FOUND'}[/]")
             if not urn:
-                console.print("[yellow]Catalog looks empty — did the datapack load?[/]")
+                console.print(
+                    "[yellow]No URN parsed. Either the catalog is empty (re-run "
+                    "`datahub datapack load showcase-ecommerce`) or the response is text "
+                    "rather than JSON — the raw dump above tells us which.[/]"
+                )
                 return
 
             follow_ups = [
                 ("list_schema_fields", {"urn": urn}),
                 ("get_entities", {"urns": [urn]}),
-                ("get_lineage", {"urn": urn, "direction": "DOWNSTREAM"}),
+                ("get_lineage", {"urn": urn, "upstream": False, "max_hops": 2}),
                 ("get_dataset_queries", {"urn": urn}),
             ]
             for index, (tool_name, args) in enumerate(follow_ups, start=2):
@@ -255,10 +264,18 @@ async def _try(dh: DataHubMCP, tool: str, args: dict) -> object:
         return {"__error__": f"{exc.__class__.__name__}: {exc}", "__args__": args}
 
 
+URN_PATTERN = re.compile(r"urn:li:[a-zA-Z]+:\([^)]*\)|urn:li:[a-zA-Z]+:[\w.\-]+")
+
+
 def _first_urn(payload: object) -> str | None:
-    """Find the first urn anywhere in a response, whatever its shape."""
-    if isinstance(payload, str) and payload.startswith("urn:li:"):
-        return payload
+    """Find the first urn anywhere in a response, whatever its shape.
+
+    MCP tools may answer with structured JSON or with a text blob, so this searches
+    strings for a URN rather than only accepting one that starts with the prefix.
+    """
+    if isinstance(payload, str):
+        match = URN_PATTERN.search(payload)
+        return match.group(0) if match else None
     if isinstance(payload, dict):
         if isinstance(payload.get("urn"), str):
             return payload["urn"]

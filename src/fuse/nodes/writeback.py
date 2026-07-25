@@ -48,33 +48,46 @@ async def write_back(state: FuseState) -> dict:
     report = _report_markdown(state)
 
     breaking = [i for i in impacts if i.severity in {"BREAKING", "RISKY"}]
+    targets = breaking or impacts
     tag = TAG_PENDING if breaking else TAG_SAFE
 
-    for impact in breaking or impacts:
+    # add_tags takes a list of entities, so the whole blast radius is one call.
+    if targets:
         try:
-            await dh.call("add_tags", urn=impact.urn, tag_urns=[tag])
-            result.tagged.append(impact.urn)
+            await dh.call("add_tags", tag_urns=[tag], entity_urns=[i.urn for i in targets])
+            result.tagged = [i.urn for i in targets]
+        except Exception as exc:
+            result.errors.append(f"add_tags: {exc.__class__.__name__}: {exc}")
+
+        # Structured properties need the property definition registered up front; if the
+        # instance has not been bootstrapped for it, this is a warning, not a failure.
+        try:
             await dh.call(
                 "add_structured_properties",
-                urn=impact.urn,
-                properties={
-                    "fuse.blast_radius_score": impact.score,
-                    "fuse.severity": impact.severity,
-                    "fuse.last_checked": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-                    "fuse.run_id": run_id,
-                },
+                property_values=[
+                    {"propertyUrn": "urn:li:structuredProperty:fuse.blast_radius_score",
+                     "values": [max(i.score for i in targets)]},
+                    {"propertyUrn": "urn:li:structuredProperty:fuse.severity",
+                     "values": [state.get("max_severity", "SAFE")]},
+                    {"propertyUrn": "urn:li:structuredProperty:fuse.run_id",
+                     "values": [run_id]},
+                    {"propertyUrn": "urn:li:structuredProperty:fuse.last_checked",
+                     "values": [datetime.now(timezone.utc).isoformat(timespec="seconds")]},
+                ],
+                entity_urns=[i.urn for i in targets],
             )
-            result.properties_set.append(impact.urn)
+            result.properties_set = [i.urn for i in targets]
         except Exception as exc:
-            result.errors.append(f"{impact.urn}: {exc.__class__.__name__}: {exc}")
+            result.errors.append(f"add_structured_properties: {exc.__class__.__name__}: {exc}")
 
-    # Annotate the changed asset itself so the deprecation is visible where people look.
+    # Annotate the exact column being removed, where an engineer will actually see it.
     for asset in state.get("resolved", []):
         if asset.change.kind in {"drop_column", "rename_column"} and asset.change.column:
             try:
                 await dh.call(
                     "update_description",
-                    urn=asset.urn,
+                    entity_urn=asset.urn,
+                    column_path=asset.change.column,
                     description=(
                         f"[Fuse] `{asset.change.column}` is being removed by run {run_id}. "
                         f"{len(breaking)} downstream asset(s) affected. See the Fuse impact report."
@@ -89,6 +102,7 @@ async def write_back(state: FuseState) -> dict:
             "save_document",
             title=f"Fuse impact report — {run_id}",
             content=report,
+            related_assets=[i.urn for i in impacts],
         )
         result.document_urn = saved.get("urn") if isinstance(saved, dict) else None
     except Exception as exc:

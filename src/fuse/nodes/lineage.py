@@ -36,6 +36,10 @@ def entity_type_of(urn: str, node: dict) -> str:
     return "dataset"
 
 
+def _is_error(payload: Any) -> bool:
+    return isinstance(payload, dict) and ("__error__" in payload or "error" in payload)
+
+
 def _hops(node: dict, default: int = 1) -> int:
     for key in ("degree", "hops", "distance"):
         if isinstance(node.get(key), int):
@@ -50,9 +54,18 @@ async def trace_lineage(state: FuseState) -> dict:
     graph: dict[str, dict] = {}
 
     for asset in state.get("resolved", []):
-        payload = await dh.call(
-            "get_lineage", urn=asset.urn, direction="DOWNSTREAM", max_hops=hops
-        )
+        # `column` makes this column-level: DataHub returns only what actually depends
+        # on the changed field, not everything downstream of the table.
+        args: dict[str, Any] = {"urn": asset.urn, "upstream": False, "max_hops": hops}
+        if asset.change.column:
+            args["column"] = asset.change.column
+
+        payload = await dh.call("get_lineage", **args)
+        if _is_error(payload) and "column" in args:
+            trace.append("lineage: column-level lineage unavailable, falling back to table-level")
+            args.pop("column")
+            payload = await dh.call("get_lineage", **args)
+
         for node in _nodes(payload):
             urn = node.get("urn") or node.get("entity", {}).get("urn", "")
             if not urn or urn == asset.urn:
@@ -82,8 +95,13 @@ async def trace_lineage(state: FuseState) -> dict:
 
     for urn, entry in graph.items():
         if entry["type"] == "dataset":
+            # Scoping to the changed column asks DataHub for the evidence directly
+            # instead of pulling every query and filtering locally.
+            query_args: dict[str, Any] = {"urn": urn}
+            if entry.get("from_column"):
+                query_args["column"] = entry["from_column"]
             try:
-                entry["queries"] = await dh.call("get_dataset_queries", urn=urn)
+                entry["queries"] = await dh.call("get_dataset_queries", **query_args)
             except Exception as exc:  # evidence is best-effort, never fatal
                 trace.append(f"lineage: no queries for {urn} ({exc.__class__.__name__})")
 
