@@ -33,6 +33,18 @@ def test_ml_model_outranks_a_plain_dataset_at_the_same_distance(engine):
     assert ml > dataset
 
 
+def test_a_direct_child_carrying_the_column_is_breaking(engine):
+    """The commonest real case in the showcase catalog: a mart one hop downstream whose
+    own schema has the dropped column. Reporting that as merely RISKY understates it."""
+    score, severity, reasons = engine.score(
+        change=DROP, entity_type="dataset", hops=1, references_column=False,
+        schema_contains_column=True, owners=["urn:li:corpuser:ana"],
+    )
+    assert severity == "BREAKING"
+    assert score >= 60
+    assert any("directly from the changed table" in r for r in reasons)
+
+
 def test_distance_reduces_score(engine):
     near, _, _ = engine.score(change=DROP, entity_type="dataset", hops=1,
                               references_column=True, owners=["x"])

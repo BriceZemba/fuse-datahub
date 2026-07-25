@@ -74,7 +74,11 @@ async def generate_code(state: FuseState) -> dict:
 
     change = resolved[0].change if resolved else None
     allowed = _allowed_columns(resolved, change.column if change else None)
-    artifacts: list[Artifact] = []
+
+    # Keyed by path: some strategies produce one artifact per changed model, not one
+    # per impacted asset, and writing the same file once per consumer is both wrong
+    # and unreadable in a PR.
+    artifacts: dict[str, Artifact] = {}
 
     for impact in impacts:
         strategy = plan.get(impact.urn, "no_action")
@@ -82,65 +86,69 @@ async def generate_code(state: FuseState) -> dict:
             continue
 
         if strategy == "add_compat_view" and change:
-            artifacts.append(
-                Artifact(
-                    path=f"models/compat/{change.model}_compat.sql",
+            # One view per changed model, listing every consumer that needs it.
+            path = f"models/compat/{change.model}_compat.sql"
+            consumers = _consumers_for(impacts, plan, "add_compat_view")
+            artifacts[path] = Artifact(
+                path=path,
+                kind="compat_view",
+                content=_template(
+                    "compat_view.sql.j2",
+                    model=change.model,
+                    column=change.column,
+                    consumer=", ".join(consumers),
+                    columns=allowed,
+                    dialect=dialect,
+                ),
+            )
+        elif strategy == "backfill" and change:
+            path = f"scripts/backfill_{_slug(impact.name)}.py"
+            artifacts[path] = Artifact(
+                path=path,
+                kind="backfill",
+                content=_template(
+                    "backfill.py.j2",
+                    model=change.model,
+                    column=change.column,
+                    consumer=impact.name,
+                    urn=impact.urn,
+                ),
+            )
+        elif strategy == "add_contract_test" and change:
+            # One contract per changed model, regardless of how many consumers exist.
+            path = f"models/{change.model}_schema.yml"
+            artifacts[path] = Artifact(
+                path=path,
+                kind="dbt_test",
+                content=_template(
+                    "schema_contract.yml.j2",
+                    model=change.model,
+                    columns=allowed,
+                    removed=change.column,
+                ),
+            )
+        elif strategy == "rewrite_sql" and change:
+            sql = _consumer_sql(state, impact)
+            if llm is None or not sql:
+                # Nothing to rewrite from: a compatibility view is always safe, and one
+                # per changed model is enough.
+                path = f"models/compat/{change.model}_compat.sql"
+                artifacts[path] = Artifact(
+                    path=path,
                     kind="compat_view",
                     content=_template(
                         "compat_view.sql.j2",
                         model=change.model,
                         column=change.column,
-                        consumer=impact.name,
+                        consumer=", ".join(_consumers_for(impacts, plan, "rewrite_sql")),
                         columns=allowed,
                         dialect=dialect,
                     ),
-                )
-            )
-        elif strategy == "backfill" and change:
-            artifacts.append(
-                Artifact(
-                    path=f"scripts/backfill_{change.model}.py",
-                    kind="backfill",
-                    content=_template(
-                        "backfill.py.j2",
-                        model=change.model,
-                        column=change.column,
-                        consumer=impact.name,
-                        urn=impact.urn,
-                    ),
-                )
-            )
-        elif strategy == "add_contract_test" and change:
-            artifacts.append(
-                Artifact(
-                    path=f"models/{change.model}_schema.yml",
-                    kind="dbt_test",
-                    content=_template(
-                        "schema_contract.yml.j2",
-                        model=change.model,
-                        columns=allowed,
-                        removed=change.column,
-                    ),
-                )
-            )
-        elif strategy == "rewrite_sql" and change:
-            sql = _consumer_sql(state, impact)
-            if llm is None or not sql:
-                # No model available: fall back to a compat view, which is always safe.
-                artifacts.append(
-                    Artifact(
-                        path=f"models/compat/{change.model}_compat.sql",
-                        kind="compat_view",
-                        content=_template(
-                            "compat_view.sql.j2",
-                            model=change.model,
-                            column=change.column,
-                            consumer=impact.name,
-                            columns=allowed,
-                            dialect=dialect,
-                        ),
-                        notes=["generated without an LLM: compatibility view instead of a rewrite"],
-                    )
+                    notes=[
+                        "no consumer SQL available"
+                        if llm
+                        else "generated without an LLM: compatibility view instead of a rewrite"
+                    ],
                 )
             else:
                 rendered = await llm.ainvoke(
@@ -161,37 +169,35 @@ async def generate_code(state: FuseState) -> dict:
                     )
                 )
                 body = rendered.content if hasattr(rendered, "content") else str(rendered)
-                artifacts.append(
-                    Artifact(
-                        path=f"models/{_slug(impact.name)}.sql",
-                        kind="dbt_model",
-                        content=_strip_fences(body),
-                    )
+                path = f"models/{_slug(impact.name)}.sql"
+                artifacts[path] = Artifact(
+                    path=path,
+                    kind="dbt_model",
+                    content=_strip_fences(body),
                 )
 
     if change:
-        artifacts.append(
-            Artifact(
-                path="MIGRATION.md",
-                kind="migration_doc",
-                content=_template(
-                    "migration.md.j2",
-                    change=change,
-                    impacts=impacts,
-                    plan=plan,
-                ),
-            )
+        artifacts["MIGRATION.md"] = Artifact(
+            path="MIGRATION.md",
+            kind="migration_doc",
+            content=_template("migration.md.j2", change=change, impacts=impacts, plan=plan),
         )
 
-    trace.append(f"codegen: {len(artifacts)} artifact(s) (attempt {retries + 1})")
-    return {"artifacts": artifacts, "retries": retries + 1, "validation_errors": [], "trace": trace}
+    produced = list(artifacts.values())
+    trace.append(f"codegen: {len(produced)} artifact(s) (attempt {retries + 1})")
+    return {"artifacts": produced, "retries": retries + 1, "validation_errors": [], "trace": trace}
+
+
+def _consumers_for(impacts: list[Impact], plan: dict, strategy: str) -> list[str]:
+    """Names of the assets a shared artifact is being generated for."""
+    return [i.name for i in impacts if plan.get(i.urn) == strategy][:8]
 
 
 def _consumer_sql(state: FuseState, impact: Impact) -> str:
     entry = (state.get("lineage_graph") or {}).get(impact.urn, {})
-    queries = entry.get("queries")
-    rows = queries if isinstance(queries, list) else (queries or {}).get("queries", [])
-    for row in rows if isinstance(rows, list) else []:
+    for row in entry.get("queries") or []:
+        if isinstance(row, tuple) and len(row) == 2:
+            return str(row[1])
         if isinstance(row, dict):
             sql = row.get("statement") or row.get("sql") or row.get("query")
             if sql:

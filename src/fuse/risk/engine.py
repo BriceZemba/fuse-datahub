@@ -81,8 +81,12 @@ class RiskEngine:
             total += rules["tier"][tier]
             reasons.append(f"+{rules['tier'][tier]} {tier} asset")
 
-        decay = rules["modifiers"]["per_hop_decay"] * max(hops - 1, 0)
-        if decay:
+        if hops <= 1:
+            bonus = rules["modifiers"]["direct_dependency"]
+            total += bonus
+            reasons.append(f"+{bonus} reads directly from the changed table")
+        else:
+            decay = rules["modifiers"]["per_hop_decay"] * (hops - 1)
             total -= decay
             reasons.append(f"-{decay} {hops} hops downstream")
 

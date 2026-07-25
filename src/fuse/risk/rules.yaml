@@ -26,6 +26,10 @@ tier:
 
 modifiers:
   per_hop_decay: 3            # subtracted per hop of distance
+  # Reads straight from the changed table. Combined with a schema hit this reaches
+  # BREAKING on its own, which is intended: a one-hop consumer carrying the dropped
+  # column is about as certain as it gets without a query to prove it.
+  direct_dependency: 25
   queried_last_30d: 10
   no_owner: 5                 # nobody is watching this one
 
