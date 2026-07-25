@@ -41,6 +41,7 @@ class RiskEngine:
         hops: int,
         references_column: bool,
         column_lineage_edge: bool = False,
+        ml_derivation: bool = False,
         schema_contains_column: bool = False,
         tier: str | None = None,
         owners: list[str] | None = None,
@@ -59,6 +60,11 @@ class RiskEngine:
             total += rules["base"]["column_lineage_edge"]
             reasons.append(
                 f"+{rules['base']['column_lineage_edge']} column-level lineage edge in DataHub"
+            )
+        elif ml_derivation:
+            total += rules["base"]["ml_derivation"]
+            reasons.append(
+                f"+{rules['base']['ml_derivation']} declared as a source of this ML entity"
             )
         elif schema_contains_column:
             total += rules["base"]["schema_contains_column"]

@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from fuse.datahub import shapes
+from fuse.datahub import ml_graph, shapes
 from fuse.runtime import RT
 from fuse.state import FuseState
 
@@ -86,6 +86,36 @@ async def trace_lineage(state: FuseState) -> dict:
             )
             entry["hops"] = min(entry["hops"], degree)
             entry["column_edge"] = entry["column_edge"] or column_scoped
+
+    # ML entities are not reachable through get_lineage: MLFeature.sources is an aspect,
+    # not a lineage edge. Without this pass a column feeding a deployed model looks
+    # completely safe — which is the failure mode the ML challenge is about.
+    ml_entities = await ml_graph.ml_entities(dh.call)
+    if ml_entities:
+        for asset in state.get("resolved", []):
+            for entity, degree in ml_graph.dependents_of(asset.urn, ml_entities):
+                urn = str(entity["urn"])
+                graph.setdefault(
+                    urn,
+                    {
+                        "urn": urn,
+                        "type": shapes.entity_type(entity),
+                        "name": shapes.entity_name(entity),
+                        "platform": shapes.platform_of(entity),
+                        "hops": degree,
+                        "from_urn": asset.urn,
+                        "from_column": asset.change.column,
+                        "column_edge": False,
+                        "owners": _dedupe(shapes.owners_of(entity)),
+                        "tier": shapes.tier_of(entity),
+                        "tags": shapes.tag_names(entity),
+                        "schema_hit": None,
+                        "ml_path": True,
+                        "queries": [],
+                    },
+                )
+    else:
+        trace.append("lineage: no ML entities in the catalog")
 
     # Lineage results already carry owners and tags for most entities; fill the gaps.
     missing = [urn for urn, entry in graph.items() if not entry["owners"]]

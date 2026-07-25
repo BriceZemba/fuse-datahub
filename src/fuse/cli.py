@@ -19,7 +19,7 @@ from rich.table import Table
 
 from fuse import __version__
 from fuse.config import settings
-from fuse.datahub import shapes
+from fuse.datahub import ml_graph, shapes
 from fuse.datahub.mcp_client import DataHubMCP, GMSUnreachable, probe_gms
 from fuse.graph import build_graph
 from fuse.llm.provider import get_llm, llm_available
@@ -223,8 +223,32 @@ def spike(
                     )
                 ml = [e for e, _ in pairs if shapes.entity_type(e).startswith("ml")]
                 console.print(
-                    f"\n[bold]{'ML entities found' if ml else 'NO ML entities downstream'}[/]"
+                    f"\n[bold]{'ML entities in lineage' if ml else 'NO ML entities in lineage'}[/]"
                 )
+
+                # get_lineage does not traverse MLFeature.sources, so check the ML
+                # aspects directly — this is the path Fuse actually uses.
+                entities = await ml_graph.ml_entities(dh.call)
+                (out / "11-ml-entities.json").write_text(
+                    json.dumps(entities, indent=2, default=str)[:400_000], encoding="utf-8"
+                )
+                console.print(f"\n[bold]{len(entities)} ML entit(ies) in the catalog[/]")
+                for entity in entities:
+                    sources = shapes.ml_feature_sources(entity)
+                    features = shapes.ml_features_of(entity)
+                    detail = ""
+                    if sources:
+                        detail = f"  sources={len(sources)}"
+                    elif features:
+                        detail = f"  features={len(features)}"
+                    console.print(f"  {entity.get('urn')}{detail}")
+
+                dependents = ml_graph.dependents_of(urn, entities)
+                console.print(
+                    f"\n[bold]{len(dependents)} ML entit(ies) derived from this dataset[/]"
+                )
+                for entity, degree in dependents:
+                    console.print(f"  {degree}  {entity.get('urn')}")
                 return
 
             probes: list[tuple[str, str, dict]] = [("search", "search", {"query": query})]

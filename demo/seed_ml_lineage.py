@@ -189,9 +189,11 @@ def build_mcps(upstream_dataset: str) -> list[MetadataChangeProposalWrapper]:
     return mcps
 
 
-# Warehouse platforms hold the tables a model trains on. BI platforms sit downstream
-# of them, so a Tableau or PowerBI hit is almost always the wrong upstream.
-SOURCE_PLATFORMS = ("snowflake", "dbt", "bigquery", "postgres", "redshift", "spark", "s3")
+# Warehouse and transformation platforms hold the tables a model trains on; BI
+# platforms sit downstream of them. Order matches fuse.nodes.resolve.PLATFORM_RANK on
+# purpose: the seed and the agent must land on the same URN, or the features hang off
+# a table the agent never looks at.
+SOURCE_PLATFORMS = ("dbt", "snowflake", "bigquery", "redshift", "postgres", "spark", "s3")
 
 
 def _dataset_candidates(client, query: str) -> list[tuple[int, str]]:

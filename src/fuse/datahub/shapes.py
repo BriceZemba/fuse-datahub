@@ -247,6 +247,51 @@ def term_names(entity: dict) -> list[str]:
     return out
 
 
+def _properties(entity: dict) -> dict:
+    properties = entity.get("properties")
+    return properties if isinstance(properties, dict) else {}
+
+
+def _urn_list(entity: dict, *keys: str) -> list[str]:
+    """Read a list of URNs that may sit on the entity or inside its properties."""
+    properties = _properties(entity)
+    for key in keys:
+        for holder in (entity, properties):
+            value = holder.get(key)
+            if isinstance(value, list):
+                out = []
+                for item in value:
+                    if isinstance(item, str):
+                        out.append(item)
+                    elif isinstance(item, dict) and isinstance(item.get("urn"), str):
+                        out.append(item["urn"])
+                if out:
+                    return out
+    return []
+
+
+def ml_feature_sources(entity: dict) -> list[str]:
+    """Datasets an MLFeature is derived from.
+
+    This is *not* a lineage edge — `get_lineage` does not traverse it — so ML impact
+    has to be resolved by reading the aspect directly.
+    """
+    return _urn_list(entity, "sources")
+
+
+def ml_features_of(entity: dict) -> list[str]:
+    """Features referenced by an MLFeatureTable or an MLModel."""
+    return _urn_list(entity, "mlFeatures", "features")
+
+
+def ml_deployments_of(entity: dict) -> list[str]:
+    return _urn_list(entity, "deployments")
+
+
+def ml_groups_of(entity: dict) -> list[str]:
+    return _urn_list(entity, "groups")
+
+
 def tier_of(entity: dict) -> str | None:
     """Tier comes from tags or glossary terms; DataHub has no first-class field."""
     haystack = " ".join(tag_names(entity) + term_names(entity)).lower()

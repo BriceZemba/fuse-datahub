@@ -7,6 +7,7 @@
 base:
   hard_column_reference: 55   # sqlglot proves the consumer selects the changed column
   column_lineage_edge: 45     # DataHub column-level lineage links the column
+  ml_derivation: 45           # an ML feature names this dataset in its sources aspect
   schema_contains_column: 35  # the consumer's own schema has a field of that name
   table_only_dependency: 10   # depends on the table, no column-level proof
 
