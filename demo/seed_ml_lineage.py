@@ -232,7 +232,9 @@ def main() -> None:
     parser.add_argument("--server", default=os.getenv("DATAHUB_GMS_URL", "http://localhost:8080"))
     parser.add_argument("--token", default=os.getenv("DATAHUB_GMS_TOKEN", ""))
     parser.add_argument("--upstream", default=None, help="Dataset URN the features read from")
-    parser.add_argument("--query", default="customer", help="Search term used to find it")
+    # Defaults to the table demo/dbt-shop/models/marts/customers.sql resolves to, so
+    # scenario 03 traces from the diff into the features seeded here.
+    parser.add_argument("--query", default="customers", help="Search term used to find it")
     parser.add_argument("--check", action="store_true", help="Build every aspect, emit nothing")
     parser.add_argument("--list", action="store_true", help="Print upstream candidates and exit")
     args = parser.parse_args()

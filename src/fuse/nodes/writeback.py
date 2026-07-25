@@ -39,11 +39,28 @@ def _report_markdown(state: FuseState) -> str:
     return "\n".join(lines) + "\n"
 
 
+def _document_urn(saved: object) -> str | None:
+    if isinstance(saved, dict):
+        for key in ("urn", "documentUrn", "document_urn"):
+            if isinstance(saved.get(key), str):
+                return saved[key]
+        document = saved.get("document")
+        if isinstance(document, dict) and isinstance(document.get("urn"), str):
+            return document["urn"]
+    return None
+
+
+def _skipped(response: object) -> bool:
+    """A dry run returns a marker instead of writing. Counting those as successes
+    would make the report claim changes that never happened."""
+    return isinstance(response, dict) and bool(response.get("dry_run"))
+
+
 async def write_back(state: FuseState) -> dict:
     dh = RT.require_dh()
     impacts: list[Impact] = state.get("impacts", [])
     run_id = state.get("run_id", "local")
-    result = WriteBackResult(run_id=run_id)
+    result = WriteBackResult(run_id=run_id, dry_run=RT.dry_run)
     trace = list(state.get("trace", []))
     report = _report_markdown(state)
 
@@ -54,15 +71,18 @@ async def write_back(state: FuseState) -> dict:
     # add_tags takes a list of entities, so the whole blast radius is one call.
     if targets:
         try:
-            await dh.call("add_tags", tag_urns=[tag], entity_urns=[i.urn for i in targets])
-            result.tagged = [i.urn for i in targets]
+            response = await dh.call(
+                "add_tags", tag_urns=[tag], entity_urns=[i.urn for i in targets]
+            )
+            if not _skipped(response):
+                result.tagged = [i.urn for i in targets]
         except Exception as exc:
             result.errors.append(f"add_tags: {exc.__class__.__name__}: {exc}")
 
         # Structured properties need the property definition registered up front; if the
         # instance has not been bootstrapped for it, this is a warning, not a failure.
         try:
-            await dh.call(
+            response = await dh.call(
                 "add_structured_properties",
                 property_values=[
                     {"propertyUrn": "urn:li:structuredProperty:fuse.blast_radius_score",
@@ -76,7 +96,8 @@ async def write_back(state: FuseState) -> dict:
                 ],
                 entity_urns=[i.urn for i in targets],
             )
-            result.properties_set = [i.urn for i in targets]
+            if not _skipped(response):
+                result.properties_set = [i.urn for i in targets]
         except Exception as exc:
             result.errors.append(f"add_structured_properties: {exc.__class__.__name__}: {exc}")
 
@@ -84,7 +105,7 @@ async def write_back(state: FuseState) -> dict:
     for asset in state.get("resolved", []):
         if asset.change.kind in {"drop_column", "rename_column"} and asset.change.column:
             try:
-                await dh.call(
+                response = await dh.call(
                     "update_description",
                     entity_urn=asset.urn,
                     column_path=asset.change.column,
@@ -93,24 +114,30 @@ async def write_back(state: FuseState) -> dict:
                         f"{len(breaking)} downstream asset(s) affected. See the Fuse impact report."
                     ),
                 )
-                result.described.append(asset.urn)
+                if not _skipped(response):
+                    result.described.append(asset.urn)
             except Exception as exc:
                 result.errors.append(f"{asset.urn}: {exc.__class__.__name__}: {exc}")
 
     try:
         saved = await dh.call(
             "save_document",
+            document_type="Overview",
             title=f"Fuse impact report — {run_id}",
             content=report,
             related_assets=[i.urn for i in impacts],
         )
-        result.document_urn = saved.get("urn") if isinstance(saved, dict) else None
+        if not _skipped(saved):
+            result.document_urn = _document_urn(saved)
     except Exception as exc:
         result.errors.append(f"save_document: {exc.__class__.__name__}: {exc}")
 
-    trace.append(
-        f"writeback: tagged {len(result.tagged)}, described {len(result.described)}, "
-        f"document {'saved' if result.document_urn else 'not saved'}"
-        + (f", {len(result.errors)} error(s)" if result.errors else "")
-    )
+    if result.dry_run:
+        trace.append("writeback: dry run — nothing was written to DataHub")
+    else:
+        trace.append(
+            f"writeback: tagged {len(result.tagged)}, described {len(result.described)}, "
+            f"document {'saved' if result.document_urn else 'not saved'}"
+            + (f", {len(result.errors)} error(s)" if result.errors else "")
+        )
     return {"writeback": result, "report_md": report, "trace": trace}

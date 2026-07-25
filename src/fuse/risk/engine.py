@@ -41,6 +41,7 @@ class RiskEngine:
         hops: int,
         references_column: bool,
         column_lineage_edge: bool = False,
+        schema_contains_column: bool = False,
         tier: str | None = None,
         owners: list[str] | None = None,
         recently_queried: bool = False,
@@ -58,6 +59,12 @@ class RiskEngine:
             total += rules["base"]["column_lineage_edge"]
             reasons.append(
                 f"+{rules['base']['column_lineage_edge']} column-level lineage edge in DataHub"
+            )
+        elif schema_contains_column:
+            total += rules["base"]["schema_contains_column"]
+            reasons.append(
+                f"+{rules['base']['schema_contains_column']} consumer schema has a field "
+                "with that name"
             )
         else:
             total += rules["base"]["table_only_dependency"]

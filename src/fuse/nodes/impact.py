@@ -65,8 +65,11 @@ def assess_impact(state: FuseState) -> dict:
                 evidence.append(f"{query_id} selects {change.model}.{column}")
 
         column_edge = bool(entry.get("column_edge"))
+        schema_hit = entry.get("schema_hit")
         if column_edge and not references:
             evidence.append(f"column-level lineage edge from {change.model}.{column}")
+        elif schema_hit and not references:
+            evidence.append(f"schema carries a field named `{schema_hit}`")
 
         entity_type = entry.get("type", "dataset")
         if entity_type not in VALID_ENTITY_TYPES:
@@ -79,6 +82,7 @@ def assess_impact(state: FuseState) -> dict:
             hops=int(entry.get("hops", 1)),
             references_column=references,
             column_lineage_edge=column_edge,
+            schema_contains_column=bool(schema_hit),
             tier=entry.get("tier"),
             owners=owners,
             recently_queried=bool(entry.get("queries")),

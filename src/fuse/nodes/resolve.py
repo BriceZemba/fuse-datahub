@@ -68,8 +68,21 @@ async def _resolve_one(change: Change, model_columns: set[str]) -> ResolvedAsset
 
     best = scored[0]
     runner_up = scored[1][0] if len(scored) > 1 else 0.0
+
+    # Refuse to guess. A candidate that shares neither a name token nor a single column
+    # with the changed model is not a weak match, it is a different table — and naming
+    # the wrong table is worse than admitting the model is unknown.
+    if best[0] <= 0 and not _name_tokens(change.model) & _name_tokens(
+        shapes.entity_name(best[1])
+    ):
+        return None
+
     method = "schema_match" if best[0] - runner_up >= AMBIGUITY_GAP else "search_rank"
     return await _hydrate(change, best[1], round(min(0.5 + best[0] / 2, 0.99), 2), method)
+
+
+def _name_tokens(name: str) -> set[str]:
+    return {t for t in name.lower().replace("-", "_").split("_") if len(t) > 2}
 
 
 async def _hydrate(change: Change, entity: dict, confidence: float, method: str) -> ResolvedAsset:
@@ -100,7 +113,10 @@ async def resolve(state: FuseState) -> dict:
     for change in changes:
         asset = await _resolve_one(change, by_model.get(change.model, set()))
         if asset is None:
-            trace.append(f"resolve: no DataHub match for {change.model} — change skipped")
+            trace.append(
+                f"resolve: no confident DataHub match for {change.model} — "
+                "skipped rather than reported against the wrong table"
+            )
             continue
         trace.append(
             f"resolve: {change.model} -> {asset.urn} "

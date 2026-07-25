@@ -121,6 +121,7 @@ class Artifact(BaseModel):
 
 class WriteBackResult(BaseModel):
     run_id: str = ""
+    dry_run: bool = False
     tagged: list[str] = Field(default_factory=list)
     described: list[str] = Field(default_factory=list)
     properties_set: list[str] = Field(default_factory=list)

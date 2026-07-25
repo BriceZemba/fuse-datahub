@@ -65,6 +65,40 @@ def test_unowned_assets_score_higher(engine):
     assert orphan > owned
 
 
+def test_evidence_is_ranked_and_only_one_applies(engine):
+    """A schema-name hit is an inference; a proven SQL reference is not. The score has
+    to reflect that ordering, and the reason must name which evidence fired."""
+    proven, _, why_proven = engine.score(
+        change=DROP, entity_type="dataset", hops=1, references_column=True, owners=["x"]
+    )
+    edge, _, _ = engine.score(
+        change=DROP, entity_type="dataset", hops=1, references_column=False,
+        column_lineage_edge=True, owners=["x"],
+    )
+    schema, _, why_schema = engine.score(
+        change=DROP, entity_type="dataset", hops=1, references_column=False,
+        schema_contains_column=True, owners=["x"],
+    )
+    table_only, _, _ = engine.score(
+        change=DROP, entity_type="dataset", hops=1, references_column=False, owners=["x"]
+    )
+
+    assert proven > edge > schema > table_only
+    assert any("selects the changed column" in r for r in why_proven)
+    assert any("field with that name" in r for r in why_schema)
+    assert not any("selects the changed column" in r for r in why_schema)
+
+
+def test_schema_hit_on_a_tier1_dashboard_is_actionable(engine):
+    """The common real case: no query history, no column lineage, but the consumer's
+    own schema carries the column. That must not come out as SAFE."""
+    _, severity, _ = engine.score(
+        change=DROP, entity_type="dashboard", hops=1, references_column=False,
+        schema_contains_column=True, tier="Tier1", owners=[],
+    )
+    assert severity == "BREAKING"
+
+
 def test_every_score_is_explained(engine):
     score, _, reasons = engine.score(change=DROP, entity_type="mlModel", hops=2,
                                      references_column=True, tier="Tier1", owners=[])

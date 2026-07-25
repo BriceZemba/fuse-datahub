@@ -19,9 +19,20 @@ from fuse.state import FuseState
 
 ML_TYPES = {"mlFeature", "mlFeatureTable", "mlModel", "mlModelGroup", "mlModelDeployment"}
 
+# One schema call per downstream dataset, so a very wide blast radius stays bounded.
+SCHEMA_PROBE_LIMIT = 40
+
 
 def _is_error(payload: Any) -> bool:
     return isinstance(payload, dict) and ("__error__" in payload or "error" in payload)
+
+
+def _dedupe(values: list[str]) -> list[str]:
+    """DataHub returns an owner once per ownership type; the report wants people."""
+    seen: dict[str, None] = {}
+    for value in values:
+        seen.setdefault(value, None)
+    return list(seen)
 
 
 async def trace_lineage(state: FuseState) -> dict:
@@ -66,9 +77,10 @@ async def trace_lineage(state: FuseState) -> dict:
                     "from_urn": asset.urn,
                     "from_column": asset.change.column,
                     "column_edge": column_scoped,
-                    "owners": shapes.owners_of(entity),
+                    "owners": _dedupe(shapes.owners_of(entity)),
                     "tier": shapes.tier_of(entity),
                     "tags": shapes.tag_names(entity),
+                    "schema_hit": None,
                     "queries": [],
                 },
             )
@@ -85,6 +97,26 @@ async def trace_lineage(state: FuseState) -> dict:
                 entry["owners"] = entry["owners"] or shapes.owners_of(entity)
                 entry["tier"] = entry["tier"] or shapes.tier_of(entity)
 
+    # Third evidence source, and on most instances the only one that fires: does the
+    # consumer's own schema carry a field with that name? Weaker than a column-lineage
+    # edge — a name collision is possible — but far stronger than a table dependency,
+    # and the report labels it as the inference it is.
+    column = next(
+        (a.change.column for a in state.get("resolved", []) if a.change.column), None
+    )
+    if column:
+        for urn, entry in list(graph.items())[:SCHEMA_PROBE_LIMIT]:
+            if entry["type"] != "dataset":
+                continue
+            try:
+                fields = shapes.field_names(await dh.call("list_schema_fields", urn=urn))
+            except Exception as exc:
+                trace.append(f"lineage: no schema for {urn} ({exc.__class__.__name__})")
+                continue
+            match = next((f for f in fields if f.lower() == column.lower()), None)
+            if match:
+                entry["schema_hit"] = match
+
     for urn, entry in graph.items():
         if entry["type"] != "dataset":
             continue
@@ -98,8 +130,9 @@ async def trace_lineage(state: FuseState) -> dict:
 
     ml_count = sum(1 for e in graph.values() if e["type"] in ML_TYPES)
     with_queries = sum(1 for e in graph.values() if e["queries"])
+    with_schema = sum(1 for e in graph.values() if e.get("schema_hit"))
     trace.append(
         f"lineage: {len(graph)} downstream asset(s), {ml_count} ML entit(ies), "
-        f"{with_queries} with query evidence"
+        f"{with_queries} with query evidence, {with_schema} carrying the column in their schema"
     )
     return {"lineage_graph": graph, "trace": trace}

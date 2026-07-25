@@ -31,7 +31,8 @@ catalog could not confirm was rejected and regenerated.
 
 ## Written back to DataHub
 
-{% if writeback %}- Tagged: {{ writeback.tagged | length }} asset(s)
+{% if writeback and writeback.dry_run %}_Dry run — Fuse read DataHub but wrote nothing. Re-run without `--dry-run` to record the verdict._
+{% elif writeback %}- Tagged: {{ writeback.tagged | length }} asset(s)
 - Structured properties set: {{ writeback.properties_set | length }} asset(s)
 - Descriptions annotated: {{ writeback.described | length }}
 - Impact report saved as a document: {{ 'yes' if writeback.document_urn else 'no' }}
