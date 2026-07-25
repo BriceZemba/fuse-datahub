@@ -8,11 +8,15 @@ output quality without running anything; replay them to watch it happen:
 fuse replay examples/01-drop-column
 ```
 
+Every column named below is a real column of the `showcase-ecommerce` catalog, not an
+invented one — the demo dbt project mirrors `order_entry.orders` and
+`order_entry.customers`, so a local diff lands on the actual DataHub graph.
+
 | Scenario | Input | Why it matters |
 |---|---|---|
-| `01-drop-column` | `discount_code` removed from the `orders` mart | The everyday break: a downstream mart and a dashboard depend on it |
-| `02-type-change` | `order_amount` narrowed from FLOAT to INT | Passes every test and silently truncates money |
-| `03-ml-feature-break` | a column feeding a feature table is removed | Reaches a model deployed to production — the failure nobody sees |
+| `01-drop-column` | `promotion_id` removed from the `orders` mart | It propagates into `order_details` on dbt, Snowflake **and** PowerBI, plus the dashboards built on them |
+| `02-type-change` | `order_total` narrowed from FLOAT to INT | Passes every test and silently truncates money |
+| `03-ml-feature-break` | `credit_limit` removed from `customers` | It is the strongest feature of a churn model serving production traffic |
 
 Layout of each folder:
 

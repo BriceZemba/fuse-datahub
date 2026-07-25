@@ -10,7 +10,9 @@ select
     order_id,
     customer_id,
     order_date,
-    status,
-    discount_code,
-    cast(amount as float) as order_amount
+    order_status,
+    order_mode,
+    promotion_id,
+    payment_method_code,
+    cast(order_total as float) as order_total
 from source

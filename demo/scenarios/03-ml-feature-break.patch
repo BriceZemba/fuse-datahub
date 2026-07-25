@@ -1,10 +1,11 @@
 diff --git a/models/marts/customers.sql b/models/marts/customers.sql
 --- a/models/marts/customers.sql
 +++ b/models/marts/customers.sql
-@@ -10,6 +10,5 @@
+@@ -9,7 +9,6 @@
      customer_id,
-     order_count,
-     lifetime_value,
--    discounted_orders,
-     datediff('day', max_order_date, current_date()) as days_since_last_order
- from {{ ref('order_details') }}
+     customer_class,
+     customer_since,
+-    credit_limit,
+     country_id,
+     region_id
+ from {{ source('order_entry', 'customers') }}

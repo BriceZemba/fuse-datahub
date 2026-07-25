@@ -60,11 +60,15 @@ DEPLOYMENT_ID = "prod-retention-service"
 ACTOR = "urn:li:corpuser:datahub"
 
 # (feature name, description, DataHub feature data type)
+#
+# Named after real columns of `order_entry.customers` in the showcase catalog, so the
+# lineage Fuse traces is literal: drop `credit_limit` upstream and the feature that
+# reads it — and the model serving on it — are genuinely affected.
 FEATURES: list[tuple[str, str, str]] = [
-    ("order_count", "Number of orders placed by the customer", "COUNT"),
-    ("lifetime_value", "Total revenue attributed to the customer", "CONTINUOUS"),
-    ("discounted_orders", "Orders that used a discount code", "COUNT"),
-    ("days_since_last_order", "Recency signal, strongest predictor in the model", "CONTINUOUS"),
+    ("credit_limit", "Customer credit limit; strongest single churn predictor", "CONTINUOUS"),
+    ("customer_class", "Segment the customer belongs to", "NOMINAL"),
+    ("customer_since", "Tenure, derived from the signup date", "TIME"),
+    ("country_id", "Geography, used for regional churn baselines", "NOMINAL"),
 ]
 
 

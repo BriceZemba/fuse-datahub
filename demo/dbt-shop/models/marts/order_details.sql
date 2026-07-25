@@ -1,9 +1,14 @@
 {{ config(materialized='table') }}
 
+-- Mirrors `analytics.order_details`, the wide reporting table every dashboard in the
+-- showcase catalog reads from.
+
 select
+    order_id,
     customer_id,
-    count(order_id) as order_count,
-    sum(order_amount) as lifetime_value,
-    count(discount_code) as discounted_orders
+    order_date,
+    order_total,
+    promotion_id,
+    payment_method_code,
+    cost_of_delivery
 from {{ ref('orders') }}
-group by customer_id
