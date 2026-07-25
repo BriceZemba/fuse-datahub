@@ -18,6 +18,48 @@ in the code or changes the design. Record raw response shapes — the normaliser
 | 9 | Does `save_document` work on OSS, and where does the document appear? | Tool **registers** on OSS ("Save Document ENABLED"). Placement in the UI still to be confirmed. | If unsupported, fall back to a structured property holding the report |
 | 10 | Are structured properties usable without pre-registering the property definition? | | May require a one-time `datahub` CLI bootstrap step in SETUP |
 
+## Open: ML entities exist but are not discoverable
+
+Status as of 2026-07-25. This is the one unproven claim in the project and it carries
+the Production ML Agents challenge, so it is worth finishing properly.
+
+**Established:**
+
+- `demo/seed_ml_lineage.py` emits successfully — 11 aspects, no errors.
+- The entities are really in GMS. `datahub get --urn "urn:li:mlModel:(urn:li:dataPlatform:mlflow,customer_churn_model,PROD)"`
+  returns a full `mlModelProperties` with `deployments`, `groups`, `hyperParams` and
+  the seeded custom properties.
+- **`get_lineage` does not traverse `MLFeature.sources`.** Downstream of the dbt
+  `customers` dataset: 30 entities, zero ML — while four features name that dataset
+  as their source. The dependency is in the catalog; lineage does not expose it.
+- Keyword `search` never returns ML entity types, so discovery by search finds
+  nothing (`0 ML entities in the catalog`).
+
+**Untested:** typed GraphQL discovery — `searchAcrossEntities(types: [MLFEATURE,
+MLFEATURE_TABLE, MLMODEL, MLMODEL_GROUP, MLMODEL_DEPLOYMENT])`, implemented in
+`datahub/ml_graph.py::_urns_via_graphql`. The probe that prints its result was added
+but its output has not been read yet.
+
+**Next step:** run and read the middle of the output, not the tail:
+
+```bash
+fuse spike --urn "urn:li:dataset:(urn:li:dataPlatform:dbt,b2fd91.order_entry_db.order_entry.customers,PROD)" 2>/dev/null | grep -A 25 "ML URNs via GraphQL"
+```
+
+Three outcomes and their fixes:
+
+1. GraphQL returns URNs → discovery works; check `get_entities` returns `sources` in a
+   shape `shapes.ml_feature_sources` reads, and the chain completes.
+2. GraphQL returns nothing → the entity-type names in the query are wrong for this
+   server version. Introspect: `{"query": "{ __type(name: \"EntityType\") { enumValues { name } } }"}`
+   against `/api/graphql`.
+3. GraphQL errors → read `payload["errors"]`; `_urns_via_graphql` currently swallows
+   exceptions and returns `[]`, which hides the reason. Log it before trusting the result.
+
+Worth knowing: the search-based fallback is not the answer, and neither is generic
+lineage. Reading the ML aspects directly is the design, and the gap it works around is
+the project's strongest claim.
+
 ## The finding that mattered most
 
 Every MCP tool answers with **content blocks**, not JSON:
