@@ -1,0 +1,768 @@
+{
+  "add_owners": {
+    "description": "Add one or more owners to multiple DataHub entities.\n\n    This tool allows you to assign multiple entities with multiple owners in a single operation.\n    Useful for bulk ownership assignment operations like assigning data stewards, technical owners,\n    or business owners to datasets, dashboards, and other DataHub entities.\n\n    Note: Ownership in DataHub is entity-level only. For field-level met",
+    "args": {
+      "owner_urns": {
+        "items": {
+          "type": "string"
+        },
+        "type": "array",
+        "description": "List of owner URNs to add (must be CorpUser or CorpGroup URNs).\n       Examples: [\"urn:li:corpuser:john.doe\", \"urn:li:corpGroup:data-engineering\"]"
+      },
+      "entity_urns": {
+        "items": {
+          "type": "string"
+        },
+        "type": "array",
+        "description": "List of entity URNs to assign ownership to (e.g., dataset URNs, dashboard URNs)"
+      },
+      "ownership_type": {
+        "anyOf": [
+          {
+            "description": "Built-in ownership types in DataHub.",
+            "enum": [
+              "__system__technical_owner",
+              "__system__business_owner",
+              "__system__data_steward"
+            ],
+            "type": "string"
+          },
+          {
+            "type": "string"
+          }
+        ],
+        "description": "The type of ownership to assign. Accepts either:\n           - A built-in OwnershipType enum value:\n             - TECHNICAL_OWNER: Involved in production, maintenance, or distribution\n             - BUSINESS_OWNER: Principle stakeholders or domain experts\n             - DATA_STEWARD: Involved in governance\n           - A custom ownership type, passed by its user-facing name\n             (e.g. \"Producer\"). Custom types are looked up by name\n             (case-insensitive) via GraphQL and must already exist."
+      }
+    }
+  },
+  "add_structured_properties": {
+    "description": "Add structured properties with values to multiple DataHub entities.\n\n    This tool allows you to assign structured properties to multiple entities in a single operation.\n    Structured properties are schema-defined metadata fields that can store typed values (strings, numbers, etc.).\n\n    Args:\n        property_values: Dictionary mapping structured property URNs to lists of values.\n               ",
+    "args": {
+      "property_values": {
+        "additionalProperties": {
+          "items": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "integer"
+              }
+            ]
+          },
+          "type": "array"
+        },
+        "type": "object",
+        "description": "Dictionary mapping structured property URNs to lists of values.\n            Example: {\n                \"urn:li:structuredProperty:io.acryl.privacy.retentionTime\": [\"90\"],\n                \"urn:li:structuredProperty:io.acryl.common.businessCriticality\": [\"HIGH\"]\n            }"
+      },
+      "entity_urns": {
+        "items": {
+          "type": "string"
+        },
+        "type": "array",
+        "description": "List of entity URNs to assign properties to (e.g., dataset URNs, dashboard URNs)"
+      }
+    }
+  },
+  "add_tags": {
+    "description": "Add one or more tags to multiple DataHub entities or their columns (e.g., schema fields).\n\n    This tool allows you to tag multiple entities or their columns with multiple tags in a single operation.\n    Useful for bulk tagging operations like marking multiple datasets as PII, deprecated, or applying\n    governance classifications.\n\n\n    Args:\n        tag_urns: List of tag URNs to add (e.g., [\"urn",
+    "args": {
+      "tag_urns": {
+        "items": {
+          "type": "string"
+        },
+        "type": "array",
+        "description": "List of tag URNs to add (e.g., [\"urn:li:tag:PII\", \"urn:li:tag:Sensitive\"])"
+      },
+      "entity_urns": {
+        "items": {
+          "type": "string"
+        },
+        "type": "array",
+        "description": "List of entity URNs to tag (e.g., dataset URNs, dashboard URNs)"
+      },
+      "column_paths": {
+        "anyOf": [
+          {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "Optional list of column_path identifiers (e.g., column names for schema fields).\n         Must be same length as entity_urns if provided.\n         Use None or empty string for entity-level tags.\n         For column-level tags, provide the column name (e.g., \"email_address\").\n         Verify that the column_paths are correct and valid via the schemaMetadata.\n         Use get_entity tool to verify."
+      }
+    }
+  },
+  "add_terms": {
+    "description": "Add one or more glossary terms (terms) to multiple DataHub entities or their columns (e.g., schema fields).\n\n    This tool allows you to associate multiple entities or their columns with multiple glossary terms in a single operation.\n    Useful for bulk term assignment operations like applying business definitions, standardizing terminology,\n    or enriching metadata with domain knowledge.\n\n    Ar",
+    "args": {
+      "term_urns": {
+        "items": {
+          "type": "string"
+        },
+        "type": "array",
+        "description": "List of glossary term URNs to add (e.g., [\"urn:li:glossaryTerm:CustomerData\", \"urn:li:glossaryTerm:SensitiveInfo\"])"
+      },
+      "entity_urns": {
+        "items": {
+          "type": "string"
+        },
+        "type": "array",
+        "description": "List of entity URNs to annotate (e.g., dataset URNs, dashboard URNs)"
+      },
+      "column_paths": {
+        "anyOf": [
+          {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "Optional list of column_path identifiers (e.g., column names for schema fields).\n         Must be same length as entity_urns if provided.\n         Use None or empty string for entity-level glossary terms.\n         For column-level glossary terms, provide the column name (e.g., \"customer_email\").\n         Verify that the column_paths are correct and valid via the schemaMetadata.\n         Use get_entity tool to verify."
+      }
+    }
+  },
+  "get_dataset_queries": {
+    "description": "Get SQL queries associated with a dataset or column to understand usage patterns.\n\n    This tool retrieves actual SQL queries that reference a specific dataset or column.\n    Useful for understanding how data is used, common JOIN patterns, typical filters,\n    and aggregation logic.\n\n    PARAMETERS:\n\n    source - Filter by query origin:\n    - \"MANUAL\": Queries written by users in query editors (re",
+    "args": {
+      "urn": {
+        "type": "string"
+      },
+      "column": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "source": {
+        "anyOf": [
+          {
+            "enum": [
+              "MANUAL",
+              "SYSTEM"
+            ],
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "start": {
+        "default": 0,
+        "type": "integer"
+      },
+      "count": {
+        "default": 10,
+        "type": "integer"
+      }
+    }
+  },
+  "get_entities": {
+    "description": "Get detailed information about one or more entities by their DataHub URNs.\n\n    IMPORTANT: Pass an array of URNs to retrieve multiple entities in a single call - this is much\n    more efficient than calling this tool multiple times. When examining search results, always pass\n    an array with the top 3-10 result URNs to compare and find the best match.\n\n    Accepts an array of URNs or a single URN",
+    "args": {
+      "urns": {
+        "anyOf": [
+          {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          {
+            "type": "string"
+          }
+        ]
+      }
+    }
+  },
+  "get_lineage": {
+    "description": "Get upstream or downstream lineage for any entity, including datasets, schemaFields, dashboards, charts, etc.\n\n    Set upstream to True for upstream lineage, False for downstream lineage.\n    Set `column: null` to get lineage for entire dataset or for entity type other than dataset.\n    Setting max_hops to 3 is equivalent to unlimited hops.\n\n    FILTER SYNTAX (SQL-like WHERE clause):\n    Uses simp",
+    "args": {
+      "urn": {
+        "type": "string"
+      },
+      "column": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "query": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "filter": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "upstream": {
+        "default": true,
+        "type": "boolean"
+      },
+      "max_hops": {
+        "default": 1,
+        "type": "integer"
+      },
+      "max_results": {
+        "default": 30,
+        "type": "integer"
+      },
+      "offset": {
+        "default": 0,
+        "type": "integer"
+      }
+    }
+  },
+  "get_lineage_paths_between": {
+    "description": "Get detailed lineage path(s) between two specific entities or columns.\n\n    Returns the paths array from searchAcrossLineage, showing the exact transformation\n    chain(s) including intermediate entities, columns, and transformation query URNs.\n\n    Unlike get_lineage() which returns all lineage targets with compact lineageColumns,\n    this tool focuses on ONE specific target and returns detailed ",
+    "args": {
+      "source_urn": {
+        "type": "string",
+        "description": "URN of the source dataset"
+      },
+      "target_urn": {
+        "type": "string",
+        "description": "URN of the target dataset"
+      },
+      "source_column": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "Optional column name in source dataset"
+      },
+      "target_column": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "Optional column name in target dataset (required if source_column provided)"
+      },
+      "direction": {
+        "anyOf": [
+          {
+            "enum": [
+              "upstream",
+              "downstream"
+            ],
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "Optional direction to search. If None (default), automatically discovers\n      the path by trying downstream first, then upstream. Specify \"downstream\" or\n      \"upstream\" explicitly for better performance if you know the direction."
+      }
+    }
+  },
+  "get_me": {
+    "description": "Get information about the currently authenticated user.\n\n    This tool fetches detailed information about the authenticated user including:\n    - User profile information (username, email, full name, etc.)\n    - Platform privileges (what the user can do in DataHub)\n    - Group memberships\n    - User settings and preferences\n\n    Returns:\n        Dictionary with:\n        - success: Boolean indicati",
+    "args": {}
+  },
+  "grep_documents": {
+    "description": "Search within document content using regex patterns.\n\n    Similar to ripgrep/grep - finds matching excerpts within documents.\n    Use search_documents() first to find relevant document URNs, then use this\n    tool to search within their content.\n\n    PATTERN SYNTAX (RE2 regex):\n    - Simple text: \"deploy\" matches the word deploy\n    - Case insensitive: \"(?i)deploy\" matches Deploy, DEPLOY, deploy\n ",
+    "args": {
+      "urns": {
+        "items": {
+          "type": "string"
+        },
+        "type": "array"
+      },
+      "pattern": {
+        "type": "string"
+      },
+      "context_chars": {
+        "default": 200,
+        "type": "integer"
+      },
+      "max_matches_per_doc": {
+        "default": 5,
+        "type": "integer"
+      },
+      "start_offset": {
+        "default": 0,
+        "type": "integer"
+      }
+    }
+  },
+  "list_schema_fields": {
+    "description": "List schema fields for a dataset, with optional keyword filtering and pagination.\n\n    Useful when schema fields were truncated in search results (schemaFieldsTruncated present)\n    and you need to explore specific columns. Supports pagination for large schemas.\n\n    Args:\n        urn: Dataset URN\n        keywords: Optional list of keywords to filter schema fields (OR matching).\n                 -",
+    "args": {
+      "urn": {
+        "type": "string",
+        "description": "Dataset URN"
+      },
+      "keywords": {
+        "anyOf": [
+          {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "Optional list of keywords to filter schema fields (OR matching).\n     - Single keyword: Treated as one keyword (NOT split on whitespace). Use for field names or exact phrases.\n     - Multiple keywords: Multiple keywords, matches any (OR logic).\n     - None or empty list: Returns all fields in priority order (same as get_entities).\n     Matches against fieldPath, description, label, tags, and glossary terms.\n     Matching fields are returned first, sorted by match count."
+      },
+      "limit": {
+        "default": 100,
+        "type": "integer",
+        "description": "Maximum number of fields to return (default: 100)"
+      },
+      "offset": {
+        "default": 0,
+        "type": "integer",
+        "description": "Number of fields to skip for pagination (default: 0)"
+      }
+    }
+  },
+  "remove_domains": {
+    "description": "Remove domain assignment from multiple DataHub entities.\n\n    This tool allows you to unset the domain for multiple entities in a single operation.\n    Useful for removing domain assignments when reorganizing entities or correcting misassignments.\n\n    Args:\n        entity_urns: List of entity URNs to remove domain from (e.g., dataset URNs, dashboard URNs)\n\n    Returns:\n        Dictionary with:\n  ",
+    "args": {
+      "entity_urns": {
+        "items": {
+          "type": "string"
+        },
+        "type": "array",
+        "description": "List of entity URNs to remove domain from (e.g., dataset URNs, dashboard URNs)"
+      }
+    }
+  },
+  "remove_owners": {
+    "description": "Remove one or more owners from multiple DataHub entities.\n\n    This tool allows you to unassign multiple entities from multiple owners in a single operation.\n    Useful for bulk ownership removal operations like removing owners when they change roles,\n    cleaning up stale ownership, or correcting misassigned ownership.\n\n    Note: Ownership in DataHub is entity-level only. For field-level metadata",
+    "args": {
+      "owner_urns": {
+        "items": {
+          "type": "string"
+        },
+        "type": "array",
+        "description": "List of owner URNs to remove (must be CorpUser or CorpGroup URNs).\n       Examples: [\"urn:li:corpuser:john.doe\", \"urn:li:corpGroup:data-engineering\"]"
+      },
+      "entity_urns": {
+        "items": {
+          "type": "string"
+        },
+        "type": "array",
+        "description": "List of entity URNs to remove ownership from (e.g., dataset URNs, dashboard URNs)"
+      },
+      "ownership_type": {
+        "anyOf": [
+          {
+            "description": "Built-in ownership types in DataHub.",
+            "enum": [
+              "__system__technical_owner",
+              "__system__business_owner",
+              "__system__data_steward"
+            ],
+            "type": "string"
+          },
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "Optional ownership type to specify which type of ownership to remove.\n           If not provided, will remove ownership regardless of type.\n           Accepts either a built-in OwnershipType enum value\n           (TECHNICAL_OWNER, BUSINESS_OWNER, DATA_STEWARD) or a custom ownership\n           type by its user-facing name (e.g. \"Producer\"). Custom types are looked\n           up by name (case-insensitive) and must already exist in DataHub."
+      }
+    }
+  },
+  "remove_structured_properties": {
+    "description": "Remove structured properties from multiple DataHub entities.\n\n    This tool allows you to remove structured property assignments from multiple entities in a single operation.\n\n    Args:\n        property_urns: List of structured property URNs to remove\n                      Example: [\"urn:li:structuredProperty:io.acryl.privacy.retentionTime\"]\n        entity_urns: List of entity URNs to remove prope",
+    "args": {
+      "property_urns": {
+        "items": {
+          "type": "string"
+        },
+        "type": "array",
+        "description": "List of structured property URNs to remove\n          Example: [\"urn:li:structuredProperty:io.acryl.privacy.retentionTime\"]"
+      },
+      "entity_urns": {
+        "items": {
+          "type": "string"
+        },
+        "type": "array",
+        "description": "List of entity URNs to remove properties from (e.g., dataset URNs, dashboard URNs)"
+      }
+    }
+  },
+  "remove_tags": {
+    "description": "Remove one or more tags from multiple DataHub entities or their column_paths (e.g., schema fields).\n\n    This tool allows you to untag multiple entities or their columns with multiple tags in a single operation.\n    Useful for bulk tag removal operations like removing deprecated tags, correcting misapplied classifications,\n    or cleaning up governance metadata.\n\n    Args:\n        tag_urns: List o",
+    "args": {
+      "tag_urns": {
+        "items": {
+          "type": "string"
+        },
+        "type": "array",
+        "description": "List of tag URNs to remove (e.g., [\"urn:li:tag:PII\", \"urn:li:tag:Sensitive\"])"
+      },
+      "entity_urns": {
+        "items": {
+          "type": "string"
+        },
+        "type": "array",
+        "description": "List of entity URNs to untag (e.g., dataset URNs, dashboard URNs)"
+      },
+      "column_paths": {
+        "anyOf": [
+          {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "Optional list of column_path identifiers (e.g., column names for schema fields).\n         Must be same length as entity_urns if provided.\n         Use None or empty string for entity-level tag removal.\n         For column-level tag removal, provide the column name (e.g., \"email_address\").\n         Verify that the column_paths are correct and valid via the schemaMetadata.\n         Use get_entity tool to verify."
+      }
+    }
+  },
+  "remove_terms": {
+    "description": "Remove one or more glossary terms (terms) from multiple DataHub entities or their column_paths (e.g., schema fields).\n\n    This tool allows you to disassociate multiple entities or their columns from multiple glossary terms in a single operation.\n    Useful for bulk term removal operations like correcting misapplied business definitions, updating terminology,\n    or cleaning up metadata.\n\n    Args",
+    "args": {
+      "term_urns": {
+        "items": {
+          "type": "string"
+        },
+        "type": "array",
+        "description": "List of glossary term URNs to remove (e.g., [\"urn:li:glossaryTerm:Deprecated\", \"urn:li:glossaryTerm:Legacy\"])"
+      },
+      "entity_urns": {
+        "items": {
+          "type": "string"
+        },
+        "type": "array",
+        "description": "List of entity URNs to remove terms from (e.g., dataset URNs, dashboard URNs)"
+      },
+      "column_paths": {
+        "anyOf": [
+          {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "Optional list of column_path identifiers (e.g., column names for schema fields).\n         Must be same length as entity_urns if provided.\n         Use None or empty string for entity-level glossary term removal.\n         For column-level glossary term removal, provide the column name (e.g., \"old_field\").\n         Verify that the column_paths are correct and valid via the schemaMetadata.\n         Use get_entity tool to verify."
+      }
+    }
+  },
+  "save_document": {
+    "description": "Save or update a STANDALONE document in DataHub's knowledge base. Once saved,\n    a document will be visible to all users of DataHub and to Ask DataHub AI assistant.\n\n    NOTE: This tool is for creating standalone documents (insights, FAQs, notes, etc.),\n    NOT for updating descriptions on data assets like datasets or dashboards.\n    Use update_description for asset descriptions.\n\n    WHEN TO USE",
+    "args": {
+      "document_type": {
+        "enum": [
+          "Insight",
+          "Decision",
+          "FAQ",
+          "Analysis",
+          "Summary",
+          "Recommendation",
+          "Note",
+          "Context"
+        ],
+        "type": "string"
+      },
+      "title": {
+        "type": "string"
+      },
+      "content": {
+        "type": "string"
+      },
+      "urn": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "topics": {
+        "anyOf": [
+          {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "related_documents": {
+        "anyOf": [
+          {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "related_assets": {
+        "anyOf": [
+          {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      }
+    }
+  },
+  "search": {
+    "description": "Search across DataHub entities using structured full-text search.\n    Results are ordered by relevance and importance - examine top results first.\n\n    SEARCH SYNTAX:\n    - Structured full-text search - **always start queries with /q**\n    - **Recommended: Use + operator for AND** (handles punctuation better than quotes)\n    - Supports full boolean logic: AND (default), OR, NOT, parentheses, field",
+    "args": {
+      "query": {
+        "default": "*",
+        "type": "string"
+      },
+      "filter": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "num_results": {
+        "default": 10,
+        "type": "integer"
+      },
+      "sort_by": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "sort_order": {
+        "anyOf": [
+          {
+            "enum": [
+              "asc",
+              "desc"
+            ],
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": "desc"
+      },
+      "offset": {
+        "default": 0,
+        "type": "integer"
+      }
+    }
+  },
+  "search_documents": {
+    "description": "Search for documents stored in the customer's DataHub deployment.\n\n    These are the organization's own documents (runbooks, FAQs, knowledge articles)\n    ingested from sources like Notion, Confluence, etc. - not DataHub documentation.\n\n    Returns document metadata WITHOUT content to keep responses concise.\n    Use get_entities() with a document URN to retrieve full content when needed.\n\n    HYBR",
+    "args": {
+      "query": {
+        "default": "*",
+        "type": "string"
+      },
+      "semantic_query": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "filter": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null
+      },
+      "num_results": {
+        "default": 10,
+        "type": "integer"
+      },
+      "offset": {
+        "default": 0,
+        "type": "integer"
+      }
+    }
+  },
+  "set_domains": {
+    "description": "Set domain for multiple DataHub entities.\n\n    This tool allows you to assign a domain to multiple entities in a single operation.\n    Useful for organizing datasets, dashboards, and other entities into logical business domains.\n\n    Note: Domain assignment in DataHub is entity-level only. Each entity can belong to exactly one domain.\n    Setting a new domain will replace any existing domain assig",
+    "args": {
+      "domain_urn": {
+        "type": "string",
+        "description": "Domain URN to assign (e.g., \"urn:li:domain:marketing\")"
+      },
+      "entity_urns": {
+        "items": {
+          "type": "string"
+        },
+        "type": "array",
+        "description": "List of entity URNs to assign to the domain (e.g., dataset URNs, dashboard URNs)"
+      }
+    }
+  },
+  "update_description": {
+    "description": "Update description for a DataHub entity or its column (e.g., schema field).\n\n    This tool allows you to set, append to, or remove a description for an entity or its column.\n    Useful for documenting datasets, containers, charts, dashboards, data flows, data jobs,\n    ML models, ML model groups, ML feature tables, ML primary keys, tags, glossary terms,\n    glossary nodes, domains, and schema fiel",
+    "args": {
+      "entity_urn": {
+        "type": "string",
+        "description": "Entity URN to update description for (e.g., dataset URN, container URN)"
+      },
+      "operation": {
+        "default": "replace",
+        "enum": [
+          "replace",
+          "append",
+          "remove"
+        ],
+        "type": "string",
+        "description": "The operation to perform:\n      - \"replace\": Replace the existing description with the new one (default)\n      - \"append\": Append the new description to the existing one\n      - \"remove\": Remove the description (description parameter not needed)"
+      },
+      "description": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "The description text to set or append (supports markdown formatting).\n        Required for \"replace\" and \"append\" operations, ignored for \"remove\"."
+      },
+      "column_path": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "description": "Column_path identifier (e.g., column name for schema field).\n        Optional for all entity types (use None for entity-level descriptions).\n        For column-level descriptions, provide the column name (e.g., \"customer_email\").\n        Verify that the column_path is correct and valid via the schemaMetadata.\n        Use get_entity tool to verify."
+      }
+    }
+  }
+}
