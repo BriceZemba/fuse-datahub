@@ -2,7 +2,7 @@
 
 **Change:** drop_column customers.credit_limit  
 **Max severity:** BREAKING  
-**Generated:** 2026-07-30T19:24:01+00:00
+**Generated:** 2026-07-30T19:34:32+00:00
 
 | Asset | Type | Hops | Severity | Score | Evidence | Owners |
 |---|---|---|---|---|---|---|
