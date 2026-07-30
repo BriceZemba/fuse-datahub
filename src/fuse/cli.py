@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 import re
 import shutil
 import uuid
@@ -233,10 +234,28 @@ def doctor() -> None:
     console.print(f"GMS URL        : {settings.gms_url}")
     console.print(f"Token          : {'set' if settings.gms_token else '[red]missing[/]'}")
     console.print(f"Mutations      : {settings.mutations_enabled}")
+    provider = settings.llm_provider
     console.print(
-        f"LLM provider   : {settings.llm_provider} "
+        f"LLM provider   : {provider} "
         f"({'available' if llm_available() else 'not configured — template fallback'})"
     )
+    if provider != "none":
+        # Say which key is missing rather than just "not configured": a provider set
+        # but silently unavailable is the failure that looks like nothing happening.
+        key_names = {
+            "openrouter": "OPENROUTER_API_KEY",
+            "anthropic": "ANTHROPIC_API_KEY",
+            "openai": "OPENAI_API_KEY",
+        }
+        key = key_names.get(provider)
+        console.print(f"LLM model      : {os.getenv('FUSE_LLM_MODEL') or '(provider default)'}")
+        if key:
+            console.print(f"{key:<15}: {'set' if os.getenv(key) else '[red]missing[/]'}")
+        if not llm_available():
+            console.print(
+                "[yellow]The LLM nodes will be skipped. Check .env is in the directory "
+                "you run fuse from, and that the provider name is spelled exactly.[/]"
+            )
 
     async def probe() -> None:
         reachable, detail = await probe_gms()
