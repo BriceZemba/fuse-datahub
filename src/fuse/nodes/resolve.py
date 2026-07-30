@@ -10,12 +10,18 @@ terms — so datasets are filtered by URN prefix before any of that begins.
 
 from __future__ import annotations
 
+import asyncio
+
 from fuse.datahub import shapes
 from fuse.runtime import RT
 from fuse.state import Change, FuseState, ResolvedAsset
 
 AMBIGUITY_GAP = 0.15
 LOW_CONFIDENCE = 0.6
+
+# Each schema fetch is a round trip. Platform ranking has already ordered the pool, so
+# looking past the top few candidates rarely changes the winner.
+CANDIDATE_LIMIT = 3
 
 # Warehouse and transformation platforms hold the tables a dbt model maps onto. BI
 # platforms expose copies of them and would resolve the change to the wrong end of
@@ -55,15 +61,19 @@ async def _resolve_one(change: Change, model_columns: set[str]) -> ResolvedAsset
         return await _hydrate(change, pool[0], 0.8, "search_rank")
 
     # Disambiguate on evidence: how much of the model's column set the candidate has.
+    # Fetched concurrently, and the winner's fields are kept so hydration does not ask
+    # for the same schema a second time — every call here costs a round trip.
     dh = RT.require_dh()
-    scored: list[tuple[float, dict]] = []
-    for candidate in pool[:5]:
-        fields = shapes.field_names(
+
+    async def schema_of(candidate: dict) -> tuple[float, dict, list[dict]]:
+        fields = shapes.schema_fields(
             await dh.call("list_schema_fields", urn=candidate["urn"])
         )
-        known = {f.lower() for f in fields}
+        known = {str(f.get("fieldPath", "")).split(".")[-1].lower() for f in fields}
         overlap = len(model_columns & known) / max(len(model_columns), 1)
-        scored.append((overlap + _platform_score(candidate) / 10, candidate))
+        return overlap + _platform_score(candidate) / 10, candidate, fields
+
+    scored = list(await asyncio.gather(*(schema_of(c) for c in pool[:CANDIDATE_LIMIT])))
     scored.sort(key=lambda row: row[0], reverse=True)
 
     best = scored[0]
@@ -78,17 +88,26 @@ async def _resolve_one(change: Change, model_columns: set[str]) -> ResolvedAsset
         return None
 
     method = "schema_match" if best[0] - runner_up >= AMBIGUITY_GAP else "search_rank"
-    return await _hydrate(change, best[1], round(min(0.5 + best[0] / 2, 0.99), 2), method)
+    return await _hydrate(
+        change, best[1], round(min(0.5 + best[0] / 2, 0.99), 2), method, fields=best[2]
+    )
 
 
 def _name_tokens(name: str) -> set[str]:
     return {t for t in name.lower().replace("-", "_").split("_") if len(t) > 2}
 
 
-async def _hydrate(change: Change, entity: dict, confidence: float, method: str) -> ResolvedAsset:
+async def _hydrate(
+    change: Change,
+    entity: dict,
+    confidence: float,
+    method: str,
+    fields: list[dict] | None = None,
+) -> ResolvedAsset:
     dh = RT.require_dh()
     urn = str(entity["urn"])
-    fields = shapes.schema_fields(await dh.call("list_schema_fields", urn=urn))
+    if fields is None:
+        fields = shapes.schema_fields(await dh.call("list_schema_fields", urn=urn))
     return ResolvedAsset(
         change=change,
         urn=urn,

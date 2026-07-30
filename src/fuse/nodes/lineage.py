@@ -12,6 +12,7 @@ downstream of the table.
 from __future__ import annotations
 
 import asyncio
+import os
 from typing import Any
 
 from fuse.datahub import ml_graph, shapes
@@ -20,9 +21,19 @@ from fuse.state import FuseState
 
 ML_TYPES = {"mlFeature", "mlFeatureTable", "mlModel", "mlModelGroup", "mlModelDeployment"}
 
-# One schema call per downstream dataset, so a very wide blast radius stays bounded.
+# Every MCP call is a round trip of a second or more, so the probes are bounded by what
+# can actually change a verdict rather than by what is merely interesting.
+#
+# A schema hit scores 35, and hop decay is 3 per hop beyond the first. At 3 hops that is
+# 29 — below the RISKY threshold of 30 — so probing further can add an evidence line but
+# never a severity. Two hops keeps every result that matters and drops most of the work.
+SCHEMA_PROBE_HOPS = int(os.getenv("FUSE_SCHEMA_PROBE_HOPS", "2"))
 SCHEMA_PROBE_LIMIT = 40
-CONCURRENT_PROBES = 8
+CONCURRENT_PROBES = 12
+
+# Catalogs without query history answer every one of these with total:0. Sample a few;
+# if none of them carry SQL, stop asking and say so in the trace.
+QUERY_PROBE_SAMPLE = 5
 
 
 def _is_error(payload: Any) -> bool:
@@ -171,10 +182,33 @@ async def trace_lineage(state: FuseState) -> dict:
             except Exception as exc:  # evidence is best-effort, never fatal
                 trace.append(f"lineage: no queries for {urn} ({exc.__class__.__name__})")
 
-    await asyncio.gather(
-        *(probe_schema(urn, entry) for urn, entry in datasets[:SCHEMA_PROBE_LIMIT]),
-        *(probe_queries(urn, entry) for urn, entry in datasets),
-    )
+    probed = [
+        (urn, entry)
+        for urn, entry in datasets
+        if int(entry.get("hops", 1)) <= SCHEMA_PROBE_HOPS
+    ][:SCHEMA_PROBE_LIMIT]
+    skipped = len(datasets) - len(probed)
+
+    # Query history first, on a sample: if the catalog has none, the rest are wasted.
+    sample = datasets[:QUERY_PROBE_SAMPLE]
+    await asyncio.gather(*(probe_queries(urn, entry) for urn, entry in sample))
+
+    if any(entry.get("queries") for _, entry in sample):
+        await asyncio.gather(
+            *(probe_queries(urn, entry) for urn, entry in datasets[QUERY_PROBE_SAMPLE:])
+        )
+    elif len(datasets) > QUERY_PROBE_SAMPLE:
+        trace.append(
+            f"lineage: no query history on the first {len(sample)} dataset(s), "
+            f"skipped the remaining {len(datasets) - len(sample)}"
+        )
+
+    await asyncio.gather(*(probe_schema(urn, entry) for urn, entry in probed))
+    if skipped:
+        trace.append(
+            f"lineage: schema checked within {SCHEMA_PROBE_HOPS} hop(s); "
+            f"{skipped} more distant asset(s) cannot reach RISKY on a schema match alone"
+        )
 
     ml_count = sum(1 for e in graph.values() if e["type"] in ML_TYPES)
     with_queries = sum(1 for e in graph.values() if e["queries"])
