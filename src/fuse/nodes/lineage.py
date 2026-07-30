@@ -11,6 +11,7 @@ downstream of the table.
 
 from __future__ import annotations
 
+import asyncio
 from typing import Any
 
 from fuse.datahub import ml_graph, shapes
@@ -21,6 +22,7 @@ ML_TYPES = {"mlFeature", "mlFeatureTable", "mlModel", "mlModelGroup", "mlModelDe
 
 # One schema call per downstream dataset, so a very wide blast radius stays bounded.
 SCHEMA_PROBE_LIMIT = 40
+CONCURRENT_PROBES = 8
 
 
 def _is_error(payload: Any) -> bool:
@@ -139,29 +141,40 @@ async def trace_lineage(state: FuseState) -> dict:
     column = next(
         (a.change.column for a in state.get("resolved", []) if a.change.column), None
     )
-    if column:
-        for urn, entry in list(graph.items())[:SCHEMA_PROBE_LIMIT]:
-            if entry["type"] != "dataset":
-                continue
+    datasets = [(urn, e) for urn, e in graph.items() if e["type"] == "dataset"]
+
+    # These are dozens of independent round trips. Run them concurrently, bounded so a
+    # wide blast radius cannot flood GMS — sequentially this was the slowest part of a
+    # run by a wide margin.
+    limiter = asyncio.Semaphore(CONCURRENT_PROBES)
+
+    async def probe_schema(urn: str, entry: dict) -> None:
+        if not column:
+            return
+        async with limiter:
             try:
                 fields = shapes.field_names(await dh.call("list_schema_fields", urn=urn))
             except Exception as exc:
                 trace.append(f"lineage: no schema for {urn} ({exc.__class__.__name__})")
-                continue
-            match = next((f for f in fields if f.lower() == column.lower()), None)
-            if match:
-                entry["schema_hit"] = match
+                return
+        entry["schema_hit"] = next((f for f in fields if f.lower() == column.lower()), None)
 
-    for urn, entry in graph.items():
-        if entry["type"] != "dataset":
-            continue
+    async def probe_queries(urn: str, entry: dict) -> None:
         query_args: dict[str, Any] = {"urn": urn}
         if entry.get("from_column"):
             query_args["column"] = entry["from_column"]
-        try:
-            entry["queries"] = shapes.queries(await dh.call("get_dataset_queries", **query_args))
-        except Exception as exc:  # evidence is best-effort, never fatal
-            trace.append(f"lineage: no queries for {urn} ({exc.__class__.__name__})")
+        async with limiter:
+            try:
+                entry["queries"] = shapes.queries(
+                    await dh.call("get_dataset_queries", **query_args)
+                )
+            except Exception as exc:  # evidence is best-effort, never fatal
+                trace.append(f"lineage: no queries for {urn} ({exc.__class__.__name__})")
+
+    await asyncio.gather(
+        *(probe_schema(urn, entry) for urn, entry in datasets[:SCHEMA_PROBE_LIMIT]),
+        *(probe_queries(urn, entry) for urn, entry in datasets),
+    )
 
     ml_count = sum(1 for e in graph.values() if e["type"] in ML_TYPES)
     with_queries = sum(1 for e in graph.values() if e["queries"])

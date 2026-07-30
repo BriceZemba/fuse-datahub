@@ -18,6 +18,7 @@ the ML aspects directly instead:
 from __future__ import annotations
 
 import asyncio
+from concurrent.futures import ThreadPoolExecutor
 from typing import Any
 
 from fuse.datahub import shapes
@@ -140,8 +141,7 @@ def _hydrate_via_sdk(urns: list[str]) -> list[dict]:
         DatahubClientConfig(server=settings.gms_url, token=settings.gms_token or None)
     )
 
-    entities: list[dict] = []
-    for urn in urns:
+    def read(urn: str) -> dict:
         properties: dict[str, Any] = {}
         try:
             if urn.startswith("urn:li:mlFeature:"):
@@ -170,9 +170,11 @@ def _hydrate_via_sdk(urns: list[str]) -> list[dict]:
                     }
         except Exception:  # one unreadable entity must not lose the rest
             properties = {}
+        return {"urn": urn, "properties": properties}
 
-        entities.append({"urn": urn, "properties": properties})
-    return entities
+    # One HTTP round trip per aspect, and they are independent.
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        return list(pool.map(read, urns))
 
 
 async def ml_entities(call: Any) -> tuple[list[dict], str | None]:
