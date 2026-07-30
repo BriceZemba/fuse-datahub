@@ -26,9 +26,9 @@ def example_dirs() -> list[Path]:
     return sorted(p for p in EXAMPLES.iterdir() if (p / "fixtures").is_dir())
 
 
-async def run_example(folder: Path) -> FuseState:
+async def run_example(folder: Path, out_dir: Path) -> FuseState:
     settings.fixtures_dir = folder / "fixtures"
-    settings.out_dir = Path(".pytest-out")
+    settings.out_dir = out_dir
     state: FuseState = {
         "repo_path": str(folder / "repo"),
         "diff": str(folder / "diff.patch"),
@@ -50,8 +50,8 @@ async def run_example(folder: Path) -> FuseState:
 
 @pytest.mark.skipif(not example_dirs(), reason="no frozen examples committed yet")
 @pytest.mark.parametrize("folder", example_dirs(), ids=lambda p: p.name)
-def test_example_replays_offline(folder: Path):
-    result = asyncio.run(run_example(folder))
+def test_example_replays_offline(folder: Path, tmp_path: Path):
+    result = asyncio.run(run_example(folder, tmp_path))
 
     assert result.get("changes"), f"{folder.name}: no change parsed from the diff"
     assert result.get("impacts"), f"{folder.name}: no downstream impact found"
@@ -59,15 +59,22 @@ def test_example_replays_offline(folder: Path):
 
 
 @pytest.mark.skipif(not example_dirs(), reason="no frozen examples committed yet")
-def test_the_ml_example_reaches_a_deployed_model():
-    """The claim the project rests on: a dbt column change reaches a model in
-    production through a path DataHub's lineage does not expose."""
+def test_the_ml_example_reaches_a_deployed_model(tmp_path: Path):
+    """The claim the project rests on: a dbt column change reaches the deployment
+    serving production traffic, and names the one feature that actually breaks."""
     folder = EXAMPLES / "03-ml-feature-break"
     if not (folder / "fixtures").is_dir():
         pytest.skip("ML example not frozen")
 
-    result = asyncio.run(run_example(folder))
-    types = {i.entity_type for i in result["impacts"]}
-    assert "mlFeature" in types
-    assert "mlModel" in types
+    result = asyncio.run(run_example(folder, tmp_path))
+    by_name = {i.name: i for i in result["impacts"]}
+
+    assert "prod-retention-service" in by_name, "the deployment must be reached"
     assert result["max_severity"] == "BREAKING"
+
+    # The feature named after the dropped column outranks its siblings, which are
+    # derived from the same table but not from that column.
+    broken = by_name["credit_limit"]
+    sibling = by_name["country_id"]
+    assert broken.score > sibling.score
+    assert "credit_limit" in " ".join(broken.evidence)

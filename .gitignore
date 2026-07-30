@@ -17,3 +17,4 @@ demo/dbt-shop/logs/
 *.log
 !examples/**/run.log
 .DS_Store
+.pytest-out/
