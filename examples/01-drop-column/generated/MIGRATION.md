@@ -14,8 +14,8 @@ not inferred from file names.
 
 | Asset | Type | Hops | Severity | Score | Evidence | Strategy |
 |---|---|---|---|---|---|---|
-| `order_details` | dataset | 1 | **BREAKING** | 60 | schema carries a field named `promotion_id` | add_contract_test |
-| `ORDER_DETAILS` | dataset | 2 | **RISKY** | 32 | schema carries a field named `promotion_id` | add_contract_test |
+| `order_details` | dataset | 1 | **BREAKING** | 60 | schema carries a field named `promotion_id` | rewrite_sql |
+| `ORDER_DETAILS` | dataset | 2 | **RISKY** | 32 | schema carries a field named `promotion_id` | rewrite_sql |
 
 <details><summary>28 further asset(s) scored SAFE</summary>
 
