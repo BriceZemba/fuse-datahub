@@ -34,7 +34,10 @@ ML_PREFIXES = (
 MAX_ML_ENTITIES = 200
 
 
-ML_GRAPHQL_TYPES = "[MLFEATURE, MLFEATURE_TABLE, MLMODEL, MLMODEL_GROUP, MLMODEL_DEPLOYMENT]"
+# MLMODEL_DEPLOYMENT is deliberately absent: DataHub's GraphQL `EntityType` enum has no
+# such value, and including it fails validation for the whole query. Deployments are
+# reached through MLModelProperties.deployments instead, which is where they live.
+ML_GRAPHQL_TYPES = "[MLFEATURE, MLFEATURE_TABLE, MLMODEL, MLMODEL_GROUP]"
 
 # Keep the projection to `urn` only: every extra GraphQL field is another schema
 # assumption that can break. Details come back through get_entities, whose shape is
@@ -51,26 +54,30 @@ query mlUrns($count: Int!) {{
 """
 
 
-async def ml_urns(call: Any) -> list[str]:
-    """URNs of every ML entity in the catalog.
+async def ml_urns(call: Any) -> tuple[list[str], str | None]:
+    """URNs of every ML entity in the catalog, plus any error worth reporting.
 
     Keyword search does not surface ML entity types, so this asks GMS directly for
     them by type. Falls back to the MCP search in case a future server does return
     them there.
     """
-    urns = await _urns_via_graphql()
+    urns, error = await _urns_via_graphql()
     if urns:
-        return urns
+        return urns, None
 
     payload = await call("search", query="*", num_results=MAX_ML_ENTITIES)
-    return [
+    fallback = [
         str(e["urn"])
         for e in shapes.search_results(payload)
         if str(e.get("urn", "")).startswith(ML_PREFIXES)
     ]
+    return fallback, error
 
 
-async def _urns_via_graphql() -> list[str]:
+async def _urns_via_graphql() -> tuple[list[str], str | None]:
+    """Returns (urns, error). The error is surfaced rather than swallowed: a silent
+    empty list here is indistinguishable from a catalog with no ML entities, and that
+    ambiguity cost a full debugging round trip."""
     import httpx
 
     from fuse.config import settings
@@ -87,25 +94,35 @@ async def _urns_via_graphql() -> list[str]:
             )
             response.raise_for_status()
             payload = response.json()
-    except Exception:
-        return []
+    except Exception as exc:
+        return [], f"{exc.__class__.__name__}: {exc}"
 
-    results = (
-        payload.get("data", {}).get("searchAcrossEntities", {}).get("searchResults") or []
-    )
-    return [
+    if not isinstance(payload, dict):
+        return [], "unexpected GraphQL response"
+
+    if payload.get("errors"):
+        first = payload["errors"][0]
+        message = first.get("message") if isinstance(first, dict) else str(first)
+        return [], str(message)
+
+    # `data` is null whenever validation fails, so every step here is guarded.
+    data = payload.get("data") or {}
+    search = data.get("searchAcrossEntities") or {}
+    results = search.get("searchResults") or []
+    urns = [
         str(r["entity"]["urn"])
         for r in results
         if isinstance(r, dict) and isinstance(r.get("entity"), dict) and r["entity"].get("urn")
     ]
+    return urns, None
 
 
-async def ml_entities(call: Any) -> list[dict]:
-    """Every ML entity in the catalog, hydrated."""
-    urns = await ml_urns(call)
+async def ml_entities(call: Any) -> tuple[list[dict], str | None]:
+    """Every ML entity in the catalog, hydrated, plus any discovery error."""
+    urns, error = await ml_urns(call)
     if not urns:
-        return []
-    return shapes.entities(await call("get_entities", urns=urns))
+        return [], error
+    return shapes.entities(await call("get_entities", urns=urns)), error
 
 
 def dependents_of(dataset_urn: str, entities: list[dict]) -> list[tuple[dict, int]]:
