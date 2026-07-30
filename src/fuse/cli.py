@@ -513,15 +513,23 @@ def models(
 
     rows = []
     for model in response.json().get("data", []):
+        model_id = str(model.get("id", ""))
         pricing = model.get("pricing") or {}
         try:
             prompt_cost = float(pricing.get("prompt", "0") or 0)
             completion_cost = float(pricing.get("completion", "0") or 0)
         except (TypeError, ValueError):
             continue
+
+        # Routers such as openrouter/auto advertise zero price because they bill via
+        # whichever model they select. Only the `:free` suffix actually guarantees a
+        # free request, so listing anything else under "free" would invite a surprise
+        # charge.
+        if free_only and not model_id.endswith(":free"):
+            continue
         if free_only and (prompt_cost > 0 or completion_cost > 0):
             continue
-        rows.append((prompt_cost + completion_cost, model.get("id", ""),
+        rows.append((prompt_cost + completion_cost, model_id,
                      model.get("context_length") or 0))
 
     rows.sort(key=lambda row: (row[0], row[1]))
