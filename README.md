@@ -133,13 +133,29 @@ Every column named is a real column of the `showcase-ecommerce` datapack. Nothin
 | `DATAHUB_GMS_URL` | `http://localhost:8080` | GMS endpoint (not the `:9002` UI) |
 | `DATAHUB_GMS_TOKEN` | — | personal access token; optional on a default OSS quickstart |
 | `TOOLS_IS_MUTATION_ENABLED` | `true` | required for write-back |
-| `FUSE_LLM_PROVIDER` | `none` | `anthropic` \| `openai` \| `ollama` \| `none` |
+| `FUSE_LLM_PROVIDER` | `none` | `openrouter` \| `anthropic` \| `openai` \| `ollama` \| `none` |
+| `FUSE_LLM_MODEL` | per provider | e.g. a free OpenRouter id — run `fuse models` |
 | `FUSE_HOPS` | `3` | lineage traversal depth |
 | `FUSE_SCHEMA_PROBE_HOPS` | `2` | how far out to check schemas for the changed column |
 | `FUSE_FAIL_ON` | `BREAKING` | severity that fails CI |
 | `FUSE_DIALECT` | `snowflake` | sqlglot dialect |
 
 With `FUSE_LLM_PROVIDER=none` the LLM nodes are skipped: strategies come from rules and artifacts from templates. Output is blunter, the pipeline still completes, and no API key is required.
+
+To enable code generation with an open-weight model at no cost:
+
+```bash
+fuse models    # what is free on OpenRouter today
+```
+
+```bash
+# in .env
+FUSE_LLM_PROVIDER=openrouter
+FUSE_LLM_MODEL=z-ai/glm-4.5-air:free
+OPENROUTER_API_KEY=...
+```
+
+`fuse models` exists because OpenRouter's `:free` ids are withdrawn without notice — `qwen3-coder:free` was delisted in July 2026 — so the right model is whatever is free when you run it, not whatever a README hardcoded.
 
 ## Commands
 

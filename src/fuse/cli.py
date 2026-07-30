@@ -23,7 +23,7 @@ from fuse.config import settings
 from fuse.datahub import ml_graph, shapes
 from fuse.datahub.mcp_client import DataHubMCP, GMSUnreachable, probe_gms
 from fuse.graph import build_graph
-from fuse.llm.provider import get_llm, llm_available
+from fuse.llm.provider import OPENROUTER_BASE_URL, get_llm, llm_available
 from fuse.runtime import RT
 from fuse.state import FuseState
 
@@ -489,6 +489,54 @@ def schema(
     except GMSUnreachable as exc:
         console.print(f"[red]{exc}[/]")
         raise typer.Exit(code=2) from exc
+
+
+@app.command()
+def models(
+    free_only: bool = typer.Option(True, "--free/--all"),
+    limit: int = typer.Option(20, "--limit"),
+) -> None:
+    """List OpenRouter models, cheapest first.
+
+    The free tier's `:free` ids come and go — models are delisted with no notice — so
+    rather than trusting a hardcoded default, ask what is actually available today and
+    set FUSE_LLM_MODEL from the result.
+    """
+    import httpx
+
+    try:
+        response = httpx.get(f"{OPENROUTER_BASE_URL}/models", timeout=30)
+        response.raise_for_status()
+    except Exception as exc:
+        console.print(f"[red]Could not reach OpenRouter: {exc}[/]")
+        raise typer.Exit(code=1) from exc
+
+    rows = []
+    for model in response.json().get("data", []):
+        pricing = model.get("pricing") or {}
+        try:
+            prompt_cost = float(pricing.get("prompt", "0") or 0)
+            completion_cost = float(pricing.get("completion", "0") or 0)
+        except (TypeError, ValueError):
+            continue
+        if free_only and (prompt_cost > 0 or completion_cost > 0):
+            continue
+        rows.append((prompt_cost + completion_cost, model.get("id", ""),
+                     model.get("context_length") or 0))
+
+    rows.sort(key=lambda row: (row[0], row[1]))
+    table = Table(title="OpenRouter models" + (" (free)" if free_only else ""))
+    table.add_column("Model")
+    table.add_column("Context", justify="right")
+    for _, model_id, context in rows[:limit]:
+        table.add_row(model_id, f"{context:,}")
+    console.print(table)
+    console.print(
+        "\nPick one for code generation and set it:\n"
+        "  FUSE_LLM_PROVIDER=openrouter\n"
+        "  FUSE_LLM_MODEL=<id>\n"
+        "  OPENROUTER_API_KEY=<key from https://openrouter.ai/keys>"
+    )
 
 
 @app.command()
