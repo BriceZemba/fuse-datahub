@@ -2,12 +2,12 @@ parse_change: 1 change(s)
 timing: parse_change took 0.0s
 resolve: orders -> urn:li:dataset:(urn:li:dataPlatform:dbt,b2fd91.order_entry_db.order_entry.orders,PROD) (search_rank, confidence 0.99)
 resolve: 1/1 change(s) mapped to URNs
-timing: resolve took 9.5s
+timing: resolve took 9.9s
 lineage: no column-level edges for promotion_id, falling back to table-level
 lineage: no query history on the first 5 dataset(s), skipped the remaining 15
 lineage: schema checked within 2 hop(s); 18 more distant asset(s) cannot reach RISKY on a schema match alone
 lineage: 30 downstream asset(s), 0 ML entit(ies), 0 with query evidence, 2 carrying the column in their schema
-timing: lineage took 26.3s
+timing: lineage took 26.1s
 impact: 30 asset(s) — 1 breaking, 1 risky, 28 safe
 timing: impact took 0.0s
 plan: no LLM configured, using rule-based strategies

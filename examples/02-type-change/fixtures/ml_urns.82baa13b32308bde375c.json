@@ -1,0 +1,20 @@
+{
+  "args": {},
+  "response": {
+    "error": null,
+    "urns": [
+      "urn:li:mlFeature:(customer_churn,country_id)",
+      "urn:li:mlFeature:(customer_churn,credit_limit)",
+      "urn:li:mlFeature:(customer_churn,customer_class)",
+      "urn:li:mlFeature:(customer_churn,customer_since)",
+      "urn:li:mlFeature:(customer_churn,days_since_last_order)",
+      "urn:li:mlFeature:(customer_churn,discounted_orders)",
+      "urn:li:mlFeature:(customer_churn,lifetime_value)",
+      "urn:li:mlFeature:(customer_churn,order_count)",
+      "urn:li:mlFeatureTable:(urn:li:dataPlatform:feast,customer_churn_features)",
+      "urn:li:mlModel:(urn:li:dataPlatform:mlflow,customer_churn_model,PROD)",
+      "urn:li:mlModelGroup:(urn:li:dataPlatform:mlflow,customer_churn_models,PROD)"
+    ]
+  },
+  "tool": "ml_urns"
+}

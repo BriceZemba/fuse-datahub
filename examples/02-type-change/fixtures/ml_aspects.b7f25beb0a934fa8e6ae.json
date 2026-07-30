@@ -1,0 +1,127 @@
+{
+  "args": {
+    "urns": [
+      "urn:li:mlFeature:(customer_churn,country_id)",
+      "urn:li:mlFeature:(customer_churn,credit_limit)",
+      "urn:li:mlFeature:(customer_churn,customer_class)",
+      "urn:li:mlFeature:(customer_churn,customer_since)",
+      "urn:li:mlFeature:(customer_churn,days_since_last_order)",
+      "urn:li:mlFeature:(customer_churn,discounted_orders)",
+      "urn:li:mlFeature:(customer_churn,lifetime_value)",
+      "urn:li:mlFeature:(customer_churn,order_count)",
+      "urn:li:mlFeatureTable:(urn:li:dataPlatform:feast,customer_churn_features)",
+      "urn:li:mlModel:(urn:li:dataPlatform:mlflow,customer_churn_model,PROD)",
+      "urn:li:mlModelGroup:(urn:li:dataPlatform:mlflow,customer_churn_models,PROD)"
+    ]
+  },
+  "response": [
+    {
+      "properties": {
+        "description": "Geography, used for regional churn baselines",
+        "sources": [
+          "urn:li:dataset:(urn:li:dataPlatform:dbt,b2fd91.order_entry_db.order_entry.customers,PROD)"
+        ]
+      },
+      "urn": "urn:li:mlFeature:(customer_churn,country_id)"
+    },
+    {
+      "properties": {
+        "description": "Customer credit limit; strongest single churn predictor",
+        "sources": [
+          "urn:li:dataset:(urn:li:dataPlatform:dbt,b2fd91.order_entry_db.order_entry.customers,PROD)"
+        ]
+      },
+      "urn": "urn:li:mlFeature:(customer_churn,credit_limit)"
+    },
+    {
+      "properties": {
+        "description": "Segment the customer belongs to",
+        "sources": [
+          "urn:li:dataset:(urn:li:dataPlatform:dbt,b2fd91.order_entry_db.order_entry.customers,PROD)"
+        ]
+      },
+      "urn": "urn:li:mlFeature:(customer_churn,customer_class)"
+    },
+    {
+      "properties": {
+        "description": "Tenure, derived from the signup date",
+        "sources": [
+          "urn:li:dataset:(urn:li:dataPlatform:dbt,b2fd91.order_entry_db.order_entry.customers,PROD)"
+        ]
+      },
+      "urn": "urn:li:mlFeature:(customer_churn,customer_since)"
+    },
+    {
+      "properties": {
+        "description": "Recency signal, strongest predictor in the model",
+        "sources": [
+          "urn:li:dataset:(urn:li:dataPlatform:snowflake,b2fd91.order_entry_db.order_entry.customers,PROD)"
+        ]
+      },
+      "urn": "urn:li:mlFeature:(customer_churn,days_since_last_order)"
+    },
+    {
+      "properties": {
+        "description": "Orders that used a discount code",
+        "sources": [
+          "urn:li:dataset:(urn:li:dataPlatform:snowflake,b2fd91.order_entry_db.order_entry.customers,PROD)"
+        ]
+      },
+      "urn": "urn:li:mlFeature:(customer_churn,discounted_orders)"
+    },
+    {
+      "properties": {
+        "description": "Total revenue attributed to the customer",
+        "sources": [
+          "urn:li:dataset:(urn:li:dataPlatform:snowflake,b2fd91.order_entry_db.order_entry.customers,PROD)"
+        ]
+      },
+      "urn": "urn:li:mlFeature:(customer_churn,lifetime_value)"
+    },
+    {
+      "properties": {
+        "description": "Number of orders placed by the customer",
+        "sources": [
+          "urn:li:dataset:(urn:li:dataPlatform:snowflake,b2fd91.order_entry_db.order_entry.customers,PROD)"
+        ]
+      },
+      "urn": "urn:li:mlFeature:(customer_churn,order_count)"
+    },
+    {
+      "properties": {
+        "description": "Churn features served to the retention model.",
+        "mlFeatures": [
+          "urn:li:mlFeature:(customer_churn,credit_limit)",
+          "urn:li:mlFeature:(customer_churn,customer_class)",
+          "urn:li:mlFeature:(customer_churn,customer_since)",
+          "urn:li:mlFeature:(customer_churn,country_id)"
+        ]
+      },
+      "urn": "urn:li:mlFeatureTable:(urn:li:dataPlatform:feast,customer_churn_features)"
+    },
+    {
+      "properties": {
+        "deployments": [
+          "urn:li:mlModelDeployment:(urn:li:dataPlatform:mlflow,prod-retention-service,PROD)"
+        ],
+        "description": "Gradient-boosted churn classifier. Serving in production.",
+        "groups": [
+          "urn:li:mlModelGroup:(urn:li:dataPlatform:mlflow,customer_churn_models,PROD)"
+        ],
+        "mlFeatures": [
+          "urn:li:mlFeature:(customer_churn,credit_limit)",
+          "urn:li:mlFeature:(customer_churn,customer_class)",
+          "urn:li:mlFeature:(customer_churn,customer_since)",
+          "urn:li:mlFeature:(customer_churn,country_id)"
+        ],
+        "name": "Customer Churn Model v3"
+      },
+      "urn": "urn:li:mlModel:(urn:li:dataPlatform:mlflow,customer_churn_model,PROD)"
+    },
+    {
+      "properties": {},
+      "urn": "urn:li:mlModelGroup:(urn:li:dataPlatform:mlflow,customer_churn_models,PROD)"
+    }
+  ],
+  "tool": "ml_aspects"
+}
