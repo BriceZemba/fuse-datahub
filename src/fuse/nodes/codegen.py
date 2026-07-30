@@ -88,7 +88,7 @@ async def generate_code(state: FuseState) -> dict:
         if strategy == "add_compat_view" and change:
             # One view per changed model, listing every consumer that needs it.
             path = f"models/compat/{change.model}_compat.sql"
-            consumers = _consumers_for(impacts, plan, "add_compat_view")
+            consumers, more = _consumers_for(impacts, plan, "add_compat_view", change.column)
             artifacts[path] = Artifact(
                 path=path,
                 kind="compat_view",
@@ -96,7 +96,8 @@ async def generate_code(state: FuseState) -> dict:
                     "compat_view.sql.j2",
                     model=change.model,
                     column=change.column,
-                    consumer=", ".join(consumers),
+                    consumers=consumers,
+                    more=more,
                     columns=allowed,
                     dialect=dialect,
                 ),
@@ -133,6 +134,7 @@ async def generate_code(state: FuseState) -> dict:
                 # Nothing to rewrite from: a compatibility view is always safe, and one
                 # per changed model is enough.
                 path = f"models/compat/{change.model}_compat.sql"
+                consumers, more = _consumers_for(impacts, plan, "rewrite_sql", change.column)
                 artifacts[path] = Artifact(
                     path=path,
                     kind="compat_view",
@@ -140,7 +142,8 @@ async def generate_code(state: FuseState) -> dict:
                         "compat_view.sql.j2",
                         model=change.model,
                         column=change.column,
-                        consumer=", ".join(_consumers_for(impacts, plan, "rewrite_sql")),
+                        consumers=consumers,
+                        more=more,
                         columns=allowed,
                         dialect=dialect,
                     ),
@@ -188,9 +191,26 @@ async def generate_code(state: FuseState) -> dict:
     return {"artifacts": produced, "retries": retries + 1, "validation_errors": [], "trace": trace}
 
 
-def _consumers_for(impacts: list[Impact], plan: dict, strategy: str) -> list[str]:
-    """Names of the assets a shared artifact is being generated for."""
-    return [i.name for i in impacts if plan.get(i.urn) == strategy][:8]
+CONSUMER_LIST_LIMIT = 6
+
+
+def _consumers_for(
+    impacts: list[Impact], plan: dict, strategy: str, column: str | None = None
+) -> tuple[list[str], int]:
+    """(names, remaining) of the assets a shared artifact is generated for.
+
+    Ordered by severity and excluding the entity that *is* the changed column — listing
+    `credit_limit` as a consumer of `credit_limit` reads like a bug in the output.
+    """
+    names: list[str] = []
+    for impact in impacts:
+        if plan.get(impact.urn) != strategy:
+            continue
+        if column and impact.name.lower() == column.lower():
+            continue
+        if impact.name not in names:
+            names.append(impact.name)
+    return names[:CONSUMER_LIST_LIMIT], max(len(names) - CONSUMER_LIST_LIMIT, 0)
 
 
 def _consumer_sql(state: FuseState, impact: Impact) -> str:
