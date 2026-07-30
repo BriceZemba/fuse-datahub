@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 
 from fuse.llm.provider import get_llm
+from fuse.nodes.codegen import _consumer_sql
 from fuse.runtime import RT
 from fuse.state import FuseState, Impact, Strategy
 
@@ -30,6 +31,10 @@ Change: {change}
 Impacted assets (from DataHub lineage, scored by a deterministic rule engine):
 {impacts}
 
+`sql=yes` means this consumer's definition is in the repo under review, so it can be
+edited in this pull request. Prefer rewrite_sql for those: fixing the consumer is
+better than leaving a compatibility shim behind for someone else to clean up.
+
 For each asset choose exactly one strategy from:
 - rewrite_sql        the consumer's SQL can be updated directly
 - add_compat_view    keep the old shape available during a deprecation window
@@ -41,7 +46,7 @@ For each asset choose exactly one strategy from:
 Answer with JSON only: {{"<urn>": "<strategy>"}}. No prose."""
 
 
-def _fallback(impacts: list[Impact]) -> dict[str, Strategy]:
+def _fallback(impacts: list[Impact], state: FuseState | None = None) -> dict[str, Strategy]:
     """Rules used when there is no LLM, or when the LLM answers badly."""
     plan: dict[str, Strategy] = {}
     for impact in impacts:
@@ -50,6 +55,9 @@ def _fallback(impacts: list[Impact]) -> dict[str, Strategy]:
         elif impact.entity_type in {"mlFeature", "mlFeatureTable", "mlModel", "mlModelDeployment"}:
             # ML consumers cannot be hot-patched; keep the old shape and alert the owner.
             plan[impact.urn] = "add_compat_view"
+        elif state is not None and _consumer_sql(state, impact):
+            # Its definition is in this repo, so fix it here rather than shim around it.
+            plan[impact.urn] = "rewrite_sql"
         elif impact.references_column:
             plan[impact.urn] = "rewrite_sql"
         else:
@@ -64,7 +72,7 @@ async def plan_remediation(state: FuseState) -> dict:
 
     if llm is None:
         trace.append("plan: no LLM configured, using rule-based strategies")
-        return {"plan": _fallback(impacts), "trace": trace}
+        return {"plan": _fallback(impacts, state), "trace": trace}
 
     # Only the assets that need a decision go to the model. Asking it to rule on two
     # dozen SAFE assets costs tokens and latency to reproduce what the rules already
@@ -72,10 +80,11 @@ async def plan_remediation(state: FuseState) -> dict:
     actionable = [i for i in impacts if i.severity != "SAFE"]
     if not actionable:
         trace.append("plan: nothing above SAFE, using rule-based strategies")
-        return {"plan": _fallback(impacts), "trace": trace}
+        return {"plan": _fallback(impacts, state), "trace": trace}
 
     summary = "\n".join(
         f"- {i.urn} | {i.entity_type} | {i.severity} {i.score} | "
+        f"sql={'yes' if _consumer_sql(state, i) else 'no'} | "
         f"refs_column={i.references_column} | {'; '.join(i.evidence[:2])}"
         for i in actionable
     )
@@ -92,10 +101,10 @@ async def plan_remediation(state: FuseState) -> dict:
         }
         missing = [i for i in impacts if i.urn not in plan]
         if missing:
-            plan.update(_fallback(missing))
+            plan.update(_fallback(missing, state))
             trace.append(f"plan: filled {len(missing)} gap(s) from rules")
         trace.append(f"plan: {len(plan)} strategy decision(s)")
         return {"plan": plan, "trace": trace}
     except Exception as exc:
         trace.append(f"plan: LLM planning failed ({exc.__class__.__name__}), using rules")
-        return {"plan": _fallback(impacts), "trace": trace}
+        return {"plan": _fallback(impacts, state), "trace": trace}
