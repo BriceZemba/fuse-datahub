@@ -1,6 +1,6 @@
 # Fuse
 
-**The blast-radius agent for DataHub.** Fuse reads a schema change in your data repo, walks DataHub's lineage graph to find everything that actually breaks — including the feature tables and production ML models nobody remembers depend on that column — then generates the remediation code, opens a PR, and writes the verdict back into DataHub.
+**The blast-radius agent for DataHub.** Fuse reads a schema change in your data repo, walks DataHub to find what actually breaks — including the ML feature and the production deployment that ordinary lineage won't show you — then writes the remediation code, opens a PR, and records the verdict back in the catalog.
 
 [![ci](https://github.com/BriceZemba/fuse-datahub/actions/workflows/ci.yml/badge.svg)](https://github.com/BriceZemba/fuse-datahub/actions/workflows/ci.yml)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
@@ -9,38 +9,45 @@
 
 ---
 
-## Quickstart — offline, no Docker, no API key
+## Try it in 60 seconds — no Docker, no DataHub, no API key
 
 ```bash
-pip install -e .
+pip install -e . && fuse replay examples/03-ml-feature-break
 ```
 
-```bash
-fuse replay examples/01-drop-column
-```
+Every DataHub response is recorded in `examples/*/fixtures/`, so the full pipeline runs offline and reproduces the committed artifacts exactly. CI runs this too, so it cannot rot.
 
-Replays a recorded run against committed fixtures and reproduces every artifact in `examples/01-drop-column/generated/`.
+## What one run looks like
 
-## Quickstart — in the cloud, no local Docker
+Someone drops `credit_limit` from a dbt model. Nine of 32 downstream assets need attention:
 
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/BriceZemba/fuse-datahub?quickstart=1)
+| Asset | Type | Hops | Severity | Score | Evidence |
+|---|---|---|---|---|---|
+| `credit_limit` | mlFeature | 1 | **BREAKING** | 90 | built on customers.credit_limit |
+| `customer_churn_model` | mlModel | 2 | **BREAKING** | 67 | built on customers.credit_limit |
+| `prod-retention-service` | mlModelDeployment | 3 | **BREAKING** | 64 | built on customers.credit_limit, **not returned by lineage** |
+| `customer_churn_features` | mlFeatureTable | 2 | **BREAKING** | 62 | built on customers.credit_limit, **not returned by lineage** |
+| `country_id` | mlFeature | 1 | RISKY | 55 | derived from customers but not from `credit_limit` |
+| `order_details` | dataset | 1 | RISKY | 35 | — |
 
-The repo ships a devcontainer with Docker-in-Docker and the right machine size, so a full DataHub runs inside the codespace:
+Then it generates a compatibility view, contract tests and a migration plan, and tags the affected assets in DataHub. Full output: [examples/03-ml-feature-break](examples/03-ml-feature-break).
 
-```bash
-./scripts/bootstrap-datahub.sh
-```
+## The ML problem this exists for
 
-That starts DataHub, waits for GMS, and loads the `showcase-ecommerce` datapack. Ports 9002 (UI) and 8080 (GMS) are forwarded automatically. Stop the codespace when you are done — a 4-core machine spends 4 core-hours per running hour against the free monthly allowance.
+DataHub's `get_lineage` will show you the model. It will **not** show you the deployment serving traffic, and it cannot tell you *which* feature — and therefore which column — is the one that broke. It returns the same four features whether you dropped one of them or none of them.
 
-## Quickstart — live against your own DataHub
+Fuse reads `MLFeature.sources` directly, so it names `credit_limit` as the feature that breaks, separates it from its three siblings, and reaches the deployment. The report marks which entities came from lineage and which came only from the aspects, so you can see the difference rather than take our word for it.
+
+Measured on DataHub 1.5.0.6 OSS; the evidence is in [docs/spike.md](docs/spike.md).
+
+## Run it against your own DataHub
 
 ```bash
 datahub docker quickstart && datahub datapack load showcase-ecommerce
 ```
 
 ```bash
-cp .env.example .env    # set DATAHUB_GMS_URL=http://localhost:8080 and your token
+cp .env.example .env    # DATAHUB_GMS_URL=http://localhost:8080, plus a token if auth is on
 ```
 
 ```bash
@@ -48,14 +55,14 @@ fuse doctor
 ```
 
 ```bash
-fuse check --repo demo/dbt-shop --diff demo/scenarios/01-drop-column.patch
+python demo/seed_ml_lineage.py --query customers
 ```
-
-Add the ML half of the graph (the `showcase-ecommerce` datapack ships datasets, not models):
 
 ```bash
-python demo/seed_ml_lineage.py
+fuse check --repo demo/dbt-shop --diff demo/scenarios/03-ml-feature-break.patch
 ```
+
+Add `--dry-run` to read DataHub without writing to it. In a codespace, `./scripts/bootstrap-datahub.sh` does the first two steps and survives a restart.
 
 ## Run it in CI
 
@@ -69,7 +76,7 @@ Copy [`.github/workflows/fuse.yml`](.github/workflows/fuse.yml) into any data re
 flowchart LR
   A[git diff] --> B[parse_change<br/><i>sqlglot</i>]
   B --> C[resolve<br/><i>MCP search</i>]
-  C --> D[trace_lineage<br/><i>MCP lineage + ML entities</i>]
+  C --> D[trace_lineage<br/><i>lineage + ML aspects</i>]
   D --> E[assess_impact<br/><i>deterministic rules</i>]
   E -->|SAFE| H[write_back]
   E -->|RISKY / BREAKING| F[plan + codegen<br/><i>LLM, schema-grounded</i>]
@@ -79,65 +86,87 @@ flowchart LR
   H --> I[open PR]
 ```
 
-Judgment is the LLM's job. Correctness is the code's job. Scores come from [`rules.yaml`](src/fuse/risk/rules.yaml) and every one is explained in the report. Full contracts in [ARCHITECTURE.md](ARCHITECTURE.md).
+Judgment is the LLM's job; correctness is the code's. Parsing, traversal, scoring and validation are deterministic. Scores come from [`rules.yaml`](src/fuse/risk/rules.yaml) and every point is explained in the report — no score is ever the output of a language model.
+
+Two design choices worth calling out:
+
+- **Nothing generated reaches a PR unverified.** `validate` resolves every identifier in generated SQL against the schema DataHub returned; anything the catalog can't confirm is rejected and regenerated, up to two retries, then flagged for a human.
+- **Evidence is ranked and labelled.** A proven SQL reference (55) outranks a column-lineage edge (45), which outranks an ML derivation (45), which outranks a schema-name match (35), which outranks a bare table dependency (10). The report always says which one applied, because an inference must never read as a proof.
+
+Full node contracts: [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ## What Fuse uses from DataHub
 
-| DataHub capability | Node | Why |
+| Capability | Node | Why |
 |---|---|---|
 | `search` | `resolve` | map a changed dbt model to its real URN |
 | `list_schema_fields` | `resolve`, `codegen`, `validate` | ground generation on real columns; reject invented ones |
-| `get_lineage`, `get_lineage_paths_between` | `trace_lineage` | downstream blast radius, multi-hop |
-| `get_lineage(column=…)` | `trace_lineage` | column-precise impact instead of table-level noise |
-| `get_dataset_queries` | `assess_impact` | hard evidence that a consumer really selects the column |
-| `get_entities` | `trace_lineage` | owners, tiers, domains, tags become risk inputs |
-| ML entities (`mlFeature`, `mlModel`, `mlModelGroup`, deployments) | `assess_impact` | catch silent ML breakage |
+| `get_lineage` (with `column`) | `trace_lineage` | column-scoped blast radius, multi-hop |
+| `get_entities` | `trace_lineage` | owners, tags and tiers become risk inputs |
+| `get_dataset_queries` | `assess_impact` | hard evidence that a consumer selects the column |
+| ML aspects via GraphQL + typed SDK | `trace_lineage` | the feature, model and deployment lineage misses |
 | `add_tags`, `update_description`, `add_structured_properties` | `write_back` | the catalog records the verdict |
 | `save_document` | `write_back` | the next agent inherits the analysis |
 
+The MCP server is the primary surface. Two things it doesn't cover — ML entity discovery and ML aspects — are documented in [docs/spike.md](docs/spike.md) with the measurements behind them.
+
 ## How this differs from DataHub's built-in Skills
 
-- The catalog Skills **find and describe**; Fuse **decides and repairs** — its output is code in a PR, not an answer in a chat.
-- Fuse treats lineage as an **input to code generation**, grounding every generated identifier in the real schema and rejecting anything the catalog can't confirm.
-- Fuse closes the loop: the analysis is **written back**, so the graph gets smarter after every change.
+- The catalog Skills **find and describe**; Fuse **decides and repairs** — the output is code in a PR, not an answer in a chat.
+- Lineage is an **input to code generation**: every generated identifier is grounded in the real schema and rejected if the catalog can't confirm it.
+- The loop closes: the analysis is **written back** as tags, structured properties and a document, so the graph gets smarter after each change.
 
 ## Examples
 
-See [examples/](examples/) — three complete recorded runs with inputs, analysis, generated artifacts and traces.
+| Scenario | Change | Verdict |
+|---|---|---|
+| [01-drop-column](examples/01-drop-column) | `promotion_id` dropped from `orders` | propagates into `order_details` on dbt, Snowflake and PowerBI |
+| [02-type-change](examples/02-type-change) | `order_total` narrowed FLOAT → INT | passes every test and silently truncates money |
+| [03-ml-feature-break](examples/03-ml-feature-break) | `credit_limit` dropped from `customers` | reaches a model serving production traffic |
+
+Every column named is a real column of the `showcase-ecommerce` datapack. Nothing in `examples/` is hand-written.
 
 ## Configuration
 
 | Variable | Default | Purpose |
 |---|---|---|
 | `DATAHUB_GMS_URL` | `http://localhost:8080` | GMS endpoint (not the `:9002` UI) |
-| `DATAHUB_GMS_TOKEN` | — | personal access token |
+| `DATAHUB_GMS_TOKEN` | — | personal access token; optional on a default OSS quickstart |
 | `TOOLS_IS_MUTATION_ENABLED` | `true` | required for write-back |
 | `FUSE_LLM_PROVIDER` | `none` | `anthropic` \| `openai` \| `ollama` \| `none` |
 | `FUSE_HOPS` | `3` | lineage traversal depth |
+| `FUSE_SCHEMA_PROBE_HOPS` | `2` | how far out to check schemas for the changed column |
 | `FUSE_FAIL_ON` | `BREAKING` | severity that fails CI |
 | `FUSE_DIALECT` | `snowflake` | sqlglot dialect |
 
-With `FUSE_LLM_PROVIDER=none` the LLM nodes are skipped: strategy selection falls back to rules and generation to templates. Output is blunter, the pipeline still completes, and no API key is required.
+With `FUSE_LLM_PROVIDER=none` the LLM nodes are skipped: strategies come from rules and artifacts from templates. Output is blunter, the pipeline still completes, and no API key is required.
 
 ## Commands
 
 ```bash
-fuse check --repo <path> --diff <patch|rev|--staged> [--hops 3] [--dry-run] [--auto-approve]
+fuse check --repo <path> --diff <patch|rev|--staged> [--dry-run] [--auto-approve]
 ```
 
 ```bash
-fuse replay examples/01-drop-column
+fuse replay examples/03-ml-feature-break
 ```
 
 ```bash
-fuse doctor
+fuse freeze demo/scenarios/01-drop-column.patch --name 01-drop-column
+```
+
+```bash
+fuse doctor    # connection, tools, write-back availability
+fuse schema orders    # what columns DataHub really has
+fuse spike --urn <urn>    # raw responses, for debugging against a live instance
 ```
 
 ## Limitations
 
-- SQL parsing targets dbt-style models; dialect defaults to Snowflake and is configurable, but exotic macros are stripped rather than expanded.
-- Column-level lineage depends on what your DataHub instance actually has. Without it, Fuse falls back to table-level dependency plus SQL evidence and says so in the report.
-- Write-back needs `TOOLS_IS_MUTATION_ENABLED=true`; without it Fuse still analyses and generates, and reports the writes it skipped.
+- SQL parsing targets dbt-style models. Jinja is stripped rather than expanded, so exotic macros may not resolve.
+- Column-level lineage depends on what your instance has. Without it, Fuse falls back to schema-name matching and says so in the report.
+- Schema probing stops at 2 hops by default: past that, a schema match cannot reach RISKY anyway, and the report states how many assets were skipped.
+- ML entity discovery uses GMS GraphQL, and ML aspects the typed SDK, because the MCP surface doesn't expose either.
 - Native assertions are a DataHub Cloud feature, so verdicts are recorded as tags, structured properties and documents instead.
 
 ## Development
@@ -145,6 +174,8 @@ fuse doctor
 ```bash
 pip install -e ".[dev]" && pytest -q
 ```
+
+58 tests, including offline replays of every committed example.
 
 ## License
 
