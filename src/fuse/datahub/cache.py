@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -17,9 +18,20 @@ class ReplayMiss(RuntimeError):
     """Raised when replay mode needs a call that was never recorded."""
 
 
+# Windows rejects : < > " | ? * in filenames, so a key like "llm:codegen" produces a
+# repository that cannot be checked out there at all — git fails with "invalid path"
+# before any code runs. Fixtures are committed and judges clone on every platform, so
+# the filename has to be portable even though the key need not be.
+UNSAFE_IN_FILENAME = re.compile(r"[^A-Za-z0-9._-]")
+
+
 def _key(tool: str, args: dict[str, Any]) -> str:
     canonical = json.dumps({"tool": tool, "args": args}, sort_keys=True, default=str)
     return hashlib.sha256(canonical.encode()).hexdigest()[:20]
+
+
+def _safe_name(tool: str) -> str:
+    return UNSAFE_IN_FILENAME.sub("-", tool)
 
 
 class CallCache:
@@ -33,7 +45,9 @@ class CallCache:
             self.dir.mkdir(parents=True, exist_ok=True)
 
     def _path(self, tool: str, args: dict[str, Any]) -> Path:
-        return self.dir / f"{tool}.{_key(tool, args)}.json"
+        # The hash is computed from the real tool name; only the readable prefix is
+        # sanitised, so two tools that sanitise alike still get distinct files.
+        return self.dir / f"{_safe_name(tool)}.{_key(tool, args)}.json"
 
     def get(self, tool: str, args: dict[str, Any]) -> Any | None:
         path = self._path(tool, args)
