@@ -10,6 +10,7 @@ from __future__ import annotations
 import asyncio
 import json
 import re
+import shutil
 import uuid
 from pathlib import Path
 
@@ -125,6 +126,104 @@ def replay(
     }
     result = asyncio.run(_run(state, replay=True, dry_run=True, auto_approve=True))
     _report(result)
+
+
+@app.command()
+def freeze(
+    scenario: Path = typer.Argument(..., help="Patch under demo/scenarios/"),
+    name: str = typer.Option("", "--name", help="Folder name under examples/"),
+    repo: Path = typer.Option(Path("demo/dbt-shop"), "--repo"),
+    dry_run: bool = typer.Option(True, "--dry-run/--write"),
+) -> None:
+    """Run a scenario and freeze the whole thing into examples/ for judging.
+
+    Captures the input diff, a copy of the repo, every recorded DataHub response, the
+    generated artifacts and the trace — so `fuse replay` reproduces it with no DataHub,
+    no Docker and no API key.
+    """
+    folder = Path("examples") / (name or scenario.stem)
+    fixtures = folder / "fixtures"
+    if folder.exists():
+        shutil.rmtree(folder)
+    fixtures.mkdir(parents=True)
+
+    shutil.copytree(repo, folder / "repo")
+    shutil.copy(scenario, folder / "diff.patch")
+
+    settings.fixtures_dir = fixtures
+    settings.out_dir = folder / "generated"
+
+    state: FuseState = {
+        "repo_path": str(folder / "repo"),
+        "diff": str(folder / "diff.patch"),
+        "dialect": settings.dialect,
+        "hops": settings.hops,
+        "run_id": folder.name,
+        "trace": [],
+    }
+    result = asyncio.run(_run(state, replay=False, dry_run=dry_run, auto_approve=True))
+    _report(result)
+
+    # The reports belong at the top of the folder; only the code Fuse wrote stays
+    # under generated/, so a judge sees the verdict before the diff of files.
+    generated = folder / "generated" / folder.name
+    for produced in ("PR_BODY.md", "impact-report.md", "run.log"):
+        source = generated / produced
+        if source.exists():
+            shutil.move(str(source), folder / produced)
+
+    if generated.exists():
+        for item in generated.iterdir():
+            shutil.move(str(item), folder / "generated" / item.name)
+        generated.rmdir()
+
+    (folder / "README.md").write_text(
+        _example_readme(folder.name, result), encoding="utf-8"
+    )
+    console.print(f"\n[green]Frozen to {folder}[/] — verify with: fuse replay {folder}")
+
+
+def _example_readme(name: str, state: FuseState) -> str:
+    impacts = state.get("impacts", [])
+    actionable = [i for i in impacts if i.severity != "SAFE"]
+    lines = [
+        f"# {name}",
+        "",
+        f"**Change:** {impacts[0].source_change if impacts else 'n/a'}  ",
+        f"**Verdict:** {state.get('max_severity', 'SAFE')} — "
+        f"{len(actionable)} of {len(impacts)} downstream assets need attention",
+        "",
+        "```bash",
+        f"fuse replay examples/{name}",
+        "```",
+        "",
+        "| Asset | Type | Hops | Severity | Score | Evidence |",
+        "|---|---|---|---|---|---|",
+    ]
+    for impact in actionable:
+        lines.append(
+            f"| `{impact.name}` | {impact.entity_type} | {impact.hops} | "
+            f"**{impact.severity}** | {impact.score} | "
+            f"{'; '.join(impact.evidence) or '—'} |"
+        )
+    lines += [
+        "",
+        "## Files",
+        "",
+        "| Path | What it is |",
+        "|---|---|",
+        "| `diff.patch` | the input |",
+        "| `repo/` | the data repo at the moment of the change |",
+        "| `fixtures/` | every DataHub response, recorded |",
+        "| `impact-report.md` | the analysis, every score explained |",
+        "| `PR_BODY.md` | what the reviewer sees |",
+        "| `generated/` | the artifacts Fuse produced |",
+        "| `run.log` | node-by-node trace |",
+        "",
+        "Nothing here is hand-written; it is the output of the command above.",
+        "",
+    ]
+    return "\n".join(lines)
 
 
 @app.command()
