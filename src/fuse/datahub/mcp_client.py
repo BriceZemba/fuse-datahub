@@ -16,6 +16,7 @@ Tools exposed by mcp-server-datahub:
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 from typing import Any
 
@@ -98,11 +99,15 @@ class DataHubMCP:
 
             from langchain_mcp_adapters.client import MultiServerMCPClient
 
+            # `@latest` makes uvx re-resolve the package against the index on every
+            # invocation. Without it the cached build is reused, which is most of the
+            # startup cost. Override with FUSE_MCP_SERVER to pin a version.
+            spec = os.getenv("FUSE_MCP_SERVER", "mcp-server-datahub")
             self._client = MultiServerMCPClient(
                 {
                     "datahub": {
                         "command": "uvx",
-                        "args": ["mcp-server-datahub@latest"],
+                        "args": [spec],
                         "env": settings.mcp_env(),
                         "transport": "stdio",
                     }
