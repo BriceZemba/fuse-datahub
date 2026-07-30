@@ -7,6 +7,7 @@ impact report already there. Writes are idempotent and `fuse revert` undoes the 
 
 from __future__ import annotations
 
+import re
 from datetime import datetime, timezone
 
 from fuse.runtime import RT
@@ -40,7 +41,16 @@ def _report_markdown(state: FuseState) -> str:
     return "\n".join(lines) + "\n"
 
 
+URN_IN_TEXT = re.compile(r"urn:li:[a-zA-Z]+:[^\s\"',)]+")
+ERROR_MARKERS = ("validation error", "error", "invalid", "traceback")
+
+
 def _document_urn(saved: object) -> str | None:
+    """Find the created document's URN in whatever shape the tool answered with.
+
+    MCP tools often reply with a text blob rather than structured JSON, so a plain
+    key lookup is not enough.
+    """
     if isinstance(saved, dict):
         for key in ("urn", "documentUrn", "document_urn"):
             if isinstance(saved.get(key), str):
@@ -48,7 +58,57 @@ def _document_urn(saved: object) -> str | None:
         document = saved.get("document")
         if isinstance(document, dict) and isinstance(document.get("urn"), str):
             return document["urn"]
-    return None
+
+    text = saved if isinstance(saved, str) else str(saved)
+    match = URN_IN_TEXT.search(text)
+    return match.group(0) if match else None
+
+
+def _looks_like_error(response: object) -> bool:
+    """A failed MCP call comes back as ordinary text, not an exception."""
+    if not isinstance(response, dict):
+        return False
+    text = response.get("text")
+    if not isinstance(text, str):
+        return False
+    lowered = text.lower()
+    return any(marker in lowered for marker in ERROR_MARKERS)
+
+
+async def _save_report(dh, title: str, report: str, related: list[str]) -> tuple[str | None, str]:
+    """Save the impact report, narrowing the arguments if the tool rejects them.
+
+    The tool's optional parameters are the fragile part — `document_type` had a
+    closed vocabulary that was not obvious, and `related_assets` may be equally
+    picky. Losing the report entirely because of an optional field would be the
+    wrong trade, so this degrades to the minimum viable call and says which
+    attempt succeeded.
+    """
+    attempts: list[tuple[str, dict]] = [
+        ("full", {"document_type": DOCUMENT_TYPE, "title": title, "content": report,
+                  "related_assets": related}),
+        ("without related_assets", {"document_type": DOCUMENT_TYPE, "title": title,
+                                    "content": report}),
+        ("title and content only", {"title": title, "content": report}),
+    ]
+
+    last = ""
+    for label, kwargs in attempts:
+        try:
+            response = await dh.call("save_document", **kwargs)
+        except Exception as exc:
+            last = f"{label}: {exc.__class__.__name__}: {exc}"
+            continue
+        if _skipped(response):
+            return None, "dry run"
+        if _looks_like_error(response):
+            last = f"{label}: {str(response.get('text'))[:300]}"
+            continue
+        urn = _document_urn(response)
+        if urn:
+            return urn, label
+        last = f"{label}: no urn in response {str(response)[:200]}"
+    return None, last
 
 
 def _skipped(response: object) -> bool:
@@ -120,26 +180,17 @@ async def write_back(state: FuseState) -> dict:
             except Exception as exc:
                 result.errors.append(f"{asset.urn}: {exc.__class__.__name__}: {exc}")
 
-    try:
-        saved = await dh.call(
-            "save_document",
-            # Valid values are Insight, Decision, FAQ, Analysis, Summary,
-            # Recommendation, Note, Context. An impact report is an analysis.
-            document_type=DOCUMENT_TYPE,
-            title=f"Fuse impact report — {run_id}",
-            content=report,
-            related_assets=[i.urn for i in impacts],
-        )
-        if not _skipped(saved):
-            result.document_urn = _document_urn(saved)
-            if not result.document_urn:
-                # The call succeeded but carried no URN in a shape we recognise. Record
-                # what came back rather than reporting a silent "not saved".
-                result.errors.append(
-                    f"save_document returned no recognisable urn: {str(saved)[:300]}"
-                )
-    except Exception as exc:
-        result.errors.append(f"save_document: {exc.__class__.__name__}: {exc}")
+    urn, detail = await _save_report(
+        dh,
+        f"Fuse impact report — {run_id}",
+        report,
+        [i.urn for i in impacts],
+    )
+    result.document_urn = urn
+    if urn:
+        trace.append(f"writeback: report saved as a document ({detail})")
+    elif detail != "dry run":
+        result.errors.append(f"save_document: {detail}")
 
     if result.dry_run:
         trace.append("writeback: dry run — nothing was written to DataHub")
