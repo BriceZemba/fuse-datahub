@@ -14,23 +14,23 @@ not inferred from file names.
 
 | Asset | Type | Hops | Severity | Score | Evidence | Strategy |
 |---|---|---|---|---|---|---|
-| `prod-retention-service` | mlModelDeployment | 3 | **BREAKING** | 64 | ML entity built on customers.credit_limit (invisible to lineage) | add_compat_view |
-| `customer_churn_features` | mlFeatureTable | 2 | **BREAKING** | 62 | ML entity built on customers.credit_limit (invisible to lineage) | add_compat_view |
-| `country_id` | mlFeature | 1 | **RISKY** | 55 | — | add_compat_view |
-| `credit_limit` | mlFeature | 1 | **RISKY** | 55 | — | add_compat_view |
-| `customer_class` | mlFeature | 1 | **RISKY** | 55 | — | add_compat_view |
-| `customer_since` | mlFeature | 1 | **RISKY** | 55 | — | add_compat_view |
+| `credit_limit` | mlFeature | 1 | **BREAKING** | 90 | built on customers.credit_limit | add_compat_view |
+| `customer_churn_model` | mlModel | 2 | **BREAKING** | 67 | built on customers.credit_limit | add_compat_view |
+| `prod-retention-service` | mlModelDeployment | 3 | **BREAKING** | 64 | built on customers.credit_limit, not returned by lineage | add_compat_view |
+| `customer_churn_features` | mlFeatureTable | 2 | **BREAKING** | 62 | built on customers.credit_limit, not returned by lineage | add_compat_view |
+| `country_id` | mlFeature | 1 | **RISKY** | 55 | derived from customers but not from `credit_limit` | add_compat_view |
+| `customer_class` | mlFeature | 1 | **RISKY** | 55 | derived from customers but not from `credit_limit` | add_compat_view |
+| `customer_since` | mlFeature | 1 | **RISKY** | 55 | derived from customers but not from `credit_limit` | add_compat_view |
+| `customer_churn_models` | mlModelGroup | 3 | **RISKY** | 44 | built on customers.credit_limit | add_contract_test |
 | `order_details` | dataset | 1 | **RISKY** | 35 | — | add_contract_test |
-| `customer_churn_model` | mlModel | 2 | **RISKY** | 32 | — | add_compat_view |
 
-<details><summary>24 further asset(s) scored SAFE</summary>
+<details><summary>23 further asset(s) scored SAFE</summary>
 
 | Asset | Type | Hops | Score |
 |---|---|---|---|
 | `datahub_order_entries` | dashboard | 4 | 11 |
 | `Order Entry Dashboard` | dashboard | 6 | 10 |
 | `order_history` | dataset | 3 | 9 |
-| `customer_churn_models` | mlModelGroup | 3 | 9 |
 | `ORDER_HISTORY` | dataset | 3 | 9 |
 | `Customer Analytics Measures` | dataset | 3 | 9 |
 | `Essential KPI Measures` | dataset | 3 | 9 |

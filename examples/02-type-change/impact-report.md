@@ -2,7 +2,7 @@
 
 **Change:** orders.order_total retyped DOUBLE -> INT  
 **Max severity:** BREAKING  
-**Generated:** 2026-07-30T17:51:17+00:00
+**Generated:** 2026-07-30T18:02:07+00:00
 
 | Asset | Type | Hops | Severity | Score | Evidence | Owners |
 |---|---|---|---|---|---|---|

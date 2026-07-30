@@ -9,23 +9,23 @@
 
 | Asset | Type | Hops | Severity | Score | Evidence | Owners |
 |---|---|---|---|---|---|---|
-| `prod-retention-service` | mlModelDeployment | 3 | **BREAKING** | 64 | ML entity built on customers.credit_limit (invisible to lineage) | _unowned_ |
-| `customer_churn_features` | mlFeatureTable | 2 | **BREAKING** | 62 | ML entity built on customers.credit_limit (invisible to lineage) | _unowned_ |
-| `country_id` | mlFeature | 1 | **RISKY** | 55 | — | _unowned_ |
-| `credit_limit` | mlFeature | 1 | **RISKY** | 55 | — | _unowned_ |
-| `customer_class` | mlFeature | 1 | **RISKY** | 55 | — | _unowned_ |
-| `customer_since` | mlFeature | 1 | **RISKY** | 55 | — | _unowned_ |
+| `credit_limit` | mlFeature | 1 | **BREAKING** | 90 | built on customers.credit_limit | _unowned_ |
+| `customer_churn_model` | mlModel | 2 | **BREAKING** | 67 | built on customers.credit_limit | _unowned_ |
+| `prod-retention-service` | mlModelDeployment | 3 | **BREAKING** | 64 | built on customers.credit_limit, not returned by lineage | _unowned_ |
+| `customer_churn_features` | mlFeatureTable | 2 | **BREAKING** | 62 | built on customers.credit_limit, not returned by lineage | _unowned_ |
+| `country_id` | mlFeature | 1 | **RISKY** | 55 | derived from customers but not from `credit_limit` | _unowned_ |
+| `customer_class` | mlFeature | 1 | **RISKY** | 55 | derived from customers but not from `credit_limit` | _unowned_ |
+| `customer_since` | mlFeature | 1 | **RISKY** | 55 | derived from customers but not from `credit_limit` | _unowned_ |
+| `customer_churn_models` | mlModelGroup | 3 | **RISKY** | 44 | built on customers.credit_limit | _unowned_ |
 | `order_details` | dataset | 1 | **RISKY** | 35 | — | urn:li:corpGroup:b2fd91.1e0398a3-113f-475e-b6fc-32ab72a634d2, urn:li:corpGroup:b2fd91.ORG_DATA_PLATFORM, urn:li:corpuser:b2fd91.EMP006, urn:li:corpuser:b2fd91.brock1@example.com, urn:li:corpuser:b2fd91.bryan@example.com, urn:li:corpuser:b2fd91.jonny1@example.com, urn:li:corpuser:b2fd91.jonny2@example.com, urn:li:corpuser:b2fd91.kirk@example.com, urn:li:corpuser:b2fd91.marty@example.com, urn:li:corpuser:b2fd91.sam@example.com |
-| `customer_churn_model` | mlModel | 2 | **RISKY** | 32 | — | _unowned_ |
 
-<details><summary>24 further asset(s) scored SAFE — listed for the record</summary>
+<details><summary>23 further asset(s) scored SAFE — listed for the record</summary>
 
 | Asset | Type | Hops | Score |
 |---|---|---|---|
 | `datahub_order_entries` | dashboard | 4 | 11 |
 | `Order Entry Dashboard` | dashboard | 6 | 10 |
 | `order_history` | dataset | 3 | 9 |
-| `customer_churn_models` | mlModelGroup | 3 | 9 |
 | `ORDER_HISTORY` | dataset | 3 | 9 |
 | `Customer Analytics Measures` | dataset | 3 | 9 |
 | `Essential KPI Measures` | dataset | 3 | 9 |
@@ -54,14 +54,14 @@
 
 This change reaches machine learning assets, which fail silently rather than loudly:
 
+- `credit_limit` (mlFeature, 1 hops) — BREAKING
+- `customer_churn_model` (mlModel, 2 hops) — BREAKING
 - `prod-retention-service` (mlModelDeployment, 3 hops) — BREAKING
 - `customer_churn_features` (mlFeatureTable, 2 hops) — BREAKING
 - `country_id` (mlFeature, 1 hops) — RISKY
-- `credit_limit` (mlFeature, 1 hops) — RISKY
 - `customer_class` (mlFeature, 1 hops) — RISKY
 - `customer_since` (mlFeature, 1 hops) — RISKY
-- `customer_churn_model` (mlModel, 2 hops) — RISKY
-- `customer_churn_models` (mlModelGroup, 3 hops) — SAFE
+- `customer_churn_models` (mlModelGroup, 3 hops) — RISKY
 
 
 ## What Fuse changed
@@ -86,13 +86,14 @@ parse_change: 1 change(s)
 timing: parse_change took 0.0s
 resolve: customers -> urn:li:dataset:(urn:li:dataPlatform:dbt,b2fd91.order_entry_db.order_entry.customers,PROD) (search_rank, confidence 0.99)
 resolve: 1/1 change(s) mapped to URNs
-timing: resolve took 9.5s
+timing: resolve took 9.8s
 lineage: no column-level edges for credit_limit, falling back to table-level
 lineage: no query history on the first 5 dataset(s), skipped the remaining 12
 lineage: schema checked within 2 hop(s); 15 more distant asset(s) cannot reach RISKY on a schema match alone
+lineage: 8 ML entit(ies), 2 of them reachable only through ML aspects, not through get_lineage
 lineage: 32 downstream asset(s), 8 ML entit(ies), 0 with query evidence, 0 carrying the column in their schema
-timing: lineage took 26.4s
-impact: 32 asset(s) — 2 breaking, 6 risky, 24 safe
+timing: lineage took 26.9s
+impact: 32 asset(s) — 4 breaking, 5 risky, 23 safe
 timing: impact took 0.0s
 plan: no LLM configured, using rule-based strategies
 timing: plan took 0.0s

@@ -1,7 +1,7 @@
 # 03-ml-feature-break
 
 **Change:** drop_column customers.credit_limit  
-**Verdict:** BREAKING — 8 of 32 downstream assets need attention
+**Verdict:** BREAKING — 9 of 32 downstream assets need attention
 
 ```bash
 fuse replay examples/03-ml-feature-break
@@ -9,14 +9,15 @@ fuse replay examples/03-ml-feature-break
 
 | Asset | Type | Hops | Severity | Score | Evidence |
 |---|---|---|---|---|---|
-| `prod-retention-service` | mlModelDeployment | 3 | **BREAKING** | 64 | ML entity built on customers.credit_limit (invisible to lineage) |
-| `customer_churn_features` | mlFeatureTable | 2 | **BREAKING** | 62 | ML entity built on customers.credit_limit (invisible to lineage) |
-| `country_id` | mlFeature | 1 | **RISKY** | 55 | — |
-| `credit_limit` | mlFeature | 1 | **RISKY** | 55 | — |
-| `customer_class` | mlFeature | 1 | **RISKY** | 55 | — |
-| `customer_since` | mlFeature | 1 | **RISKY** | 55 | — |
+| `credit_limit` | mlFeature | 1 | **BREAKING** | 90 | built on customers.credit_limit |
+| `customer_churn_model` | mlModel | 2 | **BREAKING** | 67 | built on customers.credit_limit |
+| `prod-retention-service` | mlModelDeployment | 3 | **BREAKING** | 64 | built on customers.credit_limit, not returned by lineage |
+| `customer_churn_features` | mlFeatureTable | 2 | **BREAKING** | 62 | built on customers.credit_limit, not returned by lineage |
+| `country_id` | mlFeature | 1 | **RISKY** | 55 | derived from customers but not from `credit_limit` |
+| `customer_class` | mlFeature | 1 | **RISKY** | 55 | derived from customers but not from `credit_limit` |
+| `customer_since` | mlFeature | 1 | **RISKY** | 55 | derived from customers but not from `credit_limit` |
+| `customer_churn_models` | mlModelGroup | 3 | **RISKY** | 44 | built on customers.credit_limit |
 | `order_details` | dataset | 1 | **RISKY** | 35 | — |
-| `customer_churn_model` | mlModel | 2 | **RISKY** | 32 | — |
 
 ## Files
 
