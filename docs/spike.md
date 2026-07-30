@@ -18,6 +18,21 @@ in the code or changes the design. Record raw response shapes — the normaliser
 | 9 | Does `save_document` work on OSS, and where does the document appear? | Tool **registers** on OSS ("Save Document ENABLED"). Placement in the UI still to be confirmed. | If unsupported, fall back to a structured property holding the report |
 | 10 | Are structured properties usable without pre-registering the property definition? | | May require a one-time `datahub` CLI bootstrap step in SETUP |
 
+## Write-back, confirmed on a live instance
+
+Verified 2026-07-30 against DataHub 1.5.0.6 OSS, non-dry-run: **9 assets tagged, 9 with
+structured properties, 1 column description annotated**, all visible in the UI. The
+column note shows up in search as *"Column description: See the Fuse impact report"*.
+
+Two parameter details worth recording:
+
+- `save_document(document_type=...)` accepts only `Insight`, `Decision`, `FAQ`,
+  `Analysis`, `Summary`, `Recommendation`, `Note`, `Context`. `Overview` — which *is* a
+  valid document **subtype** in the showcase datapack — fails validation. Fuse uses
+  `Analysis`.
+- `add_structured_properties` works on OSS without pre-registering property
+  definitions, contrary to the initial assumption.
+
 ## Reaching ML entities: three separate obstacles
 
 Resolved 2026-07-30. Each of these was a distinct dead end, and all three had to be

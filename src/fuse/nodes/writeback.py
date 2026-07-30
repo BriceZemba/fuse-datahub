@@ -14,6 +14,7 @@ from fuse.state import FuseState, Impact, WriteBackResult
 
 TAG_PENDING = "urn:li:tag:fuse-pending-breaking-change"
 TAG_SAFE = "urn:li:tag:fuse-verified-safe"
+DOCUMENT_TYPE = "Analysis"
 
 
 def _report_markdown(state: FuseState) -> str:
@@ -122,7 +123,9 @@ async def write_back(state: FuseState) -> dict:
     try:
         saved = await dh.call(
             "save_document",
-            document_type="Overview",
+            # Valid values are Insight, Decision, FAQ, Analysis, Summary,
+            # Recommendation, Note, Context. An impact report is an analysis.
+            document_type=DOCUMENT_TYPE,
             title=f"Fuse impact report — {run_id}",
             content=report,
             related_assets=[i.urn for i in impacts],
