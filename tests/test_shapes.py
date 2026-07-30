@@ -25,6 +25,24 @@ def load(name: str):
 pytestmark = pytest.mark.skipif(not RAW.exists(), reason="spike recordings not present")
 
 
+def test_fixture_filenames_are_portable(tmp_path):
+    """Fixtures are committed, and judges clone on Windows too. A key like "llm:codegen"
+    yields a path git cannot check out there — the repo fails before any code runs."""
+    from fuse.datahub.cache import CallCache
+
+    cache = CallCache(tmp_path)
+    cache.put("llm:codegen", {"prompt": "x"}, {"ok": True})
+
+    written = list(tmp_path.iterdir())
+    assert written, "nothing was recorded"
+    for path in written:
+        assert not set(path.name) & set(':<>"|?*\\/'), f"unportable filename: {path.name}"
+
+    # Sanitising the name must not merge distinct keys.
+    cache.put("llm-codegen", {"prompt": "x"}, {"ok": False})
+    assert len(list(tmp_path.iterdir())) == 2
+
+
 def test_coerce_unwraps_text_content_blocks():
     payload = _coerce([{"id": "lc_1", "type": "text", "text": '{"total": 3}'}])
     assert payload == {"total": 3}
