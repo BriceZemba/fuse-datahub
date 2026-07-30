@@ -37,7 +37,9 @@ SEVERITY_STYLE = {"BREAKING": "bold red", "RISKY": "bold yellow", "SAFE": "green
 async def _run(state: FuseState, *, replay: bool, dry_run: bool, auto_approve: bool) -> FuseState:
     async with DataHubMCP(replay=replay, dry_run=dry_run) as dh:
         RT.dh = dh
-        RT.llm = get_llm()
+        # A replay reproduces a recorded run: its LLM responses come from the fixtures,
+        # so no client is constructed and no key is needed.
+        RT.llm = None if replay else get_llm()
         RT.dry_run = dry_run
         graph = build_graph(interrupt_before_writeback=not auto_approve)
         config = {"configurable": {"thread_id": state["run_id"]}}

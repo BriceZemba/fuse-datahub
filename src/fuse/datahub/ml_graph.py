@@ -80,7 +80,7 @@ async def ml_urns(dh: Any) -> tuple[list[str], str | None]:
     return list(result.get("urns") or []), result.get("error")
 
 
-async def _urns_via_graphql() -> tuple[list[str], str | None]:
+async def _urns_via_graphql(timeout: float = 30.0) -> tuple[list[str], str | None]:
     """Returns (urns, error). The error is surfaced rather than swallowed: a silent
     empty list here is indistinguishable from a catalog with no ML entities, and that
     ambiguity cost a full debugging round trip."""
@@ -92,7 +92,7 @@ async def _urns_via_graphql() -> tuple[list[str], str | None]:
     if settings.gms_token:
         headers["Authorization"] = f"Bearer {settings.gms_token}"
     try:
-        async with httpx.AsyncClient(timeout=30) as client:
+        async with httpx.AsyncClient(timeout=timeout) as client:
             response = await client.post(
                 f"{settings.gms_url.rstrip('/')}/api/graphql",
                 headers=headers,

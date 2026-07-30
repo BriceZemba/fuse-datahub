@@ -5,8 +5,14 @@ set -euo pipefail
 
 python -m pip install --upgrade pip wheel setuptools
 python -m pip install --upgrade acryl-datahub
-python -m pip install -e ".[dev]"
+python -m pip install -e ".[dev,openrouter]"
 curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Give the user a .env to edit rather than making them find the template.
+if [ ! -f .env ]; then
+  cp .env.example .env
+  echo "Created .env from .env.example — add your DataHub token and LLM key there."
+fi
 
 cat <<'EOF'
 

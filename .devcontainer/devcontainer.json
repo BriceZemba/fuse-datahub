@@ -33,9 +33,8 @@
     }
   },
 
-  "remoteEnv": {
-    "DATAHUB_GMS_URL": "http://localhost:8080",
-    "TOOLS_IS_MUTATION_ENABLED": "true",
-    "FUSE_LLM_PROVIDER": "none"
-  }
+  // Deliberately no remoteEnv. Anything set here becomes a real environment variable,
+  // and python-dotenv does not override those — so a value here silently wins over the
+  // user's .env and looks like .env being ignored. Configuration belongs in .env only;
+  // .env.example documents every variable.
 }

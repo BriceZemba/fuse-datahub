@@ -136,6 +136,10 @@ class DataHubMCP:
         if hit is not None:
             self.trace.append(f"{name} (cached)")
             return hit
+        if self.replay:
+            # cache.get raises ReplayMiss before reaching here, so this only guards a
+            # future change; the point is that replay must never touch the network.
+            raise RuntimeError(f"{name}: replay mode must not perform live calls")
         value = await producer()
         self.cache.put(name, args, value)
         self.trace.append(name)

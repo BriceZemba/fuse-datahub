@@ -73,8 +73,9 @@ async def plan_remediation(state: FuseState) -> dict:
     )
     change = impacts[0].source_change if impacts else "unknown change"
     try:
-        response = await llm.ainvoke(PROMPT.format(change=change, impacts=summary))
-        text = response.content if hasattr(response, "content") else str(response)
+        text = await RT.ask_llm("plan", PROMPT.format(change=change, impacts=summary))
+        if not text:
+            raise ValueError("no response")
         raw = json.loads(text[text.find("{") : text.rfind("}") + 1])
         plan = {
             urn: strategy

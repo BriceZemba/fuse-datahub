@@ -154,7 +154,8 @@ async def generate_code(state: FuseState) -> dict:
                     ],
                 )
             else:
-                rendered = await llm.ainvoke(
+                body = await RT.ask_llm(
+                    "codegen",
                     PROMPT.format(
                         change=change.describe(),
                         name=impact.name,
@@ -169,9 +170,8 @@ async def generate_code(state: FuseState) -> dict:
                             if errors
                             else ""
                         ),
-                    )
-                )
-                body = rendered.content if hasattr(rendered, "content") else str(rendered)
+                    ),
+                ) or ""
                 path = f"models/{_slug(impact.name)}.sql"
                 artifacts[path] = Artifact(
                     path=path,
