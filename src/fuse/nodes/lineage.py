@@ -103,7 +103,7 @@ async def trace_lineage(state: FuseState) -> dict:
     # ML entities are not reachable through get_lineage: MLFeature.sources is an aspect,
     # not a lineage edge. Without this pass a column feeding a deployed model looks
     # completely safe — which is the failure mode the ML challenge is about.
-    ml_entities, ml_error = await ml_graph.ml_entities(dh.call)
+    ml_entities, ml_error = await ml_graph.ml_entities(dh)
     if ml_error:
         trace.append(f"lineage: ML discovery problem — {ml_error}")
     if ml_entities:

@@ -56,24 +56,28 @@ query mlUrns($count: Int!) {{
 """
 
 
-async def ml_urns(call: Any) -> tuple[list[str], str | None]:
+async def ml_urns(dh: Any) -> tuple[list[str], str | None]:
     """URNs of every ML entity in the catalog, plus any error worth reporting.
 
     Keyword search does not surface ML entity types, so this asks GMS directly for
-    them by type. Falls back to the MCP search in case a future server does return
-    them there.
+    them by type. Routed through the cache so a recorded run replays offline.
     """
-    urns, error = await _urns_via_graphql()
-    if urns:
-        return urns, None
 
-    payload = await call("search", query="*", num_results=MAX_ML_ENTITIES)
-    fallback = [
-        str(e["urn"])
-        for e in shapes.search_results(payload)
-        if str(e.get("urn", "")).startswith(ML_PREFIXES)
-    ]
-    return fallback, error
+    async def discover() -> dict:
+        urns, error = await _urns_via_graphql()
+        if urns:
+            return {"urns": urns, "error": None}
+
+        payload = await dh.call("search", query="*", num_results=MAX_ML_ENTITIES)
+        fallback = [
+            str(e["urn"])
+            for e in shapes.search_results(payload)
+            if str(e.get("urn", "")).startswith(ML_PREFIXES)
+        ]
+        return {"urns": fallback, "error": error}
+
+    result = await dh.cached("ml_urns", {}, discover)
+    return list(result.get("urns") or []), result.get("error")
 
 
 async def _urns_via_graphql() -> tuple[list[str], str | None]:
@@ -177,12 +181,18 @@ def _hydrate_via_sdk(urns: list[str]) -> list[dict]:
         return list(pool.map(read, urns))
 
 
-async def ml_entities(call: Any) -> tuple[list[dict], str | None]:
+async def ml_entities(dh: Any) -> tuple[list[dict], str | None]:
     """Every ML entity in the catalog, hydrated, plus any discovery error."""
-    urns, error = await ml_urns(call)
+    urns, error = await ml_urns(dh)
     if not urns:
         return [], error
-    return await asyncio.to_thread(_hydrate_via_sdk, urns), error
+
+    entities = await dh.cached(
+        "ml_aspects",
+        {"urns": sorted(urns)},
+        lambda: asyncio.to_thread(_hydrate_via_sdk, urns),
+    )
+    return entities, error
 
 
 def dependents_of(

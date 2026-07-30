@@ -125,6 +125,22 @@ class DataHubMCP:
     def available(self) -> list[str]:
         return sorted(self._tools)
 
+    async def cached(self, name: str, args: dict[str, Any], producer: Any) -> Any:
+        """Record/replay a call that does not go through an MCP tool.
+
+        Some data is only reachable outside the MCP surface — ML entity discovery via
+        GraphQL, ML aspects via the typed SDK. Those still have to be captured, or
+        `fuse replay` reaches for a live DataHub that a judge does not have.
+        """
+        hit = self.cache.get(name, args)
+        if hit is not None:
+            self.trace.append(f"{name} (cached)")
+            return hit
+        value = await producer()
+        self.cache.put(name, args, value)
+        self.trace.append(name)
+        return value
+
     async def call(self, tool: str, **args: Any) -> Any:
         """Call an MCP tool, going through the cache first."""
         cached = self.cache.get(tool, args)

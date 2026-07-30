@@ -343,7 +343,7 @@ def spike(
                     + json.dumps(probe, default=str)[:600]
                 )
 
-                entities, _ = await ml_graph.ml_entities(dh.call)
+                entities, _ = await ml_graph.ml_entities(dh)
                 (out / "11-ml-entities.json").write_text(
                     json.dumps(entities, indent=2, default=str)[:400_000], encoding="utf-8"
                 )
