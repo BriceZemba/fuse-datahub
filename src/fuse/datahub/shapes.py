@@ -184,8 +184,10 @@ def entity_name(entity: dict) -> str:
         return str(entity["name"])
 
     urn = str(entity.get("urn") or "")
-    if "," in urn:  # urn:li:dataset:(urn:li:dataPlatform:x,db.schema.table,PROD)
-        return urn.split(",")[1].split(".")[-1]
+    if "," in urn:
+        # urn:li:dataset:(urn:li:dataPlatform:x,db.schema.table,PROD)
+        # urn:li:mlFeature:(namespace,feature_name)  <- no trailing env segment
+        return urn.split(",")[1].split(".")[-1].rstrip(")")
     return urn
 
 

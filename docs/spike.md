@@ -18,7 +18,32 @@ in the code or changes the design. Record raw response shapes — the normaliser
 | 9 | Does `save_document` work on OSS, and where does the document appear? | Tool **registers** on OSS ("Save Document ENABLED"). Placement in the UI still to be confirmed. | If unsupported, fall back to a structured property holding the report |
 | 10 | Are structured properties usable without pre-registering the property definition? | | May require a one-time `datahub` CLI bootstrap step in SETUP |
 
-## Open: ML entities exist but are not discoverable
+## Reaching ML entities: three separate obstacles
+
+Resolved 2026-07-30. Each of these was a distinct dead end, and all three had to be
+cleared before a column change could be traced to a deployed model.
+
+1. **`get_lineage` does not traverse `MLFeature.sources`.** Downstream of the dbt
+   `customers` dataset: 30 entities, zero ML — while four features name that dataset as
+   their source. The dependency is in the catalog; lineage does not expose it.
+2. **Keyword `search` never returns ML entity types**, so discovery by search finds
+   nothing. Typed GraphQL works:
+   `searchAcrossEntities(types: [MLFEATURE, MLFEATURE_TABLE, MLMODEL, MLMODEL_GROUP])`
+   returns all 11. Note `MLMODEL_DEPLOYMENT` is **not** a valid `EntityType` — including
+   it fails validation for the entire query. Deployments come from
+   `MLModelProperties.deployments` instead.
+3. **`get_entities` does not project ML aspects.** For an `mlFeature` it returns only
+   `urn`, `name`, `description` and `relatedDocuments` — no `sources`, no `mlFeatures`,
+   no `deployments` (see `docs/spike-raw/11-ml-entities.json`). The aspects are intact in
+   GMS, so Fuse reads them with `DataHubGraph.get_aspect` using the same generated
+   classes the seed emitted.
+
+The resulting design: **GraphQL for discovery, typed SDK for hydration, MCP for
+everything else.** Worth reporting upstream — points 2 and 3 look like gaps in the MCP
+server's coverage rather than intentional limits, and they are good material for the
+hackathon feedback survey.
+
+## Previously open (kept for the record)
 
 Status as of 2026-07-25. This is the one unproven claim in the project and it carries
 the Production ML Agents challenge, so it is worth finishing properly.

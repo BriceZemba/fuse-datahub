@@ -17,6 +17,7 @@ the ML aspects directly instead:
 
 from __future__ import annotations
 
+import asyncio
 from typing import Any
 
 from fuse.datahub import shapes
@@ -40,8 +41,8 @@ MAX_ML_ENTITIES = 200
 ML_GRAPHQL_TYPES = "[MLFEATURE, MLFEATURE_TABLE, MLMODEL, MLMODEL_GROUP]"
 
 # Keep the projection to `urn` only: every extra GraphQL field is another schema
-# assumption that can break. Details come back through get_entities, whose shape is
-# pinned by tests.
+# assumption that can break. The relationships are then read from the aspects with the
+# typed SDK, which cannot drift from what the seed wrote.
 ML_URN_QUERY = f"""
 query mlUrns($count: Int!) {{
   searchAcrossEntities(
@@ -117,12 +118,69 @@ async def _urns_via_graphql() -> tuple[list[str], str | None]:
     return urns, None
 
 
+def _hydrate_via_sdk(urns: list[str]) -> list[dict]:
+    """Read the ML aspects with the typed SDK.
+
+    The MCP `get_entities` projection returns only `urn`, `name`, `description` and
+    `relatedDocuments` for ML entities — none of the relationships. Verified on
+    DataHub 1.5.0.6; see docs/spike-raw/11-ml-entities.json. The aspects themselves are
+    intact in GMS, so they are read with the same generated classes the seed emitted,
+    which removes any guessing about field names.
+    """
+    from datahub.ingestion.graph.client import DatahubClientConfig, DataHubGraph
+    from datahub.metadata.schema_classes import (
+        MLFeaturePropertiesClass,
+        MLFeatureTablePropertiesClass,
+        MLModelPropertiesClass,
+    )
+
+    from fuse.config import settings
+
+    graph = DataHubGraph(
+        DatahubClientConfig(server=settings.gms_url, token=settings.gms_token or None)
+    )
+
+    entities: list[dict] = []
+    for urn in urns:
+        properties: dict[str, Any] = {}
+        try:
+            if urn.startswith("urn:li:mlFeature:"):
+                aspect = graph.get_aspect(urn, MLFeaturePropertiesClass)
+                if aspect:
+                    properties = {
+                        "description": aspect.description,
+                        "sources": list(aspect.sources or []),
+                    }
+            elif urn.startswith("urn:li:mlFeatureTable:"):
+                aspect = graph.get_aspect(urn, MLFeatureTablePropertiesClass)
+                if aspect:
+                    properties = {
+                        "description": aspect.description,
+                        "mlFeatures": list(aspect.mlFeatures or []),
+                    }
+            elif urn.startswith("urn:li:mlModel:"):
+                aspect = graph.get_aspect(urn, MLModelPropertiesClass)
+                if aspect:
+                    properties = {
+                        "name": aspect.name,
+                        "description": aspect.description,
+                        "mlFeatures": list(aspect.mlFeatures or []),
+                        "deployments": list(aspect.deployments or []),
+                        "groups": list(aspect.groups or []),
+                    }
+        except Exception:  # one unreadable entity must not lose the rest
+            properties = {}
+
+        entities.append({"urn": urn, "properties": properties})
+    return entities
+
+
 async def ml_entities(call: Any) -> tuple[list[dict], str | None]:
     """Every ML entity in the catalog, hydrated, plus any discovery error."""
     urns, error = await ml_urns(call)
     if not urns:
         return [], error
-    return shapes.entities(await call("get_entities", urns=urns)), error
+    return await asyncio.to_thread(_hydrate_via_sdk, urns), error
 
 
 def dependents_of(dataset_urn: str, entities: list[dict]) -> list[tuple[dict, int]]:
