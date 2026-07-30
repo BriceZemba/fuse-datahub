@@ -1,0 +1,12 @@
+{
+  "args": {
+    "column": "order_total",
+    "urn": "urn:li:dataset:(urn:li:dataPlatform:dbt,b2fd91.ORDER_ENTRY_DB.analytics.order_details,PROD)"
+  },
+  "response": {
+    "count": 10,
+    "start": 0,
+    "total": 0
+  },
+  "tool": "get_dataset_queries"
+}

@@ -1,0 +1,12 @@
+{
+  "args": {
+    "column": "credit_limit",
+    "urn": "urn:li:dataset:(urn:li:dataPlatform:looker,b2fd91.order-entry.explore.order_details,PROD)"
+  },
+  "response": {
+    "count": 10,
+    "start": 0,
+    "total": 0
+  },
+  "tool": "get_dataset_queries"
+}

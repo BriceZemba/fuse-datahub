@@ -1,0 +1,12 @@
+{
+  "args": {
+    "column": "promotion_id",
+    "urn": "urn:li:dataset:(urn:li:dataPlatform:powerbi,b2fd91.datahub_order_entries.Customer_Analytics_Measures,PROD)"
+  },
+  "response": {
+    "count": 10,
+    "start": 0,
+    "total": 0
+  },
+  "tool": "get_dataset_queries"
+}

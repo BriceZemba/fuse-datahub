@@ -1,0 +1,352 @@
+{
+  "args": {
+    "urn": "urn:li:dataset:(urn:li:dataPlatform:powerbi,b2fd91.datahub_order_entries.ORDER_DETAILS,PROD)"
+  },
+  "response": {
+    "fields": [
+      {
+        "editedGlossaryTerms": [
+          "PII"
+        ],
+        "fieldPath": "BILLING_ADDRESS_LINE1",
+        "nativeDataType": "String",
+        "nullable": false
+      },
+      {
+        "editedGlossaryTerms": [
+          "PII"
+        ],
+        "fieldPath": "BILLING_ADDRESS_LINE2",
+        "nativeDataType": "String",
+        "nullable": false
+      },
+      {
+        "editedGlossaryTerms": [
+          "PII"
+        ],
+        "fieldPath": "BILLING_COUNTRY",
+        "nativeDataType": "String",
+        "nullable": false
+      },
+      {
+        "editedGlossaryTerms": [
+          "PII"
+        ],
+        "fieldPath": "BILLING_REGION",
+        "nativeDataType": "String",
+        "nullable": false
+      },
+      {
+        "editedGlossaryTerms": [
+          "PII"
+        ],
+        "fieldPath": "BILLING_TOWN_CITY",
+        "nativeDataType": "String",
+        "nullable": false
+      },
+      {
+        "editedGlossaryTerms": [
+          "PII"
+        ],
+        "fieldPath": "BILLING_ZIPCODE",
+        "nativeDataType": "Double",
+        "nullable": false
+      },
+      {
+        "fieldPath": "CATEGORY_ID",
+        "nativeDataType": "Double",
+        "nullable": false
+      },
+      {
+        "fieldPath": "CATEGORY_NAME",
+        "nativeDataType": "String",
+        "nullable": false
+      },
+      {
+        "fieldPath": "CONDITION",
+        "nativeDataType": "String",
+        "nullable": false
+      },
+      {
+        "fieldPath": "COST_OF_DELIVERY",
+        "nativeDataType": "Double",
+        "nullable": false
+      },
+      {
+        "fieldPath": "CUSTOMER_CLASS",
+        "nativeDataType": "String",
+        "nullable": false
+      },
+      {
+        "editedGlossaryTerms": [
+          "PII"
+        ],
+        "fieldPath": "CUSTOMER_ID",
+        "nativeDataType": "Double",
+        "nullable": false
+      },
+      {
+        "editedGlossaryTerms": [
+          "PII"
+        ],
+        "fieldPath": "CUST_EMAIL",
+        "nativeDataType": "String",
+        "nullable": false
+      },
+      {
+        "editedGlossaryTerms": [
+          "PII"
+        ],
+        "fieldPath": "CUST_FIRST_NAME",
+        "nativeDataType": "String",
+        "nullable": false
+      },
+      {
+        "editedGlossaryTerms": [
+          "PII"
+        ],
+        "fieldPath": "CUST_LAST_NAME",
+        "nativeDataType": "String",
+        "nullable": false
+      },
+      {
+        "fieldPath": "DELIVERY_STATUS",
+        "nativeDataType": "String",
+        "nullable": false
+      },
+      {
+        "fieldPath": "DELIVERY_TYPE",
+        "nativeDataType": "String",
+        "nullable": false
+      },
+      {
+        "fieldPath": "DISCOUNT_AMOUNT",
+        "nativeDataType": "Double",
+        "nullable": false
+      },
+      {
+        "fieldPath": "DISCOUNT_PERCENT",
+        "nativeDataType": "Double",
+        "nullable": false
+      },
+      {
+        "fieldPath": "DISPATCH_DATE",
+        "nativeDataType": "String",
+        "nullable": false
+      },
+      {
+        "fieldPath": "ESTIMATED_DELIVERY",
+        "nativeDataType": "String",
+        "nullable": false
+      },
+      {
+        "fieldPath": "GIFT_WRAP",
+        "nativeDataType": "String",
+        "nullable": false
+      },
+      {
+        "fieldPath": "LINE_ITEM_ID",
+        "nativeDataType": "Double",
+        "nullable": false
+      },
+      {
+        "fieldPath": "LINE_TOTAL",
+        "nativeDataType": "Double",
+        "nullable": false
+      },
+      {
+        "fieldPath": "LIST_PRICE",
+        "nativeDataType": "Double",
+        "nullable": false
+      },
+      {
+        "fieldPath": "ORDER_DATE",
+        "nativeDataType": "String",
+        "nullable": false
+      },
+      {
+        "fieldPath": "ORDER_ID",
+        "nativeDataType": "Double",
+        "nullable": false
+      },
+      {
+        "fieldPath": "ORDER_MODE",
+        "nativeDataType": "String",
+        "nullable": false
+      },
+      {
+        "fieldPath": "ORDER_STATUS",
+        "nativeDataType": "Double",
+        "nullable": false
+      },
+      {
+        "fieldPath": "ORDER_TOTAL",
+        "nativeDataType": "Double",
+        "nullable": false
+      },
+      {
+        "fieldPath": "Order Size Category",
+        "nativeDataType": "String",
+        "nullable": false
+      },
+      {
+        "fieldPath": "PAYMENT_METHOD_CODE",
+        "nativeDataType": "String",
+        "nullable": false
+      },
+      {
+        "editedGlossaryTerms": [
+          "PII"
+        ],
+        "fieldPath": "PHONE_NUMBER",
+        "nativeDataType": "String",
+        "nullable": false
+      },
+      {
+        "fieldPath": "PRODUCT_DESCRIPTION",
+        "nativeDataType": "String",
+        "nullable": false
+      },
+      {
+        "fieldPath": "PRODUCT_ID",
+        "nativeDataType": "Double",
+        "nullable": false
+      },
+      {
+        "fieldPath": "PRODUCT_NAME",
+        "nativeDataType": "String",
+        "nullable": false
+      },
+      {
+        "fieldPath": "PRODUCT_STATUS",
+        "nativeDataType": "String",
+        "nullable": false
+      },
+      {
+        "fieldPath": "PROMOTION_DESCRIPTION",
+        "nativeDataType": "String",
+        "nullable": false
+      },
+      {
+        "fieldPath": "PROMOTION_ID",
+        "nativeDataType": "Double",
+        "nullable": false
+      },
+      {
+        "fieldPath": "PROMOTION_NAME",
+        "nativeDataType": "String",
+        "nullable": false
+      },
+      {
+        "fieldPath": "QUANTITY",
+        "nativeDataType": "Double",
+        "nullable": false
+      },
+      {
+        "fieldPath": "QUANTITY_ON_HAND",
+        "nativeDataType": "Double",
+        "nullable": false
+      },
+      {
+        "fieldPath": "Quarter",
+        "nativeDataType": "String",
+        "nullable": false
+      },
+      {
+        "fieldPath": "RETURN_DATE",
+        "nativeDataType": "String",
+        "nullable": false
+      },
+      {
+        "fieldPath": "RETURN_STATUS",
+        "nativeDataType": "String",
+        "nullable": false
+      },
+      {
+        "editedGlossaryTerms": [
+          "PII"
+        ],
+        "fieldPath": "SHIPPING_ADDRESS_LINE1",
+        "nativeDataType": "String",
+        "nullable": false
+      },
+      {
+        "editedGlossaryTerms": [
+          "PII"
+        ],
+        "fieldPath": "SHIPPING_ADDRESS_LINE2",
+        "nativeDataType": "String",
+        "nullable": false
+      },
+      {
+        "editedGlossaryTerms": [
+          "PII"
+        ],
+        "fieldPath": "SHIPPING_COUNTRY",
+        "nativeDataType": "String",
+        "nullable": false
+      },
+      {
+        "editedGlossaryTerms": [
+          "PII"
+        ],
+        "fieldPath": "SHIPPING_REGION",
+        "nativeDataType": "String",
+        "nullable": false
+      },
+      {
+        "editedGlossaryTerms": [
+          "PII"
+        ],
+        "fieldPath": "SHIPPING_TOWN_CITY",
+        "nativeDataType": "String",
+        "nullable": false
+      },
+      {
+        "editedGlossaryTerms": [
+          "PII"
+        ],
+        "fieldPath": "SHIPPING_ZIPCODE",
+        "nativeDataType": "Double",
+        "nullable": false
+      },
+      {
+        "fieldPath": "STOCK_STATUS",
+        "nativeDataType": "String",
+        "nullable": false
+      },
+      {
+        "fieldPath": "UNIT_PRICE",
+        "nativeDataType": "Double",
+        "nullable": false
+      },
+      {
+        "fieldPath": "UPDATED_AT",
+        "nativeDataType": "DateTime",
+        "nullable": false
+      },
+      {
+        "fieldPath": "WAIT_TILL_COMPLETE_YN",
+        "nativeDataType": "String",
+        "nullable": false
+      },
+      {
+        "fieldPath": "WAREHOUSE_ID",
+        "nativeDataType": "Double",
+        "nullable": false
+      },
+      {
+        "fieldPath": "WAREHOUSE_NAME",
+        "nativeDataType": "String",
+        "nullable": false
+      }
+    ],
+    "matchingCount": null,
+    "offset": 0,
+    "remainingCount": 0,
+    "returned": 57,
+    "totalFields": 57,
+    "urn": "urn:li:dataset:(urn:li:dataPlatform:powerbi,b2fd91.datahub_order_entries.ORDER_DETAILS,PROD)"
+  },
+  "tool": "list_schema_fields"
+}

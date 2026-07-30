@@ -1,0 +1,9 @@
+diff --git a/models/marts/orders.sql b/models/marts/orders.sql
+--- a/models/marts/orders.sql
++++ b/models/marts/orders.sql
+@@ -15,4 +15,4 @@
+     promotion_id,
+     payment_method_code,
+-    cast(order_total as float) as order_total
++    cast(order_total as int) as order_total
+ from source

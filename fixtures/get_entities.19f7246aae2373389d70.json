@@ -1,0 +1,2379 @@
+{
+  "args": {
+    "urns": [
+      "urn:li:dataset:(urn:li:dataPlatform:dbt,b2fd91.ORDER_ENTRY_DB.analytics.order_history,PROD)",
+      "urn:li:dashboard:(looker,b2fd91.dashboards.53)",
+      "urn:li:dataset:(urn:li:dataPlatform:snowflake,b2fd91.order_entry_db.analytics.order_history,PROD)",
+      "urn:li:dataset:(urn:li:dataPlatform:powerbi,b2fd91.datahub_order_entries.Customer_Analytics_Measures,PROD)",
+      "urn:li:dataset:(urn:li:dataPlatform:powerbi,b2fd91.datahub_order_entries.Essential_KPI_Measures,PROD)",
+      "urn:li:dataset:(urn:li:dataPlatform:powerbi,b2fd91.datahub_order_entries.Geographic_Measures,PROD)",
+      "urn:li:dataset:(urn:li:dataPlatform:powerbi,b2fd91.datahub_order_entries.Product_Perfromance_Measures,PROD)",
+      "urn:li:dataset:(urn:li:dataPlatform:powerbi,b2fd91.datahub_order_entries.Time_Inteligence_Measures,PROD)",
+      "urn:li:dataset:(urn:li:dataPlatform:tableau,b2fd91.37fcfb15-34ae-973a-5ae3-cf63691d48e3,PROD)",
+      "urn:li:dataset:(urn:li:dataPlatform:tableau,b2fd91.4a3af1dd-fd0c-7077-d5fd-aa2fdf87cb23,PROD)",
+      "urn:li:dataset:(urn:li:dataPlatform:tableau,b2fd91.8bfe7483-1c9a-a0e1-ec84-57207dd37a15,PROD)",
+      "urn:li:dataset:(urn:li:dataPlatform:tableau,b2fd91.f32082e5-06b8-f46e-9047-4611fffe66b0,PROD)",
+      "urn:li:chart:(looker,b2fd91.dashboard_elements.221)",
+      "urn:li:chart:(looker,b2fd91.dashboard_elements.222)",
+      "urn:li:chart:(looker,b2fd91.dashboard_elements.223)"
+    ]
+  },
+  "response": [
+    {
+      "domain": {
+        "domain": {
+          "children": {
+            "total": 0
+          },
+          "dataProducts": {
+            "total": 0
+          },
+          "entities": {
+            "total": 1
+          },
+          "parentDomains": {
+            "count": 0
+          },
+          "properties": {
+            "name": "E-Commerce"
+          },
+          "urn": "urn:li:domain:b2fd91.d4f24004-fb54-4e3c-8dea-2b7e209230b0"
+        }
+      },
+      "editableProperties": {
+        "description": "Incremental table containing all historical order information"
+      },
+      "glossaryTerms": {
+        "terms": [
+          {
+            "term": {
+              "hierarchicalName": "b2fd91.1598cf93-c199-43a1-8833-fce96faa9a1a",
+              "parentNodes": {
+                "count": 1,
+                "nodes": [
+                  {
+                    "properties": {
+                      "name": "Classification"
+                    },
+                    "urn": "urn:li:glossaryNode:b2fd91.9fc2293a-b772-44de-84c8-cfa9021e5825"
+                  }
+                ]
+              },
+              "properties": {
+                "description": "# Personally Identifiable Information\n\nPersonally Identifiable Information (PII) refers to any data that can be used to identify a specific individual, either directly or indirectly when combined with other information. Dataset and column contents can be inferred either by the dataset or column name, description, or column sample values.\n\n## Direct Identifiers\n\nAny dataset or column that contains the following information:\n\n*   Full name\n    \n*   First name\n    \n*   Middle name\n    \n*   Last name\n    \n*   Social Security Number or national ID\n    \n*   Driver's license number\n    \n*   Passport number\n    \n*   Email address\n    \n*   Phone number\n    \n*   Physical address\n    \n*   Biometric data (fingerprints, facial recognition)\n    \n*   Account numbers\n    \n*   IP address (in some jurisdictions)\n    \n\n## Indirect Identifiers\n\nAny dataset or column that contains the following information:\n\n*   Date of birth\n    \n*   Place of birth\n    \n*   Gender\n    \n*   Race/ethnicity\n    \n*   Job title and workplace\n    \n*   Education information\n    \n*   Geographic indicators\n    \n*   Medical information\n    \n*   Vehicle registration information",
+                "name": "PII",
+                "termSource": "INTERNAL"
+              },
+              "urn": "urn:li:glossaryTerm:b2fd91.1598cf93-c199-43a1-8833-fce96faa9a1a"
+            }
+          }
+        ]
+      },
+      "health": [
+        {
+          "status": "PASS",
+          "type": "INCIDENTS"
+        }
+      ],
+      "name": "order_history",
+      "platform": {
+        "name": "dbt",
+        "urn": "urn:li:dataPlatform:dbt"
+      },
+      "properties": {
+        "customProperties": [
+          {
+            "key": "owner",
+            "value": "michael2@example.com"
+          },
+          {
+            "key": "materialization",
+            "value": "incremental"
+          },
+          {
+            "key": "business_critical",
+            "value": "True"
+          },
+          {
+            "key": "language",
+            "value": "sql"
+          },
+          {
+            "key": "node_type",
+            "value": "model"
+          },
+          {
+            "key": "account_id",
+            "value": "107298"
+          },
+          {
+            "key": "model_maturity",
+            "value": "prod"
+          },
+          {
+            "key": "contains_pii",
+            "value": "False"
+          },
+          {
+            "key": "project_id",
+            "value": "424662"
+          },
+          {
+            "key": "job_id",
+            "value": "872519"
+          },
+          {
+            "key": "catalog_type",
+            "value": "BASE TABLE"
+          },
+          {
+            "key": "domain",
+            "value": "Order Entry"
+          },
+          {
+            "key": "dbt_package_name",
+            "value": "order_entry_db"
+          },
+          {
+            "key": "dbt_unique_id",
+            "value": "model.order_entry_db.order_history"
+          }
+        ],
+        "description": "Incremental table containing all historical order information",
+        "name": "order_history"
+      },
+      "relatedDocuments": {
+        "count": 10,
+        "start": 0,
+        "total": 0
+      },
+      "schemaMetadata": {
+        "fields": [
+          {
+            "fieldPath": "as_of_date",
+            "nativeDataType": "DATE",
+            "nullable": false
+          },
+          {
+            "editedGlossaryTerms": [
+              "PII"
+            ],
+            "fieldPath": "customer_id",
+            "nativeDataType": "NUMBER",
+            "nullable": false
+          },
+          {
+            "fieldPath": "order_id",
+            "nativeDataType": "NUMBER",
+            "nullable": false
+          },
+          {
+            "fieldPath": "order_status",
+            "nativeDataType": "NUMBER",
+            "nullable": false
+          },
+          {
+            "fieldPath": "order_total",
+            "nativeDataType": "FLOAT",
+            "nullable": false
+          }
+        ],
+        "name": "model.order_entry_db.order_history",
+        "platformUrn": "urn:li:dataPlatform:dbt"
+      },
+      "structuredProperties": {
+        "properties": [
+          {
+            "structuredProperty": {
+              "definition": {
+                "displayName": "Data Freshness SLA",
+                "qualifiedName": "showcase.dataFreshnessSla"
+              },
+              "urn": "urn:li:structuredProperty:showcase.dataFreshnessSla"
+            },
+            "values": [
+              {
+                "stringValue": "Weekly"
+              }
+            ]
+          },
+          {
+            "structuredProperty": {
+              "definition": {
+                "displayName": "Data Quality Score",
+                "qualifiedName": "showcase.dataQualityScore"
+              },
+              "urn": "urn:li:structuredProperty:showcase.dataQualityScore"
+            },
+            "values": [
+              {
+                "numberValue": 86.6
+              }
+            ]
+          },
+          {
+            "structuredProperty": {
+              "definition": {
+                "displayName": "Retention Period",
+                "qualifiedName": "showcase.retentionPeriod"
+              },
+              "urn": "urn:li:structuredProperty:showcase.retentionPeriod"
+            },
+            "values": [
+              {
+                "stringValue": "1 year"
+              }
+            ]
+          },
+          {
+            "structuredProperty": {
+              "definition": {
+                "displayName": "Cost Center",
+                "qualifiedName": "showcase.costCenter"
+              },
+              "urn": "urn:li:structuredProperty:showcase.costCenter"
+            },
+            "values": [
+              {
+                "stringValue": "Engineering"
+              }
+            ]
+          },
+          {
+            "structuredProperty": {
+              "definition": {
+                "displayName": "Data Owner Escalation Contact",
+                "qualifiedName": "showcase.escalationContact"
+              },
+              "urn": "urn:li:structuredProperty:showcase.escalationContact"
+            },
+            "valueEntities": [
+              {
+                "properties": {
+                  "displayName": "Karen Okonkwo",
+                  "email": "karen.okonkwo@example.com",
+                  "title": "Product Manager"
+                },
+                "type": "CORP_USER",
+                "urn": "urn:li:corpuser:b2fd91.kirk@example.com"
+              }
+            ],
+            "values": [
+              {
+                "stringValue": "urn:li:corpuser:b2fd91.kirk@example.com"
+              }
+            ]
+          }
+        ]
+      },
+      "subTypes": {
+        "typeNames": [
+          "Model"
+        ]
+      },
+      "urn": "urn:li:dataset:(urn:li:dataPlatform:dbt,b2fd91.ORDER_ENTRY_DB.analytics.order_history,PROD)",
+      "viewProperties": {
+        "language": "SQL",
+        "logic": "{{\n    config(\n        materialized='incremental',\n        post_hook=[\n            \"DELETE FROM {{ this }} WHERE as_of_date < dateadd(day, -5, current_timestamp())\"\n        ]\n    )\n}}\n\nselect\n  order_id\n  , customer_id\n  , order_status\n  , order_total\n  , updated_at::date as as_of_date\n\nfrom\n  {{ ref('order_details') }}\n\n{% if is_incremental() %}\n\n  -- this filter will only be applied on an incremental run\n  where updated_at > (select max(as_of_date) from {{ this }})\n\n{% endif %}",
+        "materialized": true
+      }
+    },
+    {
+      "dashboardId": "b2fd91.dashboards.53",
+      "dataProduct": {
+        "relationships": [
+          {
+            "entity": {
+              "domain": {
+                "domain": {
+                  "children": {
+                    "total": 0
+                  },
+                  "dataProducts": {
+                    "total": 1
+                  },
+                  "entities": {
+                    "total": 22
+                  },
+                  "parentDomains": {
+                    "count": 2,
+                    "domains": [
+                      {
+                        "properties": {
+                          "description": "Top-level domain for engineering teams and infrastructure.",
+                          "name": "Engineering Division"
+                        },
+                        "type": "DOMAIN",
+                        "urn": "urn:li:domain:b2fd91.ce125416-344c-4db4-9f07-f7086a851606"
+                      },
+                      {
+                        "properties": {
+                          "description": "Top-level organizational domain for Acme Corporation.",
+                          "name": "Acme Corporation"
+                        },
+                        "type": "DOMAIN",
+                        "urn": "urn:li:domain:b2fd91.7d749c3f-cad4-4e7f-b30c-17f9639b652b"
+                      }
+                    ]
+                  },
+                  "properties": {
+                    "description": "**Owner:** Ian Chen (Director of Data) - [@Ian Chen](urn:li:corpuser:EMP006)  \n**Technical Owner:** Maya Patel (Senior Data Engineer)  \n**Parent:** Engineering Division\n\n#### Description\n\nThe Data Platform Team owns the core data infrastructure, ETL pipelines, and analytics platforms that power Acme's data-driven decision making. They are responsible for the entire order entry data ecosystem.\n\n#### Team Members\n\n*   **Maya Patel** (Senior Data Engineer)\n    \n*   **Carlos Mendoza** (Data Engineer)\n    \n*   **Amanda Foster** (Junior Data Analyst)\n    \n\n\u00a0\n\n#### Data Products\n\n*   **Order Entry Analytics Data Product** (`urn:li:dataProduct:e0e95662-34bb-42fc-9dcc-29002bbbfeda`)\n    \n\n#### Responsibilities\n\n*   **Data Engineering:** Building and maintaining ETL pipelines\n    \n*   **Data Quality:** Monitoring data freshness, completeness, and accuracy\n    \n*   **Infrastructure:** Managing Snowflake, DBT, and Spark environments\n    \n*   **Governance:** Implementing data classification and lineage tracking\n    \n\n#### Service Level Agreements\n\n*   **Data Freshness:** Daily refresh of analytical datasets by 6 AM EST\n    \n*   **Uptime:** 99.9% availability for production data pipelines\n    \n*   **Data Quality:** <1% error rate on critical business metrics",
+                    "name": "Data Platform Team"
+                  },
+                  "urn": "urn:li:domain:b2fd91.1caf2b7c-ca73-4708-bdec-6687d78cab0e"
+                }
+              },
+              "properties": {
+                "description": "**Order Entry Analytics**\u00a0is a comprehensive data product that consolidates order management data across the entire order lifecycle. It integrates information from multiple upstream sources including orders, customers, products, inventory, promotions, addresses, and warehouses into analytics-ready datasets.\n\n**Core Assets:**\n\n*   **order\\_details**\u00a0(Snowflake & dbt): Denormalized table joining 10+ source tables to provide complete order information including customer demographics, product details, billing/shipping addresses, inventory levels, promotions, and fulfillment status. Contains 55+ fields with PII and PCI data classifications.\n    \n*   **order\\_history**\u00a0(Snowflake & dbt): Incremental historical tracking table capturing order status changes and totals over time, enabling trend analysis and performance monitoring.\n    \n*   **Customer Analytics Measures**\u00a0(Power BI): Business intelligence layer with calculated measures like Customer Lifetime Value (LTV) for executive reporting.\n    \n\n**Key Capabilities:**\n\n*   Customer behavior analysis (segmentation by class, purchase patterns)\n    \n*   Order fulfillment tracking (dispatch, delivery, returns)\n    \n*   Revenue analytics (order totals, discounts, promotions)\n    \n*   Inventory monitoring (stock levels, warehouse allocation)\n    \n*   Multi-channel order processing (online, phone, in-store, partners)\n    \n\n**Designed for:**\u00a0Sales teams, operations managers, data analysts, and executives needing comprehensive visibility into order operations and customer purchasing behavior.",
+                "name": "Order Entry Analytics"
+              },
+              "type": "DATA_PRODUCT",
+              "urn": "urn:li:dataProduct:b2fd91.e0e95662-34bb-42fc-9dcc-29002bbbfeda"
+            },
+            "type": "DataProductContains"
+          }
+        ]
+      },
+      "domain": {
+        "domain": {
+          "children": {
+            "total": 0
+          },
+          "dataProducts": {
+            "total": 4
+          },
+          "entities": {
+            "total": 2
+          },
+          "parentDomains": {
+            "count": 1,
+            "domains": [
+              {
+                "properties": {
+                  "description": "Top-level organizational domain for Acme Corporation.",
+                  "name": "Acme Corporation"
+                },
+                "type": "DOMAIN",
+                "urn": "urn:li:domain:b2fd91.7d749c3f-cad4-4e7f-b30c-17f9639b652b"
+              }
+            ]
+          },
+          "properties": {
+            "description": "**Owner:** \\[To be assigned\\]  \n**Parent:** Acme Corporation\n\n#### Description\n\nManages day-to-day e-commerce operations including inventory management, order fulfillment, and customer service.\n\n#### Data Assets from Lineage\n\n*   **Looker Dashboards & Reports:**\n    \n    *   `urn:li:dashboard:(looker,dashboards.53)` - Order Entry Dashboard\n        \n    *   `urn:li:chart:(looker,dashboard_elements.221)` - Popular Products\n        \n    *   `urn:li:chart:(looker,dashboard_elements.222)` - Promotions\n        \n    *   `urn:li:chart:(looker,dashboard_elements.223)` - Order Mode\n        \n    *   `urn:li:chart:(looker,dashboard_elements.224)` - Orders by Day",
+            "name": "Ecommerce Operations"
+          },
+          "urn": "urn:li:domain:b2fd91.91994180-93ee-43f7-9c97-5e74a4a43fbd"
+        }
+      },
+      "editableProperties": {
+        "description": "This dashboard gives your team a real-time view of incoming orders and processing status. You can see order volume trends, identify bottlenecks in fulfillment, and track key metrics like average order value and processing times.\n\nThe main view shows today's orders alongside weekly and monthly comparisons, so you can spot patterns or unusual spikes quickly. Filter by product category, sales rep, or customer type to drill down into specific segments. The processing status section highlights orders that need attention, whether they're stuck in review, waiting for inventory, or ready to ship.\n\nUse this dashboard during daily standup meetings to prioritize work, or check it throughout the day to stay on top of order flow. Sales managers can monitor team performance, while operations folks can identify where orders are getting delayed and take action before customers start calling."
+      },
+      "glossaryTerms": {
+        "terms": [
+          {
+            "term": {
+              "hierarchicalName": "b2fd91.1598cf93-c199-43a1-8833-fce96faa9a1a",
+              "parentNodes": {
+                "count": 1,
+                "nodes": [
+                  {
+                    "properties": {
+                      "name": "Classification"
+                    },
+                    "urn": "urn:li:glossaryNode:b2fd91.9fc2293a-b772-44de-84c8-cfa9021e5825"
+                  }
+                ]
+              },
+              "properties": {
+                "description": "# Personally Identifiable Information\n\nPersonally Identifiable Information (PII) refers to any data that can be used to identify a specific individual, either directly or indirectly when combined with other information. Dataset and column contents can be inferred either by the dataset or column name, description, or column sample values.\n\n## Direct Identifiers\n\nAny dataset or column that contains the following information:\n\n*   Full name\n    \n*   First name\n    \n*   Middle name\n    \n*   Last name\n    \n*   Social Security Number or national ID\n    \n*   Driver's license number\n    \n*   Passport number\n    \n*   Email address\n    \n*   Phone number\n    \n*   Physical address\n    \n*   Biometric data (fingerprints, facial recognition)\n    \n*   Account numbers\n    \n*   IP address (in some jurisdictions)\n    \n\n## Indirect Identifiers\n\nAny dataset or column that contains the following information:\n\n*   Date of birth\n    \n*   Place of birth\n    \n*   Gender\n    \n*   Race/ethnicity\n    \n*   Job title and workplace\n    \n*   Education information\n    \n*   Geographic indicators\n    \n*   Medical information\n    \n*   Vehicle registration information",
+                "name": "PII",
+                "termSource": "INTERNAL"
+              },
+              "urn": "urn:li:glossaryTerm:b2fd91.1598cf93-c199-43a1-8833-fce96faa9a1a"
+            }
+          }
+        ]
+      },
+      "health": [
+        {
+          "status": "PASS",
+          "type": "INCIDENTS"
+        }
+      ],
+      "platform": {
+        "name": "looker",
+        "urn": "urn:li:dataPlatform:looker"
+      },
+      "properties": {
+        "description": "",
+        "externalUrl": "https://demo.cloud.looker.com/dashboards/53",
+        "lastModified": {
+          "time": 1768583692476
+        },
+        "name": "Order Entry Dashboard"
+      },
+      "relatedDocuments": {
+        "count": 10,
+        "start": 0,
+        "total": 0
+      },
+      "tool": "looker",
+      "type": "DASHBOARD",
+      "urn": "urn:li:dashboard:(looker,b2fd91.dashboards.53)"
+    },
+    {
+      "glossaryTerms": {
+        "terms": [
+          {
+            "term": {
+              "hierarchicalName": "b2fd91.1598cf93-c199-43a1-8833-fce96faa9a1a",
+              "parentNodes": {
+                "count": 1,
+                "nodes": [
+                  {
+                    "properties": {
+                      "name": "Classification"
+                    },
+                    "urn": "urn:li:glossaryNode:b2fd91.9fc2293a-b772-44de-84c8-cfa9021e5825"
+                  }
+                ]
+              },
+              "properties": {
+                "description": "# Personally Identifiable Information\n\nPersonally Identifiable Information (PII) refers to any data that can be used to identify a specific individual, either directly or indirectly when combined with other information. Dataset and column contents can be inferred either by the dataset or column name, description, or column sample values.\n\n## Direct Identifiers\n\nAny dataset or column that contains the following information:\n\n*   Full name\n    \n*   First name\n    \n*   Middle name\n    \n*   Last name\n    \n*   Social Security Number or national ID\n    \n*   Driver's license number\n    \n*   Passport number\n    \n*   Email address\n    \n*   Phone number\n    \n*   Physical address\n    \n*   Biometric data (fingerprints, facial recognition)\n    \n*   Account numbers\n    \n*   IP address (in some jurisdictions)\n    \n\n## Indirect Identifiers\n\nAny dataset or column that contains the following information:\n\n*   Date of birth\n    \n*   Place of birth\n    \n*   Gender\n    \n*   Race/ethnicity\n    \n*   Job title and workplace\n    \n*   Education information\n    \n*   Geographic indicators\n    \n*   Medical information\n    \n*   Vehicle registration information",
+                "name": "PII",
+                "termSource": "INTERNAL"
+              },
+              "urn": "urn:li:glossaryTerm:b2fd91.1598cf93-c199-43a1-8833-fce96faa9a1a"
+            }
+          }
+        ]
+      },
+      "health": [
+        {
+          "status": "PASS",
+          "type": "INCIDENTS"
+        }
+      ],
+      "name": "ORDER_HISTORY",
+      "platform": {
+        "name": "snowflake",
+        "urn": "urn:li:dataPlatform:snowflake"
+      },
+      "properties": {
+        "name": "ORDER_HISTORY"
+      },
+      "relatedDocuments": {
+        "count": 10,
+        "documents": [
+          {
+            "info": {
+              "title": "Analytics Layer"
+            },
+            "type": "DOCUMENT",
+            "urn": "urn:li:document:ecomm-analytics"
+          },
+          {
+            "info": {
+              "title": "Order History View"
+            },
+            "type": "DOCUMENT",
+            "urn": "urn:li:document:ecomm-order-history"
+          }
+        ],
+        "start": 0,
+        "total": 2
+      },
+      "schemaMetadata": {
+        "fields": [
+          {
+            "fieldPath": "as_of_date",
+            "nativeDataType": "DATE",
+            "nullable": true
+          },
+          {
+            "editedGlossaryTerms": [
+              "PII"
+            ],
+            "fieldPath": "customer_id",
+            "nativeDataType": "NUMBER(38,0)",
+            "nullable": true
+          },
+          {
+            "fieldPath": "order_id",
+            "nativeDataType": "NUMBER(38,0)",
+            "nullable": true
+          },
+          {
+            "fieldPath": "order_status",
+            "nativeDataType": "NUMBER(38,0)",
+            "nullable": true
+          },
+          {
+            "fieldPath": "order_total",
+            "nativeDataType": "FLOAT",
+            "nullable": true
+          }
+        ],
+        "name": "order_entry_db.analytics.order_history",
+        "platformUrn": "urn:li:dataPlatform:snowflake"
+      },
+      "structuredProperties": {
+        "properties": [
+          {
+            "structuredProperty": {
+              "definition": {
+                "displayName": "Data Freshness SLA",
+                "qualifiedName": "showcase.dataFreshnessSla"
+              },
+              "urn": "urn:li:structuredProperty:showcase.dataFreshnessSla"
+            },
+            "values": [
+              {
+                "stringValue": "Daily"
+              }
+            ]
+          },
+          {
+            "structuredProperty": {
+              "definition": {
+                "displayName": "Data Quality Score",
+                "qualifiedName": "showcase.dataQualityScore"
+              },
+              "urn": "urn:li:structuredProperty:showcase.dataQualityScore"
+            },
+            "values": [
+              {
+                "numberValue": 88.5
+              }
+            ]
+          },
+          {
+            "structuredProperty": {
+              "definition": {
+                "displayName": "Retention Period",
+                "qualifiedName": "showcase.retentionPeriod"
+              },
+              "urn": "urn:li:structuredProperty:showcase.retentionPeriod"
+            },
+            "values": [
+              {
+                "stringValue": "Indefinite"
+              }
+            ]
+          },
+          {
+            "structuredProperty": {
+              "definition": {
+                "displayName": "Cost Center",
+                "qualifiedName": "showcase.costCenter"
+              },
+              "urn": "urn:li:structuredProperty:showcase.costCenter"
+            },
+            "values": [
+              {
+                "stringValue": "Engineering"
+              }
+            ]
+          },
+          {
+            "structuredProperty": {
+              "definition": {
+                "displayName": "Data Owner Escalation Contact",
+                "qualifiedName": "showcase.escalationContact"
+              },
+              "urn": "urn:li:structuredProperty:showcase.escalationContact"
+            },
+            "valueEntities": [
+              {
+                "properties": {
+                  "displayName": "Sarah Chen",
+                  "email": "sarah.chen@example.com",
+                  "title": "Senior Data Analyst"
+                },
+                "type": "CORP_USER",
+                "urn": "urn:li:corpuser:b2fd91.sam@example.com"
+              }
+            ],
+            "values": [
+              {
+                "stringValue": "urn:li:corpuser:b2fd91.sam@example.com"
+              }
+            ]
+          }
+        ]
+      },
+      "subTypes": {
+        "typeNames": [
+          "Table"
+        ]
+      },
+      "tags": {
+        "tags": [
+          {
+            "tag": {
+              "properties": {
+                "description": "Assigned to Tables that are among the largest in terms of storage size footprint inside the data platform within the past 30 days.",
+                "name": "\ud83d\udcb2 Large Table"
+              },
+              "urn": "urn:li:tag:b2fd91.__default_large_table"
+            }
+          }
+        ]
+      },
+      "urn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,b2fd91.order_entry_db.analytics.order_history,PROD)"
+    },
+    {
+      "glossaryTerms": {
+        "terms": [
+          {
+            "term": {
+              "hierarchicalName": "b2fd91.1598cf93-c199-43a1-8833-fce96faa9a1a",
+              "parentNodes": {
+                "count": 1,
+                "nodes": [
+                  {
+                    "properties": {
+                      "name": "Classification"
+                    },
+                    "urn": "urn:li:glossaryNode:b2fd91.9fc2293a-b772-44de-84c8-cfa9021e5825"
+                  }
+                ]
+              },
+              "properties": {
+                "description": "# Personally Identifiable Information\n\nPersonally Identifiable Information (PII) refers to any data that can be used to identify a specific individual, either directly or indirectly when combined with other information. Dataset and column contents can be inferred either by the dataset or column name, description, or column sample values.\n\n## Direct Identifiers\n\nAny dataset or column that contains the following information:\n\n*   Full name\n    \n*   First name\n    \n*   Middle name\n    \n*   Last name\n    \n*   Social Security Number or national ID\n    \n*   Driver's license number\n    \n*   Passport number\n    \n*   Email address\n    \n*   Phone number\n    \n*   Physical address\n    \n*   Biometric data (fingerprints, facial recognition)\n    \n*   Account numbers\n    \n*   IP address (in some jurisdictions)\n    \n\n## Indirect Identifiers\n\nAny dataset or column that contains the following information:\n\n*   Date of birth\n    \n*   Place of birth\n    \n*   Gender\n    \n*   Race/ethnicity\n    \n*   Job title and workplace\n    \n*   Education information\n    \n*   Geographic indicators\n    \n*   Medical information\n    \n*   Vehicle registration information",
+                "name": "PII",
+                "termSource": "INTERNAL"
+              },
+              "urn": "urn:li:glossaryTerm:b2fd91.1598cf93-c199-43a1-8833-fce96faa9a1a"
+            }
+          }
+        ]
+      },
+      "health": [
+        {
+          "status": "PASS",
+          "type": "INCIDENTS"
+        }
+      ],
+      "name": "Customer Analytics Measures",
+      "platform": {
+        "name": "powerbi",
+        "urn": "urn:li:dataPlatform:powerbi"
+      },
+      "properties": {
+        "customProperties": [
+          {
+            "key": "datasetId",
+            "value": "11111111-2222-3333-4444-555555555555"
+          }
+        ],
+        "description": "",
+        "name": "Customer Analytics Measures"
+      },
+      "relatedDocuments": {
+        "count": 10,
+        "start": 0,
+        "total": 0
+      },
+      "schemaMetadata": {
+        "fields": [
+          {
+            "description": "AVERAGEX(\n    VALUES('ORDER_DETAILS'[customer_id]),\n    CALCULATE(SUM('ORDER_DETAILS'[order_total]))\n)",
+            "fieldPath": "Customer LTV",
+            "nativeDataType": "measure",
+            "nullable": false
+          },
+          {
+            "fieldPath": "Value",
+            "nativeDataType": "String",
+            "nullable": false
+          }
+        ],
+        "name": "Customer Analytics Measures",
+        "platformUrn": "urn:li:dataPlatform:powerbi"
+      },
+      "structuredProperties": {
+        "properties": [
+          {
+            "structuredProperty": {
+              "definition": {
+                "displayName": "Data Freshness SLA",
+                "qualifiedName": "showcase.dataFreshnessSla"
+              },
+              "urn": "urn:li:structuredProperty:showcase.dataFreshnessSla"
+            },
+            "values": [
+              {
+                "stringValue": "Weekly"
+              }
+            ]
+          },
+          {
+            "structuredProperty": {
+              "definition": {
+                "displayName": "Data Quality Score",
+                "qualifiedName": "showcase.dataQualityScore"
+              },
+              "urn": "urn:li:structuredProperty:showcase.dataQualityScore"
+            },
+            "values": [
+              {
+                "numberValue": 83.1
+              }
+            ]
+          },
+          {
+            "structuredProperty": {
+              "definition": {
+                "displayName": "Retention Period",
+                "qualifiedName": "showcase.retentionPeriod"
+              },
+              "urn": "urn:li:structuredProperty:showcase.retentionPeriod"
+            },
+            "values": [
+              {
+                "stringValue": "1 year"
+              }
+            ]
+          },
+          {
+            "structuredProperty": {
+              "definition": {
+                "displayName": "Cost Center",
+                "qualifiedName": "showcase.costCenter"
+              },
+              "urn": "urn:li:structuredProperty:showcase.costCenter"
+            },
+            "values": [
+              {
+                "stringValue": "Engineering"
+              }
+            ]
+          },
+          {
+            "structuredProperty": {
+              "definition": {
+                "displayName": "Data Owner Escalation Contact",
+                "qualifiedName": "showcase.escalationContact"
+              },
+              "urn": "urn:li:structuredProperty:showcase.escalationContact"
+            },
+            "valueEntities": [
+              {
+                "properties": {
+                  "displayName": "Ian Chen",
+                  "email": "ian.chen@example.com",
+                  "title": "Director of Data Engineering"
+                },
+                "type": "CORP_USER",
+                "urn": "urn:li:corpuser:b2fd91.EMP006"
+              }
+            ],
+            "values": [
+              {
+                "stringValue": "urn:li:corpuser:b2fd91.EMP006"
+              }
+            ]
+          }
+        ]
+      },
+      "subTypes": {
+        "typeNames": [
+          "Table"
+        ]
+      },
+      "urn": "urn:li:dataset:(urn:li:dataPlatform:powerbi,b2fd91.datahub_order_entries.Customer_Analytics_Measures,PROD)",
+      "viewProperties": {
+        "language": "m_query",
+        "logic": "ROW(\"Value\", 1)",
+        "materialized": false
+      }
+    },
+    {
+      "glossaryTerms": {
+        "terms": [
+          {
+            "term": {
+              "hierarchicalName": "b2fd91.1598cf93-c199-43a1-8833-fce96faa9a1a",
+              "parentNodes": {
+                "count": 1,
+                "nodes": [
+                  {
+                    "properties": {
+                      "name": "Classification"
+                    },
+                    "urn": "urn:li:glossaryNode:b2fd91.9fc2293a-b772-44de-84c8-cfa9021e5825"
+                  }
+                ]
+              },
+              "properties": {
+                "description": "# Personally Identifiable Information\n\nPersonally Identifiable Information (PII) refers to any data that can be used to identify a specific individual, either directly or indirectly when combined with other information. Dataset and column contents can be inferred either by the dataset or column name, description, or column sample values.\n\n## Direct Identifiers\n\nAny dataset or column that contains the following information:\n\n*   Full name\n    \n*   First name\n    \n*   Middle name\n    \n*   Last name\n    \n*   Social Security Number or national ID\n    \n*   Driver's license number\n    \n*   Passport number\n    \n*   Email address\n    \n*   Phone number\n    \n*   Physical address\n    \n*   Biometric data (fingerprints, facial recognition)\n    \n*   Account numbers\n    \n*   IP address (in some jurisdictions)\n    \n\n## Indirect Identifiers\n\nAny dataset or column that contains the following information:\n\n*   Date of birth\n    \n*   Place of birth\n    \n*   Gender\n    \n*   Race/ethnicity\n    \n*   Job title and workplace\n    \n*   Education information\n    \n*   Geographic indicators\n    \n*   Medical information\n    \n*   Vehicle registration information",
+                "name": "PII",
+                "termSource": "INTERNAL"
+              },
+              "urn": "urn:li:glossaryTerm:b2fd91.1598cf93-c199-43a1-8833-fce96faa9a1a"
+            }
+          }
+        ]
+      },
+      "health": [
+        {
+          "status": "PASS",
+          "type": "INCIDENTS"
+        }
+      ],
+      "name": "Essential KPI Measures",
+      "platform": {
+        "name": "powerbi",
+        "urn": "urn:li:dataPlatform:powerbi"
+      },
+      "properties": {
+        "customProperties": [
+          {
+            "key": "datasetId",
+            "value": "11111111-2222-3333-4444-555555555555"
+          }
+        ],
+        "description": "",
+        "name": "Essential KPI Measures"
+      },
+      "relatedDocuments": {
+        "count": 10,
+        "start": 0,
+        "total": 0
+      },
+      "schemaMetadata": {
+        "fields": [
+          {
+            "description": "DIVIDE([Total Revenue], [Total Orders], 0)",
+            "fieldPath": "Average Order Value",
+            "nativeDataType": "measure",
+            "nullable": false
+          },
+          {
+            "description": "DIVIDE(\n    CALCULATE([Total Orders], 'ORDER_DETAILS'[delivery_status]  \"Not Shipped\"),\n    [Total Orders], \n    0\n)",
+            "fieldPath": "Fulfillment Rate",
+            "nativeDataType": "measure",
+            "nullable": false
+          },
+          {
+            "description": "CALCULATE(\n    DISTINCTCOUNT('ORDER_DETAILS'[customer_id]),\n    FILTER(\n        'ORDER_DETAILS',\n        'ORDER_DETAILS'",
+            "fieldPath": "New Customers",
+            "nativeDataType": "measure",
+            "nullable": false
+          },
+          {
+            "description": "CALCULATE([Total Revenue], SAMEPERIODLASTYEAR('ORDER_DETAILS'[order_date]))",
+            "fieldPath": "PY Revenue",
+            "nativeDataType": "measure",
+            "nullable": false
+          },
+          {
+            "description": "DIVIDE([Total Revenue], [Total Customers], 0)",
+            "fieldPath": "Revenue Per Customer",
+            "nativeDataType": "measure",
+            "nullable": false
+          },
+          {
+            "description": "DISTINCTCOUNT('ORDER_DETAILS'[customer_id])",
+            "fieldPath": "Total Customers",
+            "nativeDataType": "measure",
+            "nullable": false
+          },
+          {
+            "description": "DISTINCTCOUNT('ORDER_DETAILS'[order_id])",
+            "fieldPath": "Total Orders",
+            "nativeDataType": "measure",
+            "nullable": false
+          },
+          {
+            "description": "SUM('ORDER_DETAILS'[quantity])",
+            "fieldPath": "Total Products Sold",
+            "nativeDataType": "measure",
+            "nullable": false
+          },
+          {
+            "description": "SUMX('ORDER_DETAILS', 'ORDER_DETAILS'[order_total])",
+            "fieldPath": "Total Revenue",
+            "nativeDataType": "measure",
+            "nullable": false
+          },
+          {
+            "description": "CALCULATE([Total Revenue], DATESYTD('ORDER_DETAILS'[order_date]))",
+            "fieldPath": "YTD Revenue",
+            "nativeDataType": "measure",
+            "nullable": false
+          },
+          {
+            "description": "DIVIDE([YTD Revenue] - [PY Revenue], [PY Revenue], 0)",
+            "fieldPath": "YoY Growth",
+            "nativeDataType": "measure",
+            "nullable": false
+          },
+          {
+            "fieldPath": "Value",
+            "nativeDataType": "String",
+            "nullable": false
+          }
+        ],
+        "name": "Essential KPI Measures",
+        "platformUrn": "urn:li:dataPlatform:powerbi"
+      },
+      "structuredProperties": {
+        "properties": [
+          {
+            "structuredProperty": {
+              "definition": {
+                "displayName": "Data Freshness SLA",
+                "qualifiedName": "showcase.dataFreshnessSla"
+              },
+              "urn": "urn:li:structuredProperty:showcase.dataFreshnessSla"
+            },
+            "values": [
+              {
+                "stringValue": "Hourly"
+              }
+            ]
+          },
+          {
+            "structuredProperty": {
+              "definition": {
+                "displayName": "Data Quality Score",
+                "qualifiedName": "showcase.dataQualityScore"
+              },
+              "urn": "urn:li:structuredProperty:showcase.dataQualityScore"
+            },
+            "values": [
+              {
+                "numberValue": 80.5
+              }
+            ]
+          },
+          {
+            "structuredProperty": {
+              "definition": {
+                "displayName": "Retention Period",
+                "qualifiedName": "showcase.retentionPeriod"
+              },
+              "urn": "urn:li:structuredProperty:showcase.retentionPeriod"
+            },
+            "values": [
+              {
+                "stringValue": "1 year"
+              }
+            ]
+          },
+          {
+            "structuredProperty": {
+              "definition": {
+                "displayName": "Cost Center",
+                "qualifiedName": "showcase.costCenter"
+              },
+              "urn": "urn:li:structuredProperty:showcase.costCenter"
+            },
+            "values": [
+              {
+                "stringValue": "E-Commerce Operations"
+              }
+            ]
+          },
+          {
+            "structuredProperty": {
+              "definition": {
+                "displayName": "Data Owner Escalation Contact",
+                "qualifiedName": "showcase.escalationContact"
+              },
+              "urn": "urn:li:structuredProperty:showcase.escalationContact"
+            },
+            "valueEntities": [
+              {
+                "properties": {
+                  "displayName": "Ben Porter",
+                  "email": "ben.porter@example.com",
+                  "title": "Data Engineer"
+                },
+                "type": "CORP_USER",
+                "urn": "urn:li:corpuser:b2fd91.bryan@example.com"
+              }
+            ],
+            "values": [
+              {
+                "stringValue": "urn:li:corpuser:b2fd91.bryan@example.com"
+              }
+            ]
+          }
+        ]
+      },
+      "subTypes": {
+        "typeNames": [
+          "Table"
+        ]
+      },
+      "urn": "urn:li:dataset:(urn:li:dataPlatform:powerbi,b2fd91.datahub_order_entries.Essential_KPI_Measures,PROD)",
+      "viewProperties": {
+        "language": "m_query",
+        "logic": "ROW(\"Value\", 1)",
+        "materialized": false
+      }
+    },
+    {
+      "glossaryTerms": {
+        "terms": [
+          {
+            "term": {
+              "hierarchicalName": "b2fd91.1598cf93-c199-43a1-8833-fce96faa9a1a",
+              "parentNodes": {
+                "count": 1,
+                "nodes": [
+                  {
+                    "properties": {
+                      "name": "Classification"
+                    },
+                    "urn": "urn:li:glossaryNode:b2fd91.9fc2293a-b772-44de-84c8-cfa9021e5825"
+                  }
+                ]
+              },
+              "properties": {
+                "description": "# Personally Identifiable Information\n\nPersonally Identifiable Information (PII) refers to any data that can be used to identify a specific individual, either directly or indirectly when combined with other information. Dataset and column contents can be inferred either by the dataset or column name, description, or column sample values.\n\n## Direct Identifiers\n\nAny dataset or column that contains the following information:\n\n*   Full name\n    \n*   First name\n    \n*   Middle name\n    \n*   Last name\n    \n*   Social Security Number or national ID\n    \n*   Driver's license number\n    \n*   Passport number\n    \n*   Email address\n    \n*   Phone number\n    \n*   Physical address\n    \n*   Biometric data (fingerprints, facial recognition)\n    \n*   Account numbers\n    \n*   IP address (in some jurisdictions)\n    \n\n## Indirect Identifiers\n\nAny dataset or column that contains the following information:\n\n*   Date of birth\n    \n*   Place of birth\n    \n*   Gender\n    \n*   Race/ethnicity\n    \n*   Job title and workplace\n    \n*   Education information\n    \n*   Geographic indicators\n    \n*   Medical information\n    \n*   Vehicle registration information",
+                "name": "PII",
+                "termSource": "INTERNAL"
+              },
+              "urn": "urn:li:glossaryTerm:b2fd91.1598cf93-c199-43a1-8833-fce96faa9a1a"
+            }
+          }
+        ]
+      },
+      "health": [
+        {
+          "status": "PASS",
+          "type": "INCIDENTS"
+        }
+      ],
+      "name": "Geographic Measures",
+      "platform": {
+        "name": "powerbi",
+        "urn": "urn:li:dataPlatform:powerbi"
+      },
+      "properties": {
+        "customProperties": [
+          {
+            "key": "datasetId",
+            "value": "11111111-2222-3333-4444-555555555555"
+          }
+        ],
+        "description": "",
+        "name": "Geographic Measures"
+      },
+      "relatedDocuments": {
+        "count": 10,
+        "start": 0,
+        "total": 0
+      },
+      "schemaMetadata": {
+        "fields": [
+          {
+            "description": "CALCULATE([Total Revenue], 'ORDER_DETAILS'[shipping_country] = \"United States\")",
+            "fieldPath": "Domestic Sales",
+            "nativeDataType": "measure",
+            "nullable": false
+          },
+          {
+            "description": "[Total Revenue] - [Domestic Sales]",
+            "fieldPath": "International Sales",
+            "nativeDataType": "measure",
+            "nullable": false
+          },
+          {
+            "description": "CALCULATE([Total Revenue], VALUES('ORDER_DETAILS'[shipping_country]))",
+            "fieldPath": "Revenue by Country",
+            "nativeDataType": "measure",
+            "nullable": false
+          },
+          {
+            "fieldPath": "Value",
+            "nativeDataType": "String",
+            "nullable": false
+          }
+        ],
+        "name": "Geographic Measures",
+        "platformUrn": "urn:li:dataPlatform:powerbi"
+      },
+      "structuredProperties": {
+        "properties": [
+          {
+            "structuredProperty": {
+              "definition": {
+                "displayName": "Data Freshness SLA",
+                "qualifiedName": "showcase.dataFreshnessSla"
+              },
+              "urn": "urn:li:structuredProperty:showcase.dataFreshnessSla"
+            },
+            "values": [
+              {
+                "stringValue": "Hourly"
+              }
+            ]
+          },
+          {
+            "structuredProperty": {
+              "definition": {
+                "displayName": "Data Quality Score",
+                "qualifiedName": "showcase.dataQualityScore"
+              },
+              "urn": "urn:li:structuredProperty:showcase.dataQualityScore"
+            },
+            "values": [
+              {
+                "numberValue": 82.6
+              }
+            ]
+          },
+          {
+            "structuredProperty": {
+              "definition": {
+                "displayName": "Retention Period",
+                "qualifiedName": "showcase.retentionPeriod"
+              },
+              "urn": "urn:li:structuredProperty:showcase.retentionPeriod"
+            },
+            "values": [
+              {
+                "stringValue": "7 years"
+              }
+            ]
+          },
+          {
+            "structuredProperty": {
+              "definition": {
+                "displayName": "Cost Center",
+                "qualifiedName": "showcase.costCenter"
+              },
+              "urn": "urn:li:structuredProperty:showcase.costCenter"
+            },
+            "values": [
+              {
+                "stringValue": "Data Platform"
+              }
+            ]
+          },
+          {
+            "structuredProperty": {
+              "definition": {
+                "displayName": "Data Owner Escalation Contact",
+                "qualifiedName": "showcase.escalationContact"
+              },
+              "urn": "urn:li:structuredProperty:showcase.escalationContact"
+            },
+            "valueEntities": [
+              {
+                "properties": {
+                  "displayName": "Andrea Garcia",
+                  "email": "andrea.garcia@example.com",
+                  "title": "Analytics Engineer"
+                },
+                "type": "CORP_USER",
+                "urn": "urn:li:corpuser:b2fd91.alex@example.com"
+              }
+            ],
+            "values": [
+              {
+                "stringValue": "urn:li:corpuser:b2fd91.alex@example.com"
+              }
+            ]
+          }
+        ]
+      },
+      "subTypes": {
+        "typeNames": [
+          "Table"
+        ]
+      },
+      "urn": "urn:li:dataset:(urn:li:dataPlatform:powerbi,b2fd91.datahub_order_entries.Geographic_Measures,PROD)",
+      "viewProperties": {
+        "language": "m_query",
+        "logic": "ROW(\"Value\", 1)",
+        "materialized": false
+      }
+    },
+    {
+      "glossaryTerms": {
+        "terms": [
+          {
+            "term": {
+              "hierarchicalName": "b2fd91.1598cf93-c199-43a1-8833-fce96faa9a1a",
+              "parentNodes": {
+                "count": 1,
+                "nodes": [
+                  {
+                    "properties": {
+                      "name": "Classification"
+                    },
+                    "urn": "urn:li:glossaryNode:b2fd91.9fc2293a-b772-44de-84c8-cfa9021e5825"
+                  }
+                ]
+              },
+              "properties": {
+                "description": "# Personally Identifiable Information\n\nPersonally Identifiable Information (PII) refers to any data that can be used to identify a specific individual, either directly or indirectly when combined with other information. Dataset and column contents can be inferred either by the dataset or column name, description, or column sample values.\n\n## Direct Identifiers\n\nAny dataset or column that contains the following information:\n\n*   Full name\n    \n*   First name\n    \n*   Middle name\n    \n*   Last name\n    \n*   Social Security Number or national ID\n    \n*   Driver's license number\n    \n*   Passport number\n    \n*   Email address\n    \n*   Phone number\n    \n*   Physical address\n    \n*   Biometric data (fingerprints, facial recognition)\n    \n*   Account numbers\n    \n*   IP address (in some jurisdictions)\n    \n\n## Indirect Identifiers\n\nAny dataset or column that contains the following information:\n\n*   Date of birth\n    \n*   Place of birth\n    \n*   Gender\n    \n*   Race/ethnicity\n    \n*   Job title and workplace\n    \n*   Education information\n    \n*   Geographic indicators\n    \n*   Medical information\n    \n*   Vehicle registration information",
+                "name": "PII",
+                "termSource": "INTERNAL"
+              },
+              "urn": "urn:li:glossaryTerm:b2fd91.1598cf93-c199-43a1-8833-fce96faa9a1a"
+            }
+          }
+        ]
+      },
+      "health": [
+        {
+          "status": "PASS",
+          "type": "INCIDENTS"
+        }
+      ],
+      "name": "Product Perfromance Measures",
+      "platform": {
+        "name": "powerbi",
+        "urn": "urn:li:dataPlatform:powerbi"
+      },
+      "properties": {
+        "customProperties": [
+          {
+            "key": "datasetId",
+            "value": "11111111-2222-3333-4444-555555555555"
+          }
+        ],
+        "description": "",
+        "name": "Product Perfromance Measures"
+      },
+      "relatedDocuments": {
+        "count": 10,
+        "start": 0,
+        "total": 0
+      },
+      "schemaMetadata": {
+        "fields": [
+          {
+            "description": "AVERAGE('ORDER_DETAILS'[discount_percent])",
+            "fieldPath": "Average Discount %",
+            "nativeDataType": "measure",
+            "nullable": false
+          },
+          {
+            "description": "CALCULATE([Total Revenue], VALUES('ORDER_DETAILS'[category_name]))",
+            "fieldPath": "Revenue by Category",
+            "nativeDataType": "measure",
+            "nullable": false
+          },
+          {
+            "description": "CALCULATE(SUM('ORDER_DETAILS'[quantity]), VALUES('ORDER_DETAILS'[product_name]))",
+            "fieldPath": "Top Selling Products",
+            "nativeDataType": "measure",
+            "nullable": false
+          },
+          {
+            "description": "SUM('ORDER_DETAILS'[discount_amount])",
+            "fieldPath": "Total Discount Amount",
+            "nativeDataType": "measure",
+            "nullable": false
+          },
+          {
+            "fieldPath": "Value",
+            "nativeDataType": "String",
+            "nullable": false
+          }
+        ],
+        "name": "Product Perfromance Measures",
+        "platformUrn": "urn:li:dataPlatform:powerbi"
+      },
+      "structuredProperties": {
+        "properties": [
+          {
+            "structuredProperty": {
+              "definition": {
+                "displayName": "Data Freshness SLA",
+                "qualifiedName": "showcase.dataFreshnessSla"
+              },
+              "urn": "urn:li:structuredProperty:showcase.dataFreshnessSla"
+            },
+            "values": [
+              {
+                "stringValue": "Daily"
+              }
+            ]
+          },
+          {
+            "structuredProperty": {
+              "definition": {
+                "displayName": "Data Quality Score",
+                "qualifiedName": "showcase.dataQualityScore"
+              },
+              "urn": "urn:li:structuredProperty:showcase.dataQualityScore"
+            },
+            "values": [
+              {
+                "numberValue": 73.4
+              }
+            ]
+          },
+          {
+            "structuredProperty": {
+              "definition": {
+                "displayName": "Retention Period",
+                "qualifiedName": "showcase.retentionPeriod"
+              },
+              "urn": "urn:li:structuredProperty:showcase.retentionPeriod"
+            },
+            "values": [
+              {
+                "stringValue": "7 years"
+              }
+            ]
+          },
+          {
+            "structuredProperty": {
+              "definition": {
+                "displayName": "Cost Center",
+                "qualifiedName": "showcase.costCenter"
+              },
+              "urn": "urn:li:structuredProperty:showcase.costCenter"
+            },
+            "values": [
+              {
+                "stringValue": "Analytics"
+              }
+            ]
+          },
+          {
+            "structuredProperty": {
+              "definition": {
+                "displayName": "Data Owner Escalation Contact",
+                "qualifiedName": "showcase.escalationContact"
+              },
+              "urn": "urn:li:structuredProperty:showcase.escalationContact"
+            },
+            "valueEntities": [
+              {
+                "properties": {
+                  "displayName": "Julia Novak",
+                  "email": "julia.novak@example.com",
+                  "title": "Data Quality Engineer"
+                },
+                "type": "CORP_USER",
+                "urn": "urn:li:corpuser:b2fd91.jonny1@example.com"
+              }
+            ],
+            "values": [
+              {
+                "stringValue": "urn:li:corpuser:b2fd91.jonny1@example.com"
+              }
+            ]
+          }
+        ]
+      },
+      "subTypes": {
+        "typeNames": [
+          "Table"
+        ]
+      },
+      "urn": "urn:li:dataset:(urn:li:dataPlatform:powerbi,b2fd91.datahub_order_entries.Product_Perfromance_Measures,PROD)",
+      "viewProperties": {
+        "language": "m_query",
+        "logic": "ROW(\"Value\", 1)",
+        "materialized": false
+      }
+    },
+    {
+      "glossaryTerms": {
+        "terms": [
+          {
+            "term": {
+              "hierarchicalName": "b2fd91.1598cf93-c199-43a1-8833-fce96faa9a1a",
+              "parentNodes": {
+                "count": 1,
+                "nodes": [
+                  {
+                    "properties": {
+                      "name": "Classification"
+                    },
+                    "urn": "urn:li:glossaryNode:b2fd91.9fc2293a-b772-44de-84c8-cfa9021e5825"
+                  }
+                ]
+              },
+              "properties": {
+                "description": "# Personally Identifiable Information\n\nPersonally Identifiable Information (PII) refers to any data that can be used to identify a specific individual, either directly or indirectly when combined with other information. Dataset and column contents can be inferred either by the dataset or column name, description, or column sample values.\n\n## Direct Identifiers\n\nAny dataset or column that contains the following information:\n\n*   Full name\n    \n*   First name\n    \n*   Middle name\n    \n*   Last name\n    \n*   Social Security Number or national ID\n    \n*   Driver's license number\n    \n*   Passport number\n    \n*   Email address\n    \n*   Phone number\n    \n*   Physical address\n    \n*   Biometric data (fingerprints, facial recognition)\n    \n*   Account numbers\n    \n*   IP address (in some jurisdictions)\n    \n\n## Indirect Identifiers\n\nAny dataset or column that contains the following information:\n\n*   Date of birth\n    \n*   Place of birth\n    \n*   Gender\n    \n*   Race/ethnicity\n    \n*   Job title and workplace\n    \n*   Education information\n    \n*   Geographic indicators\n    \n*   Medical information\n    \n*   Vehicle registration information",
+                "name": "PII",
+                "termSource": "INTERNAL"
+              },
+              "urn": "urn:li:glossaryTerm:b2fd91.1598cf93-c199-43a1-8833-fce96faa9a1a"
+            }
+          }
+        ]
+      },
+      "health": [
+        {
+          "status": "PASS",
+          "type": "INCIDENTS"
+        }
+      ],
+      "name": "Time Inteligence Measures",
+      "platform": {
+        "name": "powerbi",
+        "urn": "urn:li:dataPlatform:powerbi"
+      },
+      "properties": {
+        "customProperties": [
+          {
+            "key": "datasetId",
+            "value": "11111111-2222-3333-4444-555555555555"
+          }
+        ],
+        "description": "",
+        "name": "Time Inteligence Measures"
+      },
+      "relatedDocuments": {
+        "count": 10,
+        "start": 0,
+        "total": 0
+      },
+      "schemaMetadata": {
+        "fields": [
+          {
+            "description": "[Total Revenue]",
+            "fieldPath": "Current Year Revenue",
+            "nativeDataType": "measure",
+            "nullable": false
+          },
+          {
+            "description": "VAR CurrentMonth = [Total Revenue]\nVAR PreviousMonth1 = CALCULATE([Total Revenue], DATEADD('ORDER_DETAILS'[order_date], ",
+            "fieldPath": "MoM Revenue Growth",
+            "nativeDataType": "measure",
+            "nullable": false
+          },
+          {
+            "description": "CALCULATE([Total Revenue], SAMEPERIODLASTYEAR('ORDER_DETAILS'[order_date]))",
+            "fieldPath": "Previous Year Revenue",
+            "nativeDataType": "measure",
+            "nullable": false
+          },
+          {
+            "description": "CALCULATE([Total Revenue], DATESMTD('ORDER_DETAILS'[order_date]))",
+            "fieldPath": "Revenue by Month",
+            "nativeDataType": "measure",
+            "nullable": false
+          },
+          {
+            "fieldPath": "Value",
+            "nativeDataType": "String",
+            "nullable": false
+          }
+        ],
+        "name": "Time Inteligence Measures",
+        "platformUrn": "urn:li:dataPlatform:powerbi"
+      },
+      "structuredProperties": {
+        "properties": [
+          {
+            "structuredProperty": {
+              "definition": {
+                "displayName": "Data Freshness SLA",
+                "qualifiedName": "showcase.dataFreshnessSla"
+              },
+              "urn": "urn:li:structuredProperty:showcase.dataFreshnessSla"
+            },
+            "values": [
+              {
+                "stringValue": "Monthly"
+              }
+            ]
+          },
+          {
+            "structuredProperty": {
+              "definition": {
+                "displayName": "Data Quality Score",
+                "qualifiedName": "showcase.dataQualityScore"
+              },
+              "urn": "urn:li:structuredProperty:showcase.dataQualityScore"
+            },
+            "values": [
+              {
+                "numberValue": 77.2
+              }
+            ]
+          },
+          {
+            "structuredProperty": {
+              "definition": {
+                "displayName": "Retention Period",
+                "qualifiedName": "showcase.retentionPeriod"
+              },
+              "urn": "urn:li:structuredProperty:showcase.retentionPeriod"
+            },
+            "values": [
+              {
+                "stringValue": "7 years"
+              }
+            ]
+          },
+          {
+            "structuredProperty": {
+              "definition": {
+                "displayName": "Cost Center",
+                "qualifiedName": "showcase.costCenter"
+              },
+              "urn": "urn:li:structuredProperty:showcase.costCenter"
+            },
+            "values": [
+              {
+                "stringValue": "Analytics"
+              }
+            ]
+          },
+          {
+            "structuredProperty": {
+              "definition": {
+                "displayName": "Data Owner Escalation Contact",
+                "qualifiedName": "showcase.escalationContact"
+              },
+              "urn": "urn:li:structuredProperty:showcase.escalationContact"
+            },
+            "valueEntities": [
+              {
+                "properties": {
+                  "displayName": "Julia Novak",
+                  "email": "julia.novak@example.com",
+                  "title": "Data Quality Engineer"
+                },
+                "type": "CORP_USER",
+                "urn": "urn:li:corpuser:b2fd91.jonny1@example.com"
+              }
+            ],
+            "values": [
+              {
+                "stringValue": "urn:li:corpuser:b2fd91.jonny1@example.com"
+              }
+            ]
+          }
+        ]
+      },
+      "subTypes": {
+        "typeNames": [
+          "Table"
+        ]
+      },
+      "urn": "urn:li:dataset:(urn:li:dataPlatform:powerbi,b2fd91.datahub_order_entries.Time_Inteligence_Measures,PROD)",
+      "viewProperties": {
+        "language": "m_query",
+        "logic": "ROW(\"Value\", 1)",
+        "materialized": false
+      }
+    },
+    {
+      "glossaryTerms": {
+        "terms": [
+          {
+            "term": {
+              "hierarchicalName": "b2fd91.1598cf93-c199-43a1-8833-fce96faa9a1a",
+              "parentNodes": {
+                "count": 1,
+                "nodes": [
+                  {
+                    "properties": {
+                      "name": "Classification"
+                    },
+                    "urn": "urn:li:glossaryNode:b2fd91.9fc2293a-b772-44de-84c8-cfa9021e5825"
+                  }
+                ]
+              },
+              "properties": {
+                "description": "# Personally Identifiable Information\n\nPersonally Identifiable Information (PII) refers to any data that can be used to identify a specific individual, either directly or indirectly when combined with other information. Dataset and column contents can be inferred either by the dataset or column name, description, or column sample values.\n\n## Direct Identifiers\n\nAny dataset or column that contains the following information:\n\n*   Full name\n    \n*   First name\n    \n*   Middle name\n    \n*   Last name\n    \n*   Social Security Number or national ID\n    \n*   Driver's license number\n    \n*   Passport number\n    \n*   Email address\n    \n*   Phone number\n    \n*   Physical address\n    \n*   Biometric data (fingerprints, facial recognition)\n    \n*   Account numbers\n    \n*   IP address (in some jurisdictions)\n    \n\n## Indirect Identifiers\n\nAny dataset or column that contains the following information:\n\n*   Date of birth\n    \n*   Place of birth\n    \n*   Gender\n    \n*   Race/ethnicity\n    \n*   Job title and workplace\n    \n*   Education information\n    \n*   Geographic indicators\n    \n*   Medical information\n    \n*   Vehicle registration information",
+                "name": "PII",
+                "termSource": "INTERNAL"
+              },
+              "urn": "urn:li:glossaryTerm:b2fd91.1598cf93-c199-43a1-8833-fce96faa9a1a"
+            }
+          }
+        ]
+      },
+      "health": [
+        {
+          "status": "PASS",
+          "type": "INCIDENTS"
+        }
+      ],
+      "name": "Custom SQL Query",
+      "platform": {
+        "name": "tableau",
+        "urn": "urn:li:dataPlatform:tableau"
+      },
+      "properties": {
+        "name": "Custom SQL Query"
+      },
+      "relatedDocuments": {
+        "count": 10,
+        "start": 0,
+        "total": 0
+      },
+      "schemaMetadata": {
+        "fields": [
+          {
+            "fieldPath": "AVERAGE_ORDER_VALUE",
+            "nativeDataType": "R8",
+            "nullable": false
+          },
+          {
+            "fieldPath": "ORDER_COUNT",
+            "nativeDataType": "NUMERIC",
+            "nullable": false
+          },
+          {
+            "fieldPath": "ORDER_MODE",
+            "nativeDataType": "STR",
+            "nullable": false
+          },
+          {
+            "fieldPath": "TOTAL_REVENUE",
+            "nativeDataType": "R8",
+            "nullable": false
+          }
+        ],
+        "name": "test",
+        "platformUrn": "urn:li:dataPlatform:tableau"
+      },
+      "structuredProperties": {
+        "properties": [
+          {
+            "structuredProperty": {
+              "definition": {
+                "displayName": "Data Freshness SLA",
+                "qualifiedName": "showcase.dataFreshnessSla"
+              },
+              "urn": "urn:li:structuredProperty:showcase.dataFreshnessSla"
+            },
+            "values": [
+              {
+                "stringValue": "Weekly"
+              }
+            ]
+          },
+          {
+            "structuredProperty": {
+              "definition": {
+                "displayName": "Data Quality Score",
+                "qualifiedName": "showcase.dataQualityScore"
+              },
+              "urn": "urn:li:structuredProperty:showcase.dataQualityScore"
+            },
+            "values": [
+              {
+                "numberValue": 81.3
+              }
+            ]
+          },
+          {
+            "structuredProperty": {
+              "definition": {
+                "displayName": "Retention Period",
+                "qualifiedName": "showcase.retentionPeriod"
+              },
+              "urn": "urn:li:structuredProperty:showcase.retentionPeriod"
+            },
+            "values": [
+              {
+                "stringValue": "3 years"
+              }
+            ]
+          },
+          {
+            "structuredProperty": {
+              "definition": {
+                "displayName": "Cost Center",
+                "qualifiedName": "showcase.costCenter"
+              },
+              "urn": "urn:li:structuredProperty:showcase.costCenter"
+            },
+            "values": [
+              {
+                "stringValue": "Engineering"
+              }
+            ]
+          },
+          {
+            "structuredProperty": {
+              "definition": {
+                "displayName": "Data Owner Escalation Contact",
+                "qualifiedName": "showcase.escalationContact"
+              },
+              "urn": "urn:li:structuredProperty:showcase.escalationContact"
+            },
+            "valueEntities": [
+              {
+                "properties": {
+                  "displayName": "Sarah Chen",
+                  "email": "sarah.chen@example.com",
+                  "title": "Senior Data Analyst"
+                },
+                "type": "CORP_USER",
+                "urn": "urn:li:corpuser:b2fd91.sam@example.com"
+              }
+            ],
+            "values": [
+              {
+                "stringValue": "urn:li:corpuser:b2fd91.sam@example.com"
+              }
+            ]
+          }
+        ]
+      },
+      "subTypes": {
+        "typeNames": [
+          "View",
+          "Custom SQL"
+        ]
+      },
+      "urn": "urn:li:dataset:(urn:li:dataPlatform:tableau,b2fd91.37fcfb15-34ae-973a-5ae3-cf63691d48e3,PROD)",
+      "viewProperties": {
+        "language": "SQL",
+        "logic": "SELECT \n    order_mode,\n    COUNT(DISTINCT order_id) as order_count,\n    SUM(order_total) as total_revenue,\n    AVG(order_total) as average_order_value\nFROM order_entry_db.analytics.order_details\nGROUP BY order_mode\nORDER BY total_revenue DESC",
+        "materialized": false
+      }
+    },
+    {
+      "glossaryTerms": {
+        "terms": [
+          {
+            "term": {
+              "hierarchicalName": "b2fd91.1598cf93-c199-43a1-8833-fce96faa9a1a",
+              "parentNodes": {
+                "count": 1,
+                "nodes": [
+                  {
+                    "properties": {
+                      "name": "Classification"
+                    },
+                    "urn": "urn:li:glossaryNode:b2fd91.9fc2293a-b772-44de-84c8-cfa9021e5825"
+                  }
+                ]
+              },
+              "properties": {
+                "description": "# Personally Identifiable Information\n\nPersonally Identifiable Information (PII) refers to any data that can be used to identify a specific individual, either directly or indirectly when combined with other information. Dataset and column contents can be inferred either by the dataset or column name, description, or column sample values.\n\n## Direct Identifiers\n\nAny dataset or column that contains the following information:\n\n*   Full name\n    \n*   First name\n    \n*   Middle name\n    \n*   Last name\n    \n*   Social Security Number or national ID\n    \n*   Driver's license number\n    \n*   Passport number\n    \n*   Email address\n    \n*   Phone number\n    \n*   Physical address\n    \n*   Biometric data (fingerprints, facial recognition)\n    \n*   Account numbers\n    \n*   IP address (in some jurisdictions)\n    \n\n## Indirect Identifiers\n\nAny dataset or column that contains the following information:\n\n*   Date of birth\n    \n*   Place of birth\n    \n*   Gender\n    \n*   Race/ethnicity\n    \n*   Job title and workplace\n    \n*   Education information\n    \n*   Geographic indicators\n    \n*   Medical information\n    \n*   Vehicle registration information",
+                "name": "PII",
+                "termSource": "INTERNAL"
+              },
+              "urn": "urn:li:glossaryTerm:b2fd91.1598cf93-c199-43a1-8833-fce96faa9a1a"
+            }
+          }
+        ]
+      },
+      "health": [
+        {
+          "status": "PASS",
+          "type": "INCIDENTS"
+        }
+      ],
+      "name": "Custom SQL Query",
+      "platform": {
+        "name": "tableau",
+        "urn": "urn:li:dataPlatform:tableau"
+      },
+      "properties": {
+        "name": "Custom SQL Query"
+      },
+      "relatedDocuments": {
+        "count": 10,
+        "start": 0,
+        "total": 0
+      },
+      "schemaMetadata": {
+        "fields": [
+          {
+            "fieldPath": "AVERAGE_ORDER_VALUE",
+            "nativeDataType": "R8",
+            "nullable": false
+          },
+          {
+            "fieldPath": "CATEGORY_NAME",
+            "nativeDataType": "STR",
+            "nullable": false
+          },
+          {
+            "fieldPath": "ORDERS_COUNT",
+            "nativeDataType": "NUMERIC",
+            "nullable": false
+          },
+          {
+            "fieldPath": "TOTAL_REVENUE",
+            "nativeDataType": "R8",
+            "nullable": false
+          }
+        ],
+        "name": "test",
+        "platformUrn": "urn:li:dataPlatform:tableau"
+      },
+      "structuredProperties": {
+        "properties": [
+          {
+            "structuredProperty": {
+              "definition": {
+                "displayName": "Data Freshness SLA",
+                "qualifiedName": "showcase.dataFreshnessSla"
+              },
+              "urn": "urn:li:structuredProperty:showcase.dataFreshnessSla"
+            },
+            "values": [
+              {
+                "stringValue": "Daily"
+              }
+            ]
+          },
+          {
+            "structuredProperty": {
+              "definition": {
+                "displayName": "Data Quality Score",
+                "qualifiedName": "showcase.dataQualityScore"
+              },
+              "urn": "urn:li:structuredProperty:showcase.dataQualityScore"
+            },
+            "values": [
+              {
+                "numberValue": 76.3
+              }
+            ]
+          },
+          {
+            "structuredProperty": {
+              "definition": {
+                "displayName": "Retention Period",
+                "qualifiedName": "showcase.retentionPeriod"
+              },
+              "urn": "urn:li:structuredProperty:showcase.retentionPeriod"
+            },
+            "values": [
+              {
+                "stringValue": "7 years"
+              }
+            ]
+          },
+          {
+            "structuredProperty": {
+              "definition": {
+                "displayName": "Cost Center",
+                "qualifiedName": "showcase.costCenter"
+              },
+              "urn": "urn:li:structuredProperty:showcase.costCenter"
+            },
+            "values": [
+              {
+                "stringValue": "Data Platform"
+              }
+            ]
+          },
+          {
+            "structuredProperty": {
+              "definition": {
+                "displayName": "Data Owner Escalation Contact",
+                "qualifiedName": "showcase.escalationContact"
+              },
+              "urn": "urn:li:structuredProperty:showcase.escalationContact"
+            },
+            "valueEntities": [
+              {
+                "properties": {
+                  "displayName": "David Kim",
+                  "email": "david.kim@example.com",
+                  "title": "Data Scientist"
+                },
+                "type": "CORP_USER",
+                "urn": "urn:li:corpuser:b2fd91.brock1@example.com"
+              }
+            ],
+            "values": [
+              {
+                "stringValue": "urn:li:corpuser:b2fd91.brock1@example.com"
+              }
+            ]
+          }
+        ]
+      },
+      "subTypes": {
+        "typeNames": [
+          "View",
+          "Custom SQL"
+        ]
+      },
+      "urn": "urn:li:dataset:(urn:li:dataPlatform:tableau,b2fd91.4a3af1dd-fd0c-7077-d5fd-aa2fdf87cb23,PROD)",
+      "viewProperties": {
+        "language": "SQL",
+        "logic": "SELECT \n    category_name,\n    COUNT(DISTINCT order_id) as orders_count,\n    SUM(line_total) as total_revenue,\n    AVG(line_total) as average_order_value\nFROM order_entry_db.analytics.order_details\nWHERE category_name IS NOT NULL\nGROUP BY category_name\nORDER BY total_revenue DESC",
+        "materialized": false
+      }
+    },
+    {
+      "glossaryTerms": {
+        "terms": [
+          {
+            "term": {
+              "hierarchicalName": "b2fd91.309dd98b-a96c-49de-93ad-acff10e963a2",
+              "parentNodes": {
+                "count": 1,
+                "nodes": [
+                  {
+                    "properties": {
+                      "name": "Classification"
+                    },
+                    "urn": "urn:li:glossaryNode:b2fd91.9fc2293a-b772-44de-84c8-cfa9021e5825"
+                  }
+                ]
+              },
+              "properties": {
+                "description": "# GDPR Data\n\nThe General Data Protection Regulation (GDPR) definition of \"personal data\" is:\n\n\"Any information relating to an identified or identifiable natural person ('data subject'); an identifiable natural person is one who can be identified, directly or indirectly, in particular by reference to an identifier such as a name, an identification number, location data, an online identifier or to one or more factors specific to the physical, physiological, genetic, mental, economic, cultural or social identity of that natural person.\"\n\n## Key aspects of GDPR data:\n\n*   Dataset and column contents can be inferred either by the dataset or column name, description, or column sample values.\n    \n*   It applies to **any information** that relates to a person\n    \n*   It covers both **direct identification** (like a name) and **indirect identification** (where you'd need multiple pieces of data)\n    \n*   It includes **online identifiers** like IP addresses, cookies, and device IDs\n    \n*   It encompasses a broad range of identifiers related to various aspects of identity (physical, physiological, genetic, etc.)\n    \n*   It applies only to **natural persons** (living human beings), not legal entities or deceased individuals\n    \n\nThe GDPR interpretation of personal data is intentionally broad and technology-neutral to remain applicable as new technologies and data collection methods emerge.",
+                "name": "GDPR",
+                "termSource": "INTERNAL"
+              },
+              "urn": "urn:li:glossaryTerm:b2fd91.309dd98b-a96c-49de-93ad-acff10e963a2"
+            }
+          },
+          {
+            "term": {
+              "hierarchicalName": "b2fd91.1598cf93-c199-43a1-8833-fce96faa9a1a",
+              "parentNodes": {
+                "count": 1,
+                "nodes": [
+                  {
+                    "properties": {
+                      "name": "Classification"
+                    },
+                    "urn": "urn:li:glossaryNode:b2fd91.9fc2293a-b772-44de-84c8-cfa9021e5825"
+                  }
+                ]
+              },
+              "properties": {
+                "description": "# Personally Identifiable Information\n\nPersonally Identifiable Information (PII) refers to any data that can be used to identify a specific individual, either directly or indirectly when combined with other information. Dataset and column contents can be inferred either by the dataset or column name, description, or column sample values.\n\n## Direct Identifiers\n\nAny dataset or column that contains the following information:\n\n*   Full name\n    \n*   First name\n    \n*   Middle name\n    \n*   Last name\n    \n*   Social Security Number or national ID\n    \n*   Driver's license number\n    \n*   Passport number\n    \n*   Email address\n    \n*   Phone number\n    \n*   Physical address\n    \n*   Biometric data (fingerprints, facial recognition)\n    \n*   Account numbers\n    \n*   IP address (in some jurisdictions)\n    \n\n## Indirect Identifiers\n\nAny dataset or column that contains the following information:\n\n*   Date of birth\n    \n*   Place of birth\n    \n*   Gender\n    \n*   Race/ethnicity\n    \n*   Job title and workplace\n    \n*   Education information\n    \n*   Geographic indicators\n    \n*   Medical information\n    \n*   Vehicle registration information",
+                "name": "PII",
+                "termSource": "INTERNAL"
+              },
+              "urn": "urn:li:glossaryTerm:b2fd91.1598cf93-c199-43a1-8833-fce96faa9a1a"
+            }
+          }
+        ]
+      },
+      "health": [
+        {
+          "status": "PASS",
+          "type": "INCIDENTS"
+        }
+      ],
+      "name": "Custom SQL Query",
+      "platform": {
+        "name": "tableau",
+        "urn": "urn:li:dataPlatform:tableau"
+      },
+      "properties": {
+        "name": "Custom SQL Query"
+      },
+      "relatedDocuments": {
+        "count": 10,
+        "start": 0,
+        "total": 0
+      },
+      "schemaMetadata": {
+        "fields": [
+          {
+            "fieldPath": "AVERAGE_DISCOUNT_PERCENT",
+            "nativeDataType": "R8",
+            "nullable": false
+          },
+          {
+            "fieldPath": "AVERAGE_ORDER_VALUE",
+            "nativeDataType": "R8",
+            "nullable": false
+          },
+          {
+            "fieldPath": "ORDERS_WITH_PROMOTION",
+            "nativeDataType": "NUMERIC",
+            "nullable": false
+          },
+          {
+            "fieldPath": "PROMOTION_NAME",
+            "nativeDataType": "STR",
+            "nullable": false
+          },
+          {
+            "fieldPath": "TOTAL_REVENUE",
+            "nativeDataType": "R8",
+            "nullable": false
+          }
+        ],
+        "name": "test",
+        "platformUrn": "urn:li:dataPlatform:tableau"
+      },
+      "structuredProperties": {
+        "properties": [
+          {
+            "structuredProperty": {
+              "definition": {
+                "displayName": "Data Freshness SLA",
+                "qualifiedName": "showcase.dataFreshnessSla"
+              },
+              "urn": "urn:li:structuredProperty:showcase.dataFreshnessSla"
+            },
+            "values": [
+              {
+                "stringValue": "Daily"
+              }
+            ]
+          },
+          {
+            "structuredProperty": {
+              "definition": {
+                "displayName": "Data Quality Score",
+                "qualifiedName": "showcase.dataQualityScore"
+              },
+              "urn": "urn:li:structuredProperty:showcase.dataQualityScore"
+            },
+            "values": [
+              {
+                "numberValue": 85.9
+              }
+            ]
+          },
+          {
+            "structuredProperty": {
+              "definition": {
+                "displayName": "Retention Period",
+                "qualifiedName": "showcase.retentionPeriod"
+              },
+              "urn": "urn:li:structuredProperty:showcase.retentionPeriod"
+            },
+            "values": [
+              {
+                "stringValue": "7 years"
+              }
+            ]
+          },
+          {
+            "structuredProperty": {
+              "definition": {
+                "displayName": "Cost Center",
+                "qualifiedName": "showcase.costCenter"
+              },
+              "urn": "urn:li:structuredProperty:showcase.costCenter"
+            },
+            "values": [
+              {
+                "stringValue": "Engineering"
+              }
+            ]
+          },
+          {
+            "structuredProperty": {
+              "definition": {
+                "displayName": "Data Owner Escalation Contact",
+                "qualifiedName": "showcase.escalationContact"
+              },
+              "urn": "urn:li:structuredProperty:showcase.escalationContact"
+            },
+            "valueEntities": [
+              {
+                "properties": {
+                  "displayName": "David Kim",
+                  "email": "david.kim@example.com",
+                  "title": "Data Scientist"
+                },
+                "type": "CORP_USER",
+                "urn": "urn:li:corpuser:b2fd91.brock1@example.com"
+              }
+            ],
+            "values": [
+              {
+                "stringValue": "urn:li:corpuser:b2fd91.brock1@example.com"
+              }
+            ]
+          }
+        ]
+      },
+      "subTypes": {
+        "typeNames": [
+          "View",
+          "Custom SQL"
+        ]
+      },
+      "urn": "urn:li:dataset:(urn:li:dataPlatform:tableau,b2fd91.8bfe7483-1c9a-a0e1-ec84-57207dd37a15,PROD)",
+      "viewProperties": {
+        "language": "SQL",
+        "logic": "SELECT \n    promotion_name,\n    COUNT(DISTINCT order_id) as orders_with_promotion,\n    SUM(order_total) as total_revenue,\n    AVG(order_total) as average_order_value,\n    AVG(discount_percent) as average_discount_percent\nFROM order_entry_db.analytics.order_details\nWHERE promotion_name IS NOT NULL\nGROUP BY promotion_name\nORDER BY total_revenue DESC",
+        "materialized": false
+      }
+    },
+    {
+      "glossaryTerms": {
+        "terms": [
+          {
+            "term": {
+              "hierarchicalName": "b2fd91.1598cf93-c199-43a1-8833-fce96faa9a1a",
+              "parentNodes": {
+                "count": 1,
+                "nodes": [
+                  {
+                    "properties": {
+                      "name": "Classification"
+                    },
+                    "urn": "urn:li:glossaryNode:b2fd91.9fc2293a-b772-44de-84c8-cfa9021e5825"
+                  }
+                ]
+              },
+              "properties": {
+                "description": "# Personally Identifiable Information\n\nPersonally Identifiable Information (PII) refers to any data that can be used to identify a specific individual, either directly or indirectly when combined with other information. Dataset and column contents can be inferred either by the dataset or column name, description, or column sample values.\n\n## Direct Identifiers\n\nAny dataset or column that contains the following information:\n\n*   Full name\n    \n*   First name\n    \n*   Middle name\n    \n*   Last name\n    \n*   Social Security Number or national ID\n    \n*   Driver's license number\n    \n*   Passport number\n    \n*   Email address\n    \n*   Phone number\n    \n*   Physical address\n    \n*   Biometric data (fingerprints, facial recognition)\n    \n*   Account numbers\n    \n*   IP address (in some jurisdictions)\n    \n\n## Indirect Identifiers\n\nAny dataset or column that contains the following information:\n\n*   Date of birth\n    \n*   Place of birth\n    \n*   Gender\n    \n*   Race/ethnicity\n    \n*   Job title and workplace\n    \n*   Education information\n    \n*   Geographic indicators\n    \n*   Medical information\n    \n*   Vehicle registration information",
+                "name": "PII",
+                "termSource": "INTERNAL"
+              },
+              "urn": "urn:li:glossaryTerm:b2fd91.1598cf93-c199-43a1-8833-fce96faa9a1a"
+            }
+          }
+        ]
+      },
+      "health": [
+        {
+          "status": "PASS",
+          "type": "INCIDENTS"
+        }
+      ],
+      "name": "Custom SQL Query",
+      "platform": {
+        "name": "tableau",
+        "urn": "urn:li:dataPlatform:tableau"
+      },
+      "properties": {
+        "name": "Custom SQL Query"
+      },
+      "relatedDocuments": {
+        "count": 10,
+        "start": 0,
+        "total": 0
+      },
+      "schemaMetadata": {
+        "fields": [
+          {
+            "fieldPath": "CATEGORY_NAME",
+            "nativeDataType": "STR",
+            "nullable": false
+          },
+          {
+            "fieldPath": "ORDER_COUNT",
+            "nativeDataType": "NUMERIC",
+            "nullable": false
+          },
+          {
+            "fieldPath": "ORDER_DATE",
+            "nativeDataType": "STR",
+            "nullable": false
+          },
+          {
+            "fieldPath": "TOTAL_SALES",
+            "nativeDataType": "R8",
+            "nullable": false
+          }
+        ],
+        "name": "test",
+        "platformUrn": "urn:li:dataPlatform:tableau"
+      },
+      "structuredProperties": {
+        "properties": [
+          {
+            "structuredProperty": {
+              "definition": {
+                "displayName": "Data Freshness SLA",
+                "qualifiedName": "showcase.dataFreshnessSla"
+              },
+              "urn": "urn:li:structuredProperty:showcase.dataFreshnessSla"
+            },
+            "values": [
+              {
+                "stringValue": "Real-time"
+              }
+            ]
+          },
+          {
+            "structuredProperty": {
+              "definition": {
+                "displayName": "Data Quality Score",
+                "qualifiedName": "showcase.dataQualityScore"
+              },
+              "urn": "urn:li:structuredProperty:showcase.dataQualityScore"
+            },
+            "values": [
+              {
+                "numberValue": 78.0
+              }
+            ]
+          },
+          {
+            "structuredProperty": {
+              "definition": {
+                "displayName": "Retention Period",
+                "qualifiedName": "showcase.retentionPeriod"
+              },
+              "urn": "urn:li:structuredProperty:showcase.retentionPeriod"
+            },
+            "values": [
+              {
+                "stringValue": "1 year"
+              }
+            ]
+          },
+          {
+            "structuredProperty": {
+              "definition": {
+                "displayName": "Cost Center",
+                "qualifiedName": "showcase.costCenter"
+              },
+              "urn": "urn:li:structuredProperty:showcase.costCenter"
+            },
+            "values": [
+              {
+                "stringValue": "Analytics"
+              }
+            ]
+          },
+          {
+            "structuredProperty": {
+              "definition": {
+                "displayName": "Data Owner Escalation Contact",
+                "qualifiedName": "showcase.escalationContact"
+              },
+              "urn": "urn:li:structuredProperty:showcase.escalationContact"
+            },
+            "valueEntities": [
+              {
+                "properties": {
+                  "displayName": "Sarah Chen",
+                  "email": "sarah.chen@example.com",
+                  "title": "Senior Data Analyst"
+                },
+                "type": "CORP_USER",
+                "urn": "urn:li:corpuser:b2fd91.sam@example.com"
+              }
+            ],
+            "values": [
+              {
+                "stringValue": "urn:li:corpuser:b2fd91.sam@example.com"
+              }
+            ]
+          }
+        ]
+      },
+      "subTypes": {
+        "typeNames": [
+          "View",
+          "Custom SQL"
+        ]
+      },
+      "urn": "urn:li:dataset:(urn:li:dataPlatform:tableau,b2fd91.f32082e5-06b8-f46e-9047-4611fffe66b0,PROD)",
+      "viewProperties": {
+        "language": "SQL",
+        "logic": "SELECT \n    order_date,\n    category_name,\n    COUNT(DISTINCT order_id) as order_count,\n    SUM(line_total) as total_sales\nFROM order_entry_db.analytics.order_details\nWHERE category_name IS NOT NULL\nGROUP BY order_date, category_name\nORDER BY order_date DESC, total_sales DESC",
+        "materialized": false
+      }
+    },
+    {
+      "chartId": "b2fd91.dashboard_elements.221",
+      "health": [
+        {
+          "status": "PASS",
+          "type": "INCIDENTS"
+        }
+      ],
+      "platform": {
+        "name": "looker",
+        "urn": "urn:li:dataPlatform:looker"
+      },
+      "properties": {
+        "description": "",
+        "externalUrl": "https://demo.cloud.looker.com/x/WR7m89f5V8JKg52fMX4vCrh7V5BtnQ8b",
+        "lastModified": {
+          "time": 15384481476
+        },
+        "name": "Popular Products"
+      },
+      "relatedDocuments": {
+        "count": 10,
+        "start": 0,
+        "total": 0
+      },
+      "subTypes": {
+        "typeNames": [
+          "Look"
+        ]
+      },
+      "tool": "looker",
+      "type": "CHART",
+      "urn": "urn:li:chart:(looker,b2fd91.dashboard_elements.221)"
+    },
+    {
+      "chartId": "b2fd91.dashboard_elements.222",
+      "health": [
+        {
+          "status": "PASS",
+          "type": "INCIDENTS"
+        }
+      ],
+      "platform": {
+        "name": "looker",
+        "urn": "urn:li:dataPlatform:looker"
+      },
+      "properties": {
+        "description": "",
+        "externalUrl": "https://demo.cloud.looker.com/x/K56QV6fcDwJWWHMQxwGNmkQk8vM33w6q",
+        "lastModified": {
+          "time": 15384481476
+        },
+        "name": "Promotions"
+      },
+      "relatedDocuments": {
+        "count": 10,
+        "start": 0,
+        "total": 0
+      },
+      "subTypes": {
+        "typeNames": [
+          "Look"
+        ]
+      },
+      "tool": "looker",
+      "type": "CHART",
+      "urn": "urn:li:chart:(looker,b2fd91.dashboard_elements.222)"
+    },
+    {
+      "chartId": "b2fd91.dashboard_elements.223",
+      "health": [
+        {
+          "status": "PASS",
+          "type": "INCIDENTS"
+        }
+      ],
+      "platform": {
+        "name": "looker",
+        "urn": "urn:li:dataPlatform:looker"
+      },
+      "properties": {
+        "description": "",
+        "externalUrl": "https://demo.cloud.looker.com/x/kdV5fJVX2jr5kwkzZ8pjfFksDtDW7jnw",
+        "lastModified": {
+          "time": 15384481476
+        },
+        "name": "Order Mode"
+      },
+      "relatedDocuments": {
+        "count": 10,
+        "start": 0,
+        "total": 0
+      },
+      "subTypes": {
+        "typeNames": [
+          "Look"
+        ]
+      },
+      "tool": "looker",
+      "type": "CHART",
+      "urn": "urn:li:chart:(looker,b2fd91.dashboard_elements.223)"
+    }
+  ],
+  "tool": "get_entities"
+}

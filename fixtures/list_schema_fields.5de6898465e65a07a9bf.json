@@ -1,0 +1,52 @@
+{
+  "args": {
+    "urn": "urn:li:dataset:(urn:li:dataPlatform:tableau,b2fd91.b980a8c5-28eb-119e-f6ca-4da32732e5be,PROD)"
+  },
+  "response": {
+    "fields": [
+      {
+        "fieldPath": "AVERAGE_DISCOUNT_PERCENT",
+        "nativeDataType": "REAL",
+        "nullable": false,
+        "tags": []
+      },
+      {
+        "fieldPath": "AVERAGE_ORDER_VALUE",
+        "nativeDataType": "REAL",
+        "nullable": false,
+        "tags": []
+      },
+      {
+        "fieldPath": "ORDERS_WITH_PROMOTION",
+        "nativeDataType": "INTEGER",
+        "nullable": false,
+        "tags": []
+      },
+      {
+        "fieldPath": "PROMOTION_NAME",
+        "nativeDataType": "STRING",
+        "nullable": false,
+        "tags": []
+      },
+      {
+        "fieldPath": "Promotions",
+        "nativeDataType": "TABLE",
+        "nullable": false,
+        "tags": []
+      },
+      {
+        "fieldPath": "TOTAL_REVENUE",
+        "nativeDataType": "REAL",
+        "nullable": false,
+        "tags": []
+      }
+    ],
+    "matchingCount": null,
+    "offset": 0,
+    "remainingCount": 0,
+    "returned": 6,
+    "totalFields": 6,
+    "urn": "urn:li:dataset:(urn:li:dataPlatform:tableau,b2fd91.b980a8c5-28eb-119e-f6ca-4da32732e5be,PROD)"
+  },
+  "tool": "list_schema_fields"
+}

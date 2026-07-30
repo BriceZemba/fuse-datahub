@@ -1,0 +1,12 @@
+{
+  "args": {
+    "column": "discount_code",
+    "urn": "urn:li:dataset:(urn:li:dataPlatform:tableau,b2fd91.fadbf744-48be-0929-a47c-5786327a3343,PROD)"
+  },
+  "response": {
+    "count": 10,
+    "start": 0,
+    "total": 0
+  },
+  "tool": "get_dataset_queries"
+}

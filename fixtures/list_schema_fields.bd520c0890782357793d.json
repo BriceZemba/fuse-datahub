@@ -1,0 +1,44 @@
+{
+  "args": {
+    "urn": "urn:li:dataset:(urn:li:dataPlatform:dbt,b2fd91.ORDER_ENTRY_DB.analytics.order_history,PROD)"
+  },
+  "response": {
+    "fields": [
+      {
+        "fieldPath": "as_of_date",
+        "nativeDataType": "DATE",
+        "nullable": false
+      },
+      {
+        "editedGlossaryTerms": [
+          "PII"
+        ],
+        "fieldPath": "customer_id",
+        "nativeDataType": "NUMBER",
+        "nullable": false
+      },
+      {
+        "fieldPath": "order_id",
+        "nativeDataType": "NUMBER",
+        "nullable": false
+      },
+      {
+        "fieldPath": "order_status",
+        "nativeDataType": "NUMBER",
+        "nullable": false
+      },
+      {
+        "fieldPath": "order_total",
+        "nativeDataType": "FLOAT",
+        "nullable": false
+      }
+    ],
+    "matchingCount": null,
+    "offset": 0,
+    "remainingCount": 0,
+    "returned": 5,
+    "totalFields": 5,
+    "urn": "urn:li:dataset:(urn:li:dataPlatform:dbt,b2fd91.ORDER_ENTRY_DB.analytics.order_history,PROD)"
+  },
+  "tool": "list_schema_fields"
+}

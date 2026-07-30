@@ -1,0 +1,45 @@
+{
+  "args": {
+    "urn": "urn:li:dataset:(urn:li:dataPlatform:powerbi,b2fd91.datahub_order_entries.Product_Perfromance_Measures,PROD)"
+  },
+  "response": {
+    "fields": [
+      {
+        "description": "AVERAGE('ORDER_DETAILS'[discount_percent])",
+        "fieldPath": "Average Discount %",
+        "nativeDataType": "measure",
+        "nullable": false
+      },
+      {
+        "description": "CALCULATE([Total Revenue], VALUES('ORDER_DETAILS'[category_name]))",
+        "fieldPath": "Revenue by Category",
+        "nativeDataType": "measure",
+        "nullable": false
+      },
+      {
+        "description": "CALCULATE(SUM('ORDER_DETAILS'[quantity]), VALUES('ORDER_DETAILS'[product_name]))",
+        "fieldPath": "Top Selling Products",
+        "nativeDataType": "measure",
+        "nullable": false
+      },
+      {
+        "description": "SUM('ORDER_DETAILS'[discount_amount])",
+        "fieldPath": "Total Discount Amount",
+        "nativeDataType": "measure",
+        "nullable": false
+      },
+      {
+        "fieldPath": "Value",
+        "nativeDataType": "String",
+        "nullable": false
+      }
+    ],
+    "matchingCount": null,
+    "offset": 0,
+    "remainingCount": 0,
+    "returned": 5,
+    "totalFields": 5,
+    "urn": "urn:li:dataset:(urn:li:dataPlatform:powerbi,b2fd91.datahub_order_entries.Product_Perfromance_Measures,PROD)"
+  },
+  "tool": "list_schema_fields"
+}

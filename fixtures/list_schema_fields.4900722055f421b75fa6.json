@@ -1,0 +1,27 @@
+{
+  "args": {
+    "urn": "urn:li:dataset:(urn:li:dataPlatform:powerbi,b2fd91.datahub_order_entries.Customer_Analytics_Measures,PROD)"
+  },
+  "response": {
+    "fields": [
+      {
+        "description": "AVERAGEX(\n    VALUES('ORDER_DETAILS'[customer_id]),\n    CALCULATE(SUM('ORDER_DETAILS'[order_total]))\n)",
+        "fieldPath": "Customer LTV",
+        "nativeDataType": "measure",
+        "nullable": false
+      },
+      {
+        "fieldPath": "Value",
+        "nativeDataType": "String",
+        "nullable": false
+      }
+    ],
+    "matchingCount": null,
+    "offset": 0,
+    "remainingCount": 0,
+    "returned": 2,
+    "totalFields": 2,
+    "urn": "urn:li:dataset:(urn:li:dataPlatform:powerbi,b2fd91.datahub_order_entries.Customer_Analytics_Measures,PROD)"
+  },
+  "tool": "list_schema_fields"
+}

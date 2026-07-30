@@ -1,0 +1,46 @@
+{
+  "args": {
+    "urn": "urn:li:dataset:(urn:li:dataPlatform:tableau,b2fd91.c067553a-127e-a871-14a0-5f32cb032c78,PROD)"
+  },
+  "response": {
+    "fields": [
+      {
+        "fieldPath": "AVERAGE_ORDER_VALUE",
+        "nativeDataType": "REAL",
+        "nullable": false,
+        "tags": []
+      },
+      {
+        "fieldPath": "ORDER_COUNT",
+        "nativeDataType": "INTEGER",
+        "nullable": false,
+        "tags": []
+      },
+      {
+        "fieldPath": "ORDER_MODE",
+        "nativeDataType": "STRING",
+        "nullable": false,
+        "tags": []
+      },
+      {
+        "fieldPath": "Order Mode",
+        "nativeDataType": "TABLE",
+        "nullable": false,
+        "tags": []
+      },
+      {
+        "fieldPath": "TOTAL_REVENUE",
+        "nativeDataType": "REAL",
+        "nullable": false,
+        "tags": []
+      }
+    ],
+    "matchingCount": null,
+    "offset": 0,
+    "remainingCount": 0,
+    "returned": 5,
+    "totalFields": 5,
+    "urn": "urn:li:dataset:(urn:li:dataPlatform:tableau,b2fd91.c067553a-127e-a871-14a0-5f32cb032c78,PROD)"
+  },
+  "tool": "list_schema_fields"
+}

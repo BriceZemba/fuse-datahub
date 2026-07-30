@@ -1,0 +1,187 @@
+{
+  "args": {
+    "urn": "urn:li:dataset:(urn:li:dataPlatform:dbt,b2fd91.order_entry_db.order_entry.customers,PROD)"
+  },
+  "response": {
+    "fields": [
+      {
+        "description": "ID of the account manager assigned to the customer",
+        "fieldPath": "account_mgr_id",
+        "nativeDataType": "NUMBER",
+        "nullable": false
+      },
+      {
+        "description": "First line of customer primary address",
+        "editedGlossaryTerms": [
+          "PII"
+        ],
+        "fieldPath": "address_line1",
+        "nativeDataType": "TEXT",
+        "nullable": false
+      },
+      {
+        "description": "Second line of customer primary address",
+        "editedGlossaryTerms": [
+          "PII"
+        ],
+        "fieldPath": "address_line2",
+        "nativeDataType": "TEXT",
+        "nullable": false
+      },
+      {
+        "description": "Third line of customer primary address",
+        "editedGlossaryTerms": [
+          "PII"
+        ],
+        "fieldPath": "address_line3",
+        "nativeDataType": "TEXT",
+        "nullable": false
+      },
+      {
+        "description": "Reference to country table for primary address",
+        "editedGlossaryTerms": [
+          "PII"
+        ],
+        "fieldPath": "country_id",
+        "nativeDataType": "NUMBER",
+        "nullable": false
+      },
+      {
+        "description": "Maximum credit amount for the customer",
+        "fieldPath": "credit_limit",
+        "nativeDataType": "FLOAT",
+        "nullable": false
+      },
+      {
+        "description": "Customer email address",
+        "editedGlossaryTerms": [
+          "PII"
+        ],
+        "fieldPath": "cust_email",
+        "nativeDataType": "TEXT",
+        "nullable": false
+      },
+      {
+        "description": "Customer first name",
+        "editedGlossaryTerms": [
+          "PII"
+        ],
+        "fieldPath": "cust_first_name",
+        "nativeDataType": "TEXT",
+        "nullable": false
+      },
+      {
+        "description": "Customer last name",
+        "editedGlossaryTerms": [
+          "PII"
+        ],
+        "fieldPath": "cust_last_name",
+        "nativeDataType": "TEXT",
+        "nullable": false
+      },
+      {
+        "description": "Classification of the customer (e.g., Platinum, Gold, Silver)",
+        "fieldPath": "customer_class",
+        "nativeDataType": "TEXT",
+        "nullable": false
+      },
+      {
+        "description": "Unique identifier for the customer",
+        "editedGlossaryTerms": [
+          "PII"
+        ],
+        "fieldPath": "customer_id",
+        "nativeDataType": "NUMBER",
+        "nullable": false
+      },
+      {
+        "description": "Date when customer was first registered",
+        "fieldPath": "customer_since",
+        "nativeDataType": "TEXT",
+        "nullable": false
+      },
+      {
+        "description": "Customer date of birth",
+        "editedGlossaryTerms": [
+          "PII"
+        ],
+        "fieldPath": "dob",
+        "nativeDataType": "TEXT",
+        "nullable": false
+      },
+      {
+        "description": "Flag indicating if customer has opted for marketing emails (Y/N)",
+        "fieldPath": "mailshot",
+        "nativeDataType": "NUMBER",
+        "nullable": false
+      },
+      {
+        "description": "Preferred language code",
+        "fieldPath": "nls_language",
+        "nativeDataType": "TEXT",
+        "nullable": false
+      },
+      {
+        "description": "Geographical territory for localization settings",
+        "fieldPath": "nls_territory",
+        "nativeDataType": "TEXT",
+        "nullable": false
+      },
+      {
+        "description": "Flag indicating if customer has opted for partner marketing (Y/N)",
+        "fieldPath": "partner_mailshot",
+        "nativeDataType": "NUMBER",
+        "nullable": false
+      },
+      {
+        "description": "Customer contact phone number",
+        "editedGlossaryTerms": [
+          "PII"
+        ],
+        "fieldPath": "phone_number",
+        "nativeDataType": "TEXT",
+        "nullable": false
+      },
+      {
+        "description": "Reference to region table for primary address",
+        "editedGlossaryTerms": [
+          "PII"
+        ],
+        "fieldPath": "region_id",
+        "nativeDataType": "NUMBER",
+        "nullable": false
+      },
+      {
+        "description": "Customer product suggestions or preferences",
+        "fieldPath": "suggestions",
+        "nativeDataType": "TEXT",
+        "nullable": false
+      },
+      {
+        "description": "Town or city of customer primary address",
+        "editedGlossaryTerms": [
+          "PII"
+        ],
+        "fieldPath": "town_city",
+        "nativeDataType": "TEXT",
+        "nullable": false
+      },
+      {
+        "description": "Postal code of customer primary address",
+        "editedGlossaryTerms": [
+          "PII"
+        ],
+        "fieldPath": "zipcode",
+        "nativeDataType": "NUMBER",
+        "nullable": false
+      }
+    ],
+    "matchingCount": null,
+    "offset": 0,
+    "remainingCount": 0,
+    "returned": 22,
+    "totalFields": 22,
+    "urn": "urn:li:dataset:(urn:li:dataPlatform:dbt,b2fd91.order_entry_db.order_entry.customers,PROD)"
+  },
+  "tool": "list_schema_fields"
+}

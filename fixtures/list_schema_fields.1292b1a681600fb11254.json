@@ -1,0 +1,87 @@
+{
+  "args": {
+    "urn": "urn:li:dataset:(urn:li:dataPlatform:powerbi,b2fd91.datahub_order_entries.Essential_KPI_Measures,PROD)"
+  },
+  "response": {
+    "fields": [
+      {
+        "description": "DIVIDE([Total Revenue], [Total Orders], 0)",
+        "fieldPath": "Average Order Value",
+        "nativeDataType": "measure",
+        "nullable": false
+      },
+      {
+        "description": "DIVIDE(\n    CALCULATE([Total Orders], 'ORDER_DETAILS'[delivery_status]  \"Not Shipped\"),\n    [Total Orders], \n    0\n)",
+        "fieldPath": "Fulfillment Rate",
+        "nativeDataType": "measure",
+        "nullable": false
+      },
+      {
+        "description": "CALCULATE(\n    DISTINCTCOUNT('ORDER_DETAILS'[customer_id]),\n    FILTER(\n        'ORDER_DETAILS',\n        'ORDER_DETAILS'",
+        "fieldPath": "New Customers",
+        "nativeDataType": "measure",
+        "nullable": false
+      },
+      {
+        "description": "CALCULATE([Total Revenue], SAMEPERIODLASTYEAR('ORDER_DETAILS'[order_date]))",
+        "fieldPath": "PY Revenue",
+        "nativeDataType": "measure",
+        "nullable": false
+      },
+      {
+        "description": "DIVIDE([Total Revenue], [Total Customers], 0)",
+        "fieldPath": "Revenue Per Customer",
+        "nativeDataType": "measure",
+        "nullable": false
+      },
+      {
+        "description": "DISTINCTCOUNT('ORDER_DETAILS'[customer_id])",
+        "fieldPath": "Total Customers",
+        "nativeDataType": "measure",
+        "nullable": false
+      },
+      {
+        "description": "DISTINCTCOUNT('ORDER_DETAILS'[order_id])",
+        "fieldPath": "Total Orders",
+        "nativeDataType": "measure",
+        "nullable": false
+      },
+      {
+        "description": "SUM('ORDER_DETAILS'[quantity])",
+        "fieldPath": "Total Products Sold",
+        "nativeDataType": "measure",
+        "nullable": false
+      },
+      {
+        "description": "SUMX('ORDER_DETAILS', 'ORDER_DETAILS'[order_total])",
+        "fieldPath": "Total Revenue",
+        "nativeDataType": "measure",
+        "nullable": false
+      },
+      {
+        "description": "CALCULATE([Total Revenue], DATESYTD('ORDER_DETAILS'[order_date]))",
+        "fieldPath": "YTD Revenue",
+        "nativeDataType": "measure",
+        "nullable": false
+      },
+      {
+        "description": "DIVIDE([YTD Revenue] - [PY Revenue], [PY Revenue], 0)",
+        "fieldPath": "YoY Growth",
+        "nativeDataType": "measure",
+        "nullable": false
+      },
+      {
+        "fieldPath": "Value",
+        "nativeDataType": "String",
+        "nullable": false
+      }
+    ],
+    "matchingCount": null,
+    "offset": 0,
+    "remainingCount": 0,
+    "returned": 12,
+    "totalFields": 12,
+    "urn": "urn:li:dataset:(urn:li:dataPlatform:powerbi,b2fd91.datahub_order_entries.Essential_KPI_Measures,PROD)"
+  },
+  "tool": "list_schema_fields"
+}

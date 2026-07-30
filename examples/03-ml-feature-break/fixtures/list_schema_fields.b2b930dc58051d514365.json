@@ -1,0 +1,159 @@
+{
+  "args": {
+    "urn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,b2fd91.order_entry_db.order_entry.customers,PROD)"
+  },
+  "response": {
+    "fields": [
+      {
+        "editedGlossaryTerms": [
+          "PII"
+        ],
+        "fieldPath": "cust_email",
+        "glossaryTerms": [
+          "Email Address"
+        ],
+        "nativeDataType": "VARCHAR(16777216)",
+        "nullable": true
+      },
+      {
+        "editedGlossaryTerms": [
+          "PII"
+        ],
+        "fieldPath": "phone_number",
+        "glossaryTerms": [
+          "Phone Number"
+        ],
+        "nativeDataType": "VARCHAR(16777216)",
+        "nullable": true
+      },
+      {
+        "fieldPath": "account_mgr_id",
+        "nativeDataType": "NUMBER(38,0)",
+        "nullable": true
+      },
+      {
+        "editedGlossaryTerms": [
+          "PII"
+        ],
+        "fieldPath": "address_line1",
+        "nativeDataType": "VARCHAR(16777216)",
+        "nullable": true
+      },
+      {
+        "editedGlossaryTerms": [
+          "PII"
+        ],
+        "fieldPath": "address_line2",
+        "nativeDataType": "VARCHAR(16777216)",
+        "nullable": true
+      },
+      {
+        "editedGlossaryTerms": [
+          "PII"
+        ],
+        "fieldPath": "address_line3",
+        "nativeDataType": "VARCHAR(16777216)",
+        "nullable": true
+      },
+      {
+        "fieldPath": "country_id",
+        "nativeDataType": "NUMBER(38,0)",
+        "nullable": true
+      },
+      {
+        "fieldPath": "credit_limit",
+        "nativeDataType": "FLOAT",
+        "nullable": true
+      },
+      {
+        "editedGlossaryTerms": [
+          "PII"
+        ],
+        "fieldPath": "cust_first_name",
+        "nativeDataType": "VARCHAR(16777216)",
+        "nullable": true
+      },
+      {
+        "editedGlossaryTerms": [
+          "PII"
+        ],
+        "fieldPath": "cust_last_name",
+        "nativeDataType": "VARCHAR(16777216)",
+        "nullable": true
+      },
+      {
+        "fieldPath": "customer_class",
+        "nativeDataType": "VARCHAR(16777216)",
+        "nullable": true
+      },
+      {
+        "editedGlossaryTerms": [
+          "PII"
+        ],
+        "fieldPath": "customer_id",
+        "nativeDataType": "NUMBER(38,0)",
+        "nullable": true
+      },
+      {
+        "fieldPath": "customer_since",
+        "nativeDataType": "VARCHAR(16777216)",
+        "nullable": true
+      },
+      {
+        "editedGlossaryTerms": [
+          "PII"
+        ],
+        "fieldPath": "dob",
+        "nativeDataType": "VARCHAR(16777216)",
+        "nullable": true
+      },
+      {
+        "fieldPath": "mailshot",
+        "nativeDataType": "NUMBER(38,0)",
+        "nullable": true
+      },
+      {
+        "fieldPath": "nls_language",
+        "nativeDataType": "VARCHAR(16777216)",
+        "nullable": true
+      },
+      {
+        "fieldPath": "nls_territory",
+        "nativeDataType": "VARCHAR(16777216)",
+        "nullable": true
+      },
+      {
+        "fieldPath": "partner_mailshot",
+        "nativeDataType": "NUMBER(38,0)",
+        "nullable": true
+      },
+      {
+        "fieldPath": "region_id",
+        "nativeDataType": "NUMBER(38,0)",
+        "nullable": true
+      },
+      {
+        "fieldPath": "suggestions",
+        "nativeDataType": "VARCHAR(16777216)",
+        "nullable": true
+      },
+      {
+        "fieldPath": "town_city",
+        "nativeDataType": "VARCHAR(16777216)",
+        "nullable": true
+      },
+      {
+        "fieldPath": "zipcode",
+        "nativeDataType": "NUMBER(38,0)",
+        "nullable": true
+      }
+    ],
+    "matchingCount": null,
+    "offset": 0,
+    "remainingCount": 0,
+    "returned": 22,
+    "totalFields": 22,
+    "urn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,b2fd91.order_entry_db.order_entry.customers,PROD)"
+  },
+  "tool": "list_schema_fields"
+}

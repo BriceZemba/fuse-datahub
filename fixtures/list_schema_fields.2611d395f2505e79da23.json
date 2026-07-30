@@ -1,0 +1,36 @@
+{
+  "args": {
+    "urn": "urn:li:dataset:(urn:li:dataPlatform:tableau,b2fd91.f32082e5-06b8-f46e-9047-4611fffe66b0,PROD)"
+  },
+  "response": {
+    "fields": [
+      {
+        "fieldPath": "CATEGORY_NAME",
+        "nativeDataType": "STR",
+        "nullable": false
+      },
+      {
+        "fieldPath": "ORDER_COUNT",
+        "nativeDataType": "NUMERIC",
+        "nullable": false
+      },
+      {
+        "fieldPath": "ORDER_DATE",
+        "nativeDataType": "STR",
+        "nullable": false
+      },
+      {
+        "fieldPath": "TOTAL_SALES",
+        "nativeDataType": "R8",
+        "nullable": false
+      }
+    ],
+    "matchingCount": null,
+    "offset": 0,
+    "remainingCount": 0,
+    "returned": 4,
+    "totalFields": 4,
+    "urn": "urn:li:dataset:(urn:li:dataPlatform:tableau,b2fd91.f32082e5-06b8-f46e-9047-4611fffe66b0,PROD)"
+  },
+  "tool": "list_schema_fields"
+}

@@ -1,0 +1,156 @@
+{
+  "args": {
+    "urn": "urn:li:dataset:(urn:li:dataPlatform:postgres,b2fd91.order_entry_db.order_entry.customers,PROD)"
+  },
+  "response": {
+    "fields": [
+      {
+        "fieldPath": "account_mgr_id",
+        "nativeDataType": "BIGINT",
+        "nullable": true
+      },
+      {
+        "editedGlossaryTerms": [
+          "PII"
+        ],
+        "fieldPath": "address_line1",
+        "nativeDataType": "TEXT",
+        "nullable": true
+      },
+      {
+        "editedGlossaryTerms": [
+          "PII"
+        ],
+        "fieldPath": "address_line2",
+        "nativeDataType": "TEXT",
+        "nullable": true
+      },
+      {
+        "editedGlossaryTerms": [
+          "PII"
+        ],
+        "fieldPath": "address_line3",
+        "nativeDataType": "TEXT",
+        "nullable": true
+      },
+      {
+        "fieldPath": "country_id",
+        "nativeDataType": "BIGINT",
+        "nullable": true
+      },
+      {
+        "fieldPath": "credit_limit",
+        "nativeDataType": "DOUBLE PRECISION",
+        "nullable": true
+      },
+      {
+        "editedGlossaryTerms": [
+          "PII"
+        ],
+        "fieldPath": "cust_email",
+        "nativeDataType": "TEXT",
+        "nullable": true
+      },
+      {
+        "editedGlossaryTerms": [
+          "PII"
+        ],
+        "fieldPath": "cust_first_name",
+        "nativeDataType": "TEXT",
+        "nullable": true
+      },
+      {
+        "editedGlossaryTerms": [
+          "PII"
+        ],
+        "fieldPath": "cust_last_name",
+        "nativeDataType": "TEXT",
+        "nullable": true
+      },
+      {
+        "fieldPath": "customer_class",
+        "nativeDataType": "TEXT",
+        "nullable": true
+      },
+      {
+        "editedGlossaryTerms": [
+          "PII"
+        ],
+        "editedTags": [
+          "PII_Data"
+        ],
+        "fieldPath": "customer_id",
+        "nativeDataType": "BIGINT",
+        "nullable": true
+      },
+      {
+        "fieldPath": "customer_since",
+        "nativeDataType": "TEXT",
+        "nullable": true
+      },
+      {
+        "editedGlossaryTerms": [
+          "PII"
+        ],
+        "fieldPath": "dob",
+        "nativeDataType": "TEXT",
+        "nullable": true
+      },
+      {
+        "fieldPath": "mailshot",
+        "nativeDataType": "BIGINT",
+        "nullable": true
+      },
+      {
+        "fieldPath": "nls_language",
+        "nativeDataType": "TEXT",
+        "nullable": true
+      },
+      {
+        "fieldPath": "nls_territory",
+        "nativeDataType": "TEXT",
+        "nullable": true
+      },
+      {
+        "fieldPath": "partner_mailshot",
+        "nativeDataType": "BIGINT",
+        "nullable": true
+      },
+      {
+        "editedGlossaryTerms": [
+          "PII"
+        ],
+        "fieldPath": "phone_number",
+        "nativeDataType": "TEXT",
+        "nullable": true
+      },
+      {
+        "fieldPath": "region_id",
+        "nativeDataType": "BIGINT",
+        "nullable": true
+      },
+      {
+        "fieldPath": "suggestions",
+        "nativeDataType": "TEXT",
+        "nullable": true
+      },
+      {
+        "fieldPath": "town_city",
+        "nativeDataType": "TEXT",
+        "nullable": true
+      },
+      {
+        "fieldPath": "zipcode",
+        "nativeDataType": "BIGINT",
+        "nullable": true
+      }
+    ],
+    "matchingCount": null,
+    "offset": 0,
+    "remainingCount": 0,
+    "returned": 22,
+    "totalFields": 22,
+    "urn": "urn:li:dataset:(urn:li:dataPlatform:postgres,b2fd91.order_entry_db.order_entry.customers,PROD)"
+  },
+  "tool": "list_schema_fields"
+}

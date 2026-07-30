@@ -1,0 +1,12 @@
+{
+  "args": {
+    "column": "promotion_id",
+    "urn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,b2fd91.order_entry_db.analytics.order_history,PROD)"
+  },
+  "response": {
+    "count": 10,
+    "start": 0,
+    "total": 0
+  },
+  "tool": "get_dataset_queries"
+}

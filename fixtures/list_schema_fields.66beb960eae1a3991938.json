@@ -1,0 +1,100 @@
+{
+  "args": {
+    "urn": "urn:li:dataset:(urn:li:dataPlatform:postgres,b2fd91.order_entry_db.order_entry.orders,PROD)"
+  },
+  "response": {
+    "fields": [
+      {
+        "editedGlossaryTerms": [
+          "PII"
+        ],
+        "fieldPath": "billing_address_id",
+        "nativeDataType": "BIGINT",
+        "nullable": true
+      },
+      {
+        "fieldPath": "cost_of_delivery",
+        "nativeDataType": "DOUBLE PRECISION",
+        "nullable": true
+      },
+      {
+        "editedGlossaryTerms": [
+          "PII"
+        ],
+        "fieldPath": "customer_id",
+        "nativeDataType": "BIGINT",
+        "nullable": true
+      },
+      {
+        "editedGlossaryTerms": [
+          "PII"
+        ],
+        "fieldPath": "delivery_address_id",
+        "nativeDataType": "BIGINT",
+        "nullable": true
+      },
+      {
+        "fieldPath": "delivery_type",
+        "nativeDataType": "TEXT",
+        "nullable": true
+      },
+      {
+        "fieldPath": "order_date",
+        "nativeDataType": "TEXT",
+        "nullable": true
+      },
+      {
+        "fieldPath": "order_id",
+        "nativeDataType": "BIGINT",
+        "nullable": true
+      },
+      {
+        "fieldPath": "order_mode",
+        "nativeDataType": "TEXT",
+        "nullable": true
+      },
+      {
+        "fieldPath": "order_status",
+        "nativeDataType": "BIGINT",
+        "nullable": true
+      },
+      {
+        "fieldPath": "order_total",
+        "nativeDataType": "DOUBLE PRECISION",
+        "nullable": true
+      },
+      {
+        "fieldPath": "payment_method_code",
+        "nativeDataType": "TEXT",
+        "nullable": true
+      },
+      {
+        "fieldPath": "promotion_id",
+        "nativeDataType": "DOUBLE PRECISION",
+        "nullable": true
+      },
+      {
+        "fieldPath": "sales_rep_id",
+        "nativeDataType": "BIGINT",
+        "nullable": true
+      },
+      {
+        "fieldPath": "wait_till_complete_yn",
+        "nativeDataType": "TEXT",
+        "nullable": true
+      },
+      {
+        "fieldPath": "warehouse_id",
+        "nativeDataType": "BIGINT",
+        "nullable": true
+      }
+    ],
+    "matchingCount": null,
+    "offset": 0,
+    "remainingCount": 0,
+    "returned": 15,
+    "totalFields": 15,
+    "urn": "urn:li:dataset:(urn:li:dataPlatform:postgres,b2fd91.order_entry_db.order_entry.orders,PROD)"
+  },
+  "tool": "list_schema_fields"
+}

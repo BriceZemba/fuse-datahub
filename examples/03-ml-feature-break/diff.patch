@@ -1,0 +1,11 @@
+diff --git a/models/marts/customers.sql b/models/marts/customers.sql
+--- a/models/marts/customers.sql
++++ b/models/marts/customers.sql
+@@ -9,7 +9,6 @@
+     customer_id,
+     customer_class,
+     customer_since,
+-    credit_limit,
+     country_id,
+     region_id
+ from {{ source('order_entry', 'customers') }}

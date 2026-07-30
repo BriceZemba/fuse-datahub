@@ -1,0 +1,14 @@
+name: dbt_shop
+version: "1.0.0"
+config-version: 2
+profile: dbt_shop
+
+model-paths: ["models"]
+target-path: "target"
+
+models:
+  dbt_shop:
+    +materialized: table
+
+# Model names deliberately mirror the `showcase-ecommerce` datapack so a local diff
+# resolves onto real DataHub entities: datahub datapack load showcase-ecommerce
