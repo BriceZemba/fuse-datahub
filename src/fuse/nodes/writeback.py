@@ -129,6 +129,12 @@ async def write_back(state: FuseState) -> dict:
         )
         if not _skipped(saved):
             result.document_urn = _document_urn(saved)
+            if not result.document_urn:
+                # The call succeeded but carried no URN in a shape we recognise. Record
+                # what came back rather than reporting a silent "not saved".
+                result.errors.append(
+                    f"save_document returned no recognisable urn: {str(saved)[:300]}"
+                )
     except Exception as exc:
         result.errors.append(f"save_document: {exc.__class__.__name__}: {exc}")
 
