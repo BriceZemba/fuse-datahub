@@ -66,10 +66,18 @@ async def plan_remediation(state: FuseState) -> dict:
         trace.append("plan: no LLM configured, using rule-based strategies")
         return {"plan": _fallback(impacts), "trace": trace}
 
+    # Only the assets that need a decision go to the model. Asking it to rule on two
+    # dozen SAFE assets costs tokens and latency to reproduce what the rules already
+    # say, and every one of those answers is filled in from rules below anyway.
+    actionable = [i for i in impacts if i.severity != "SAFE"]
+    if not actionable:
+        trace.append("plan: nothing above SAFE, using rule-based strategies")
+        return {"plan": _fallback(impacts), "trace": trace}
+
     summary = "\n".join(
         f"- {i.urn} | {i.entity_type} | {i.severity} {i.score} | "
         f"refs_column={i.references_column} | {'; '.join(i.evidence[:2])}"
-        for i in impacts
+        for i in actionable
     )
     change = impacts[0].source_change if impacts else "unknown change"
     try:

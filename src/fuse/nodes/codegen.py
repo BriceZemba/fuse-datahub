@@ -214,6 +214,20 @@ def _consumers_for(
 
 
 def _consumer_sql(state: FuseState, impact: Impact) -> str:
+    """The SQL that defines an impacted consumer, so it can be rewritten.
+
+    The repo comes first: in a real pull request the downstream models are right there,
+    and a catalog's query history is often empty — the showcase datapack has none at
+    all. DataHub's recorded queries are the fallback for consumers that live outside
+    this repo.
+    """
+    repo = Path(state.get("repo_path", "."))
+    if repo.is_dir():
+        stem = impact.name.lower()
+        for candidate in repo.rglob("*.sql"):
+            if candidate.stem.lower() == stem:
+                return candidate.read_text(encoding="utf-8")
+
     entry = (state.get("lineage_graph") or {}).get(impact.urn, {})
     for row in entry.get("queries") or []:
         if isinstance(row, tuple) and len(row) == 2:
