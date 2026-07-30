@@ -32,6 +32,28 @@ def test_dropped_column_cannot_be_reintroduced():
     assert any("removes" in e for e in result["validation_errors"])
 
 
+def test_a_rewrite_may_not_null_out_the_dropped_column():
+    """The failure mode this project exists to prevent: the output shape survives, the
+    data is silently null, and no test anywhere fails."""
+    state = _state("select order_id, customer_id, null as discount_code from orders")
+    result = validate(state)
+    assert result["validation_errors"]
+    assert "still outputs 'discount_code'" in result["validation_errors"][0]
+
+
+def test_a_compat_view_may_null_out_the_dropped_column():
+    """Same SQL, different intent: preserving the shape is exactly a compat view's job."""
+    state = _state("select order_id, customer_id, null as discount_code from orders")
+    state["artifacts"][0].kind = "compat_view"
+    assert validate(state)["validation_errors"] == []
+
+
+def test_removing_the_column_outright_passes():
+    assert validate(_state("select order_id, customer_id from orders"))[
+        "validation_errors"
+    ] == []
+
+
 def test_clean_sql_passes():
     result = validate(_state("select order_id, customer_id, order_amount from orders"))
     assert result["validation_errors"] == []

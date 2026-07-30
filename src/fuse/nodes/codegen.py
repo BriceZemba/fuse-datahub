@@ -40,7 +40,12 @@ The ONLY columns that will exist upstream after the change:
 
 Rules:
 - Use only columns from that list. Inventing a column is a failure.
-- Preserve the consumer's output column names and grain.
+- **Remove `{removed}` from the output entirely.** Do not keep it as `NULL as
+  {removed}`, an empty string, a zero, or any other placeholder. A column filled with
+  nulls breaks every consumer silently and no test catches it — if the output shape
+  must be preserved, that is a deliberate compatibility view, decided elsewhere, not
+  something this rewrite should improvise.
+- Preserve every other output column name and the grain of the query.
 - Keep the dialect: {dialect}.
 {errors}
 Return the corrected SQL only, no explanation, no fences."""
@@ -161,6 +166,7 @@ async def generate_code(state: FuseState) -> dict:
                         name=impact.name,
                         urn=impact.urn,
                         sql=sql,
+                        removed=change.column or "the column",
                         allowed="\n".join(f"- {c}" for c in allowed),
                         dialect=dialect,
                         errors=(

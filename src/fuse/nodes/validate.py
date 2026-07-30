@@ -10,7 +10,7 @@ from __future__ import annotations
 import sqlglot
 from sqlglot import exp
 
-from fuse.nodes.parse_change import strip_jinja
+from fuse.nodes.parse_change import output_columns, strip_jinja
 from fuse.state import Artifact, FuseState, ResolvedAsset
 
 SQL_KINDS = {"dbt_model", "compat_view"}
@@ -104,6 +104,22 @@ def _check_sql(
         if artifact.kind != "compat_view":
             errors.append(
                 f"{artifact.path}: references '{name}', which this change removes"
+            )
+
+    # A rewrite must drop the column, not paper over it. `NULL as promotion_id` keeps
+    # the output shape and hands every downstream consumer nulls, which no test catches
+    # — the failure this whole project exists to prevent. Preserving the shape on
+    # purpose is what a compatibility view is for, and that is a separate decision.
+    if artifact.kind == "dbt_model" and dropped:
+        try:
+            produced = {c.lower() for c in output_columns(artifact.content, dialect)}
+        except Exception:
+            produced = set()
+        for name in sorted(produced & dropped):
+            errors.append(
+                f"{artifact.path}: still outputs '{name}' after the change removed it. "
+                "Remove the column instead of substituting a placeholder; if the output "
+                "shape must be preserved, that is a compatibility view."
             )
     return errors
 
