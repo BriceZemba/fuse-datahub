@@ -67,10 +67,15 @@ def assess_impact(state: FuseState) -> dict:
         column_edge = bool(entry.get("column_edge"))
         schema_hit = entry.get("schema_hit")
         ml_path = bool(entry.get("ml_path"))
+        ml_column_match = bool(entry.get("ml_column_match"))
         if column_edge and not references:
             evidence.append(f"column-level lineage edge from {change.model}.{column}")
         elif ml_path and not references:
-            evidence.append(f"ML entity derived from {change.model} (invisible to lineage)")
+            evidence.append(
+                f"ML entity built on {change.model}.{column} (invisible to lineage)"
+                if ml_column_match
+                else f"ML entity derived from {change.model}, but not from `{column}`"
+            )
         elif schema_hit and not references:
             evidence.append(f"schema carries a field named `{schema_hit}`")
 
@@ -85,7 +90,7 @@ def assess_impact(state: FuseState) -> dict:
             hops=int(entry.get("hops", 1)),
             references_column=references,
             column_lineage_edge=column_edge,
-            ml_derivation=ml_path,
+            ml_derivation=ml_path and ml_column_match,
             schema_contains_column=bool(schema_hit),
             tier=entry.get("tier"),
             owners=owners,

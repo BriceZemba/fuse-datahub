@@ -10,6 +10,7 @@ from __future__ import annotations
 import sqlglot
 from sqlglot import exp
 
+from fuse.nodes.parse_change import strip_jinja
 from fuse.state import Artifact, FuseState, ResolvedAsset
 
 SQL_KINDS = {"dbt_model", "compat_view"}
@@ -43,12 +44,17 @@ def validate(state: FuseState) -> dict:
     allowed = known_columns(resolved)
     dropped = dropped_columns(resolved)
     errors: list[str] = []
+    per_artifact: dict[str, list[str]] = {}
 
     for artifact in artifacts:
+        found: list[str] = []
         if artifact.kind in SQL_KINDS:
-            errors += _check_sql(artifact, allowed, dropped, dialect)
+            found = _check_sql(artifact, allowed, dropped, dialect)
         elif artifact.kind in PY_KINDS:
-            errors += _check_python(artifact)
+            found = _check_python(artifact)
+        if found:
+            per_artifact[artifact.path] = found
+            errors += found
 
     if errors:
         trace.append(f"validate: REJECTED — {len(errors)} problem(s)")
@@ -57,11 +63,13 @@ def validate(state: FuseState) -> dict:
     else:
         trace.append(f"validate: {len(artifacts)} artifact(s) passed")
 
-    # On the final attempt, ship flagged rather than silently broken.
+    # On the final attempt, ship flagged rather than silently broken — but flag only
+    # the artifacts that actually failed, not every file in the change.
     if errors and state.get("retries", 0) >= 2:
         for artifact in artifacts:
-            artifact.needs_human = True
-            artifact.notes.append("validation failed after 2 retries — needs human review")
+            if artifact.path in per_artifact:
+                artifact.needs_human = True
+                artifact.notes.append("validation failed after 2 retries — needs human review")
 
     return {"validation_errors": errors, "artifacts": artifacts, "trace": trace}
 
@@ -70,8 +78,11 @@ def _check_sql(
     artifact: Artifact, allowed: set[str], dropped: set[str], dialect: str
 ) -> list[str]:
     errors: list[str] = []
+    # Generated dbt models carry Jinja — {{ config() }}, {{ ref() }} — which sqlglot
+    # cannot parse. Strip it the same way the diff parser does, so validation checks
+    # the SQL rather than failing on the templating.
     try:
-        tree = sqlglot.parse_one(artifact.content, read=dialect)
+        tree = sqlglot.parse_one(strip_jinja(artifact.content), read=dialect)
     except Exception as exc:
         return [f"{artifact.path}: SQL does not parse as {dialect}: {exc}"]
 

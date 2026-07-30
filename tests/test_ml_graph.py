@@ -44,6 +44,28 @@ def test_a_column_reaches_the_deployed_model():
     assert found[DEPLOYMENT] == 3
 
 
+def test_the_feature_named_after_the_column_is_the_one_that_matches():
+    """Every feature of a table is reachable from a change to it, but only the feature
+    that *is* the dropped column certainly breaks. Without this, one schema change
+    flags a team's entire feature store."""
+    catalog = CATALOG + [
+        {"urn": "urn:li:mlFeature:(customer_churn,tenure)", "properties": {"sources": [DATASET]}}
+    ]
+    matched = {
+        e["urn"]: e.get("_column_match")
+        for e, _ in ml_graph.dependents_of(DATASET, catalog, "credit_limit")
+    }
+    assert matched[FEATURE] is True
+    assert matched["urn:li:mlFeature:(customer_churn,tenure)"] is False
+    # The model reads the broken feature, so it is still a certain break.
+    assert matched[MODEL] is True
+
+
+def test_without_a_column_every_derived_feature_still_reports():
+    found = {e["urn"] for e, _ in ml_graph.dependents_of(DATASET, CATALOG)}
+    assert FEATURE in found
+
+
 def test_unrelated_features_are_not_dragged_in():
     found = {e["urn"] for e, _ in ml_graph.dependents_of(DATASET, CATALOG)}
     assert UNRELATED_FEATURE not in found

@@ -95,7 +95,9 @@ async def trace_lineage(state: FuseState) -> dict:
         trace.append(f"lineage: ML discovery problem — {ml_error}")
     if ml_entities:
         for asset in state.get("resolved", []):
-            for entity, degree in ml_graph.dependents_of(asset.urn, ml_entities):
+            for entity, degree in ml_graph.dependents_of(
+                asset.urn, ml_entities, asset.change.column
+            ):
                 urn = str(entity["urn"])
                 graph.setdefault(
                     urn,
@@ -113,6 +115,7 @@ async def trace_lineage(state: FuseState) -> dict:
                         "tags": shapes.tag_names(entity),
                         "schema_hit": None,
                         "ml_path": True,
+                        "ml_column_match": bool(entity.get("_column_match")),
                         "queries": [],
                     },
                 )

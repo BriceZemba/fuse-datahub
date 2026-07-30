@@ -183,12 +183,19 @@ async def ml_entities(call: Any) -> tuple[list[dict], str | None]:
     return await asyncio.to_thread(_hydrate_via_sdk, urns), error
 
 
-def dependents_of(dataset_urn: str, entities: list[dict]) -> list[tuple[dict, int]]:
+def dependents_of(
+    dataset_urn: str, entities: list[dict], column: str | None = None
+) -> list[tuple[dict, int]]:
     """(entity, hops) for every ML entity reachable from a dataset.
 
     Hops are counted from the dataset: features are 1, the feature table and any model
     reading them 2, deployments 3. Same units as `get_lineage` degrees, so the risk
     engine treats them consistently.
+
+    When a column is given, features are tagged with whether they are that column.
+    Every feature of a table is *reachable* from a change to it, but the feature named
+    after the dropped column is the one that certainly breaks; saying otherwise would
+    flag a team's whole feature store on every schema change.
     """
     by_urn = {str(e.get("urn")): e for e in entities if e.get("urn")}
     found: dict[str, tuple[dict, int]] = {}
@@ -200,14 +207,20 @@ def dependents_of(dataset_urn: str, entities: list[dict]) -> list[tuple[dict, in
         and dataset_urn in shapes.ml_feature_sources(entity)
     }
     for urn, entity in features.items():
+        if column:
+            entity["_column_match"] = shapes.entity_name(entity).lower() == column.lower()
         found[urn] = (entity, 1)
     if not features:
         return []
+
+    # A model or table only certainly breaks if it reads the feature that broke.
+    broken = {u for u, e in features.items() if e.get("_column_match")} or set(features)
 
     for urn, entity in by_urn.items():
         if urn.startswith(("urn:li:mlFeatureTable:", "urn:li:mlModel:")) and set(
             shapes.ml_features_of(entity)
         ) & set(features):
+            entity["_column_match"] = bool(set(shapes.ml_features_of(entity)) & broken)
             found[urn] = (entity, 2)
 
     # Deployments and groups hang off the affected models.
@@ -215,6 +228,7 @@ def dependents_of(dataset_urn: str, entities: list[dict]) -> list[tuple[dict, in
     for model in models:
         for urn in shapes.ml_deployments_of(model) + shapes.ml_groups_of(model):
             entity = by_urn.get(urn) or {"urn": urn}
+            entity["_column_match"] = bool(model.get("_column_match"))
             found.setdefault(urn, (entity, 3))
 
     return list(found.values())
