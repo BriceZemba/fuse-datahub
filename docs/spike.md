@@ -38,9 +38,24 @@ Two parameter details worth recording:
 Resolved 2026-07-30. Each of these was a distinct dead end, and all three had to be
 cleared before a column change could be traced to a deployed model.
 
-1. **`get_lineage` does not traverse `MLFeature.sources`.** Downstream of the dbt
-   `customers` dataset: 30 entities, zero ML — while four features name that dataset as
-   their source. The dependency is in the catalog; lineage does not expose it.
+1. **`get_lineage` covers ML entities only partially, and says nothing about columns.**
+   Measured twice, and the second measurement corrected the first.
+
+   Immediately after seeding, downstream of the dbt `customers` dataset returned 30
+   entities and **zero** ML. Re-measured later against the same dataset, lineage
+   returned **4 `mlFeature`s and the `mlModel`** — but still **not** the
+   `mlFeatureTable`, the `mlModelDeployment` or the `mlModelGroup`. The likely
+   explanation for the change is indexing catching up.
+
+   So the honest claim is narrower than "ML is invisible to lineage", and still worth
+   making:
+   - the **deployment** — the thing actually serving traffic — is not returned;
+   - lineage never says **which feature**, and therefore **which column**, is the one
+     that breaks. It returns four features whether you dropped one of them or none.
+
+   Fuse reads `MLFeature.sources` directly, so it can name the feature built on the
+   dropped column and separate it from its siblings. The report marks which entities
+   lineage returned and which came only from the aspects.
 2. **Keyword `search` never returns ML entity types**, so discovery by search finds
    nothing. Typed GraphQL works:
    `searchAcrossEntities(types: [MLFEATURE, MLFEATURE_TABLE, MLMODEL, MLMODEL_GROUP])`

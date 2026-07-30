@@ -71,10 +71,15 @@ def assess_impact(state: FuseState) -> dict:
         if column_edge and not references:
             evidence.append(f"column-level lineage edge from {change.model}.{column}")
         elif ml_path and not references:
+            # Be precise about what lineage did and did not show. Some ML entities do
+            # come back from get_lineage; the feature table, the deployment and the
+            # model group generally do not, and lineage never says which feature — and
+            # so which column — is the one that breaks.
+            reach = "" if entry.get("in_lineage") else ", not returned by lineage"
             evidence.append(
-                f"ML entity built on {change.model}.{column} (invisible to lineage)"
+                f"built on {change.model}.{column}{reach}"
                 if ml_column_match
-                else f"ML entity derived from {change.model}, but not from `{column}`"
+                else f"derived from {change.model} but not from `{column}`{reach}"
             )
         elif schema_hit and not references:
             evidence.append(f"schema carries a field named `{schema_hit}`")

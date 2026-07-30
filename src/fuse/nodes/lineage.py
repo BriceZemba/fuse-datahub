@@ -112,26 +112,35 @@ async def trace_lineage(state: FuseState) -> dict:
                 asset.urn, ml_entities, asset.change.column
             ):
                 urn = str(entity["urn"])
-                graph.setdefault(
-                    urn,
-                    {
-                        "urn": urn,
-                        "type": shapes.entity_type(entity),
-                        "name": shapes.entity_name(entity),
-                        "platform": shapes.platform_of(entity),
-                        "hops": degree,
-                        "from_urn": asset.urn,
-                        "from_column": asset.change.column,
-                        "column_edge": False,
-                        "owners": _dedupe(shapes.owners_of(entity)),
-                        "tier": shapes.tier_of(entity),
-                        "tags": shapes.tag_names(entity),
-                        "schema_hit": None,
-                        "ml_path": True,
-                        "ml_column_match": bool(entity.get("_column_match")),
-                        "queries": [],
-                    },
-                )
+                existing = graph.get(urn)
+                if existing is not None:
+                    # Lineage already returned this entity, but without saying which
+                    # feature — and therefore which column — is the one that breaks.
+                    # Merge rather than skip, or the aspect evidence is thrown away.
+                    existing["ml_path"] = True
+                    existing["ml_column_match"] = bool(entity.get("_column_match"))
+                    existing["in_lineage"] = True
+                    existing["hops"] = min(existing.get("hops", degree), degree)
+                    continue
+
+                graph[urn] = {
+                    "urn": urn,
+                    "type": shapes.entity_type(entity),
+                    "name": shapes.entity_name(entity),
+                    "platform": shapes.platform_of(entity),
+                    "hops": degree,
+                    "from_urn": asset.urn,
+                    "from_column": asset.change.column,
+                    "column_edge": False,
+                    "owners": _dedupe(shapes.owners_of(entity)),
+                    "tier": shapes.tier_of(entity),
+                    "tags": shapes.tag_names(entity),
+                    "schema_hit": None,
+                    "ml_path": True,
+                    "ml_column_match": bool(entity.get("_column_match")),
+                    "in_lineage": False,
+                    "queries": [],
+                }
     elif not ml_error:
         trace.append("lineage: no ML entities in the catalog")
 
@@ -211,6 +220,14 @@ async def trace_lineage(state: FuseState) -> dict:
         )
 
     ml_count = sum(1 for e in graph.values() if e["type"] in ML_TYPES)
+    ml_only = sum(
+        1 for e in graph.values() if e["type"] in ML_TYPES and not e.get("in_lineage")
+    )
+    if ml_count:
+        trace.append(
+            f"lineage: {ml_count} ML entit(ies), {ml_only} of them reachable only "
+            "through ML aspects, not through get_lineage"
+        )
     with_queries = sum(1 for e in graph.values() if e["queries"])
     with_schema = sum(1 for e in graph.values() if e.get("schema_hit"))
     trace.append(
