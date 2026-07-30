@@ -43,7 +43,49 @@ For each asset choose exactly one strategy from:
 - add_contract_test  the consumer is fine, but pin the contract so this can't recur
 - no_action          genuinely unaffected
 
-Answer with JSON only: {{"<urn>": "<strategy>"}}. No prose."""
+Respond with a single JSON object and nothing else — no explanation, no reasoning, no
+markdown fences:
+
+{{"<urn>": "<strategy>"}}"""
+
+
+def _extract_json(text: str) -> dict | None:
+    """Pull a JSON object out of a model response.
+
+    Open-weight models wrap answers in markdown fences, prefix them with reasoning, or
+    append a summary — and reasoning models emit whole paragraphs of it. Scanning for
+    balanced braces from each opening brace handles all three without assuming the
+    object sits at either end of the string.
+    """
+    for start, char in enumerate(text):
+        if char != "{":
+            continue
+        depth, in_string, escaped = 0, False, False
+        for end in range(start, len(text)):
+            current = text[end]
+            if in_string:
+                if escaped:
+                    escaped = False
+                elif current == "\\":
+                    escaped = True
+                elif current == '"':
+                    in_string = False
+                continue
+            if current == '"':
+                in_string = True
+            elif current == "{":
+                depth += 1
+            elif current == "}":
+                depth -= 1
+                if depth == 0:
+                    try:
+                        parsed = json.loads(text[start : end + 1])
+                    except json.JSONDecodeError:
+                        break  # try the next opening brace
+                    if isinstance(parsed, dict) and parsed:
+                        return parsed
+                    break
+    return None
 
 
 def _fallback(impacts: list[Impact], state: FuseState | None = None) -> dict[str, Strategy]:
@@ -93,7 +135,13 @@ async def plan_remediation(state: FuseState) -> dict:
         text = await RT.ask_llm("plan", PROMPT.format(change=change, impacts=summary))
         if not text:
             raise ValueError("no response")
-        raw = json.loads(text[text.find("{") : text.rfind("}") + 1])
+        raw = _extract_json(text)
+        if raw is None:
+            # Say what actually came back. "JSONDecodeError" alone sent me guessing at
+            # whether the model was fenced, chatty, or truncated.
+            snippet = " ".join(text.split())[:200]
+            trace.append(f"plan: model did not return JSON ({snippet!r}), using rules")
+            return {"plan": _fallback(impacts, state), "trace": trace}
         plan = {
             urn: strategy
             for urn, strategy in raw.items()
