@@ -125,6 +125,15 @@ def assess_impact(state: FuseState) -> dict:
             owners=owners,
             recently_queried=bool(entry.get("queries")),
         )
+        if not evidence:
+            # A score with an empty evidence column reads as "risky, for no reason".
+            # Say what the dependency actually is, so every row carries its own why.
+            evidence.append(
+                f"reads from {change.model}; no column-level proof either way"
+                if int(entry.get("hops", 1)) <= 1
+                else f"{entry.get('hops', 1)} hops downstream of {change.model}"
+            )
+
         impacts.append(
             Impact(
                 urn=urn,
