@@ -116,6 +116,14 @@ def _allowed_columns(asset: ResolvedAsset, *, exclude_changed: bool = False) -> 
     return sorted(set(names))
 
 
+def _why_no_rewrite(llm: object, sql: str) -> str:
+    if llm is None:
+        return "generated without an LLM: compatibility view instead of a rewrite"
+    if not sql:
+        return "no consumer SQL available: compatibility view instead of a rewrite"
+    return "the model returned nothing: compatibility view instead of a rewrite"
+
+
 def _template(name: str, **ctx: object) -> str:
     return env.get_template(name).render(**ctx)
 
@@ -211,7 +219,36 @@ async def generate_code(state: FuseState) -> dict:
             )
         elif strategy == "rewrite_sql" and change:
             sql = _consumer_sql(state, impact)
-            if llm is None or not sql:
+            rewritten = ""
+            if llm is not None and sql:
+                rewritten = _strip_fences(
+                    await RT.ask_llm(
+                        "codegen",
+                        PROMPT.format(
+                            change=change.describe(),
+                            name=impact.name,
+                            urn=impact.urn,
+                            sql=sql,
+                            instruction=_instruction(change),
+                            allowed="\n".join(f"- {c}" for c in allowed),
+                            dialect=dialect,
+                            errors=(
+                                "\nThe previous attempt was rejected:\n"
+                                + "\n".join(f"- {e}" for e in errors)
+                                + "\n"
+                                if errors
+                                else ""
+                            ),
+                        ),
+                    )
+                    or ""
+                )
+
+            # An empty answer means the model failed or was unavailable. Writing the
+            # empty string as a dbt model ships a file that would replace a working one
+            # with nothing — fall back to the shim, which is what "no rewrite available"
+            # has always meant.
+            if not rewritten:
                 # Nothing to rewrite from: a compatibility view is always safe, and one
                 # per changed model is enough.
                 path = f"models/compat/{change.model}_compat.sql"
@@ -232,38 +269,15 @@ async def generate_code(state: FuseState) -> dict:
                         columns=allowed,
                         dialect=dialect,
                     ),
-                    notes=[
-                        "no consumer SQL available"
-                        if llm
-                        else "generated without an LLM: compatibility view instead of a rewrite"
-                    ],
+                    notes=[_why_no_rewrite(llm, sql)],
                 )
             else:
-                body = await RT.ask_llm(
-                    "codegen",
-                    PROMPT.format(
-                        change=change.describe(),
-                        name=impact.name,
-                        urn=impact.urn,
-                        sql=sql,
-                        instruction=_instruction(change),
-                        allowed="\n".join(f"- {c}" for c in allowed),
-                        dialect=dialect,
-                        errors=(
-                            "\nThe previous attempt was rejected:\n"
-                            + "\n".join(f"- {e}" for e in errors)
-                            + "\n"
-                            if errors
-                            else ""
-                        ),
-                    ),
-                ) or ""
                 path = f"models/{_slug(impact.name)}.sql"
                 artifacts[path] = Artifact(
                     path=path,
                     kind="dbt_model",
                     source_urn=asset.urn,
-                    content=_strip_fences(body),
+                    content=rewritten,
                 )
                 rewrites += 1
 
@@ -356,4 +370,7 @@ def _strip_fences(text: str) -> str:
     if text.startswith("```"):
         text = text.split("\n", 1)[-1]
         text = text.rsplit("```", 1)[0]
-    return text.strip() + "\n"
+    text = text.strip()
+    # Return empty rather than a lone newline: callers test this value to decide whether
+    # the model produced anything, and "\n" is truthy.
+    return f"{text}\n" if text else ""

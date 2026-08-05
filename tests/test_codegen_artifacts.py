@@ -16,6 +16,48 @@ def impact(name: str, severity: str = "BREAKING") -> Impact:
                   severity=severity, score=90)
 
 
+def test_no_artifact_is_ever_written_empty():
+    """A failed model call once shipped an empty .sql file into examples/. An empty
+    model replaces a working one with nothing, which is worse than no artifact."""
+    import asyncio
+
+    from fuse.nodes.codegen import generate_code
+    from fuse.runtime import RT
+    from fuse.state import Change, ResolvedAsset
+
+    change = Change(kind="drop_column", file="orders.sql", model="orders",
+                    column="promotion_id")
+    asset = ResolvedAsset(
+        change=change,
+        urn="urn:li:dataset:orders",
+        schema_fields=[{"fieldPath": c} for c in COLUMNS],
+    )
+    impacts = [impact("order_details")]
+
+    class SilentLLM:
+        model = "silent"
+
+        async def ainvoke(self, prompt):
+            return type("R", (), {"content": ""})()
+
+    RT.llm = SilentLLM()
+    RT.dh = None  # ask_llm returns None without a client, exercising the same path
+    try:
+        result = asyncio.run(generate_code({
+            "impacts": impacts,
+            "resolved": [asset],
+            "plan": {i.urn: "rewrite_sql" for i in impacts},
+            "repo_path": ".",
+            "dialect": "snowflake",
+            "trace": [],
+        }))
+    finally:
+        RT.llm = None
+
+    for artifact in result["artifacts"]:
+        assert artifact.content.strip(), f"{artifact.path} was written empty"
+
+
 def test_the_changed_column_is_not_listed_as_its_own_consumer():
     impacts = [impact("credit_limit"), impact("Customer Churn Model v3")]
     plan = {i.urn: "add_compat_view" for i in impacts}

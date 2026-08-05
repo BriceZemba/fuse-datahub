@@ -64,10 +64,24 @@ async def _run(state: FuseState, *, replay: bool, dry_run: bool, auto_approve: b
 
 
 def _impact_table(state: FuseState) -> Table:
-    table = Table(title="Blast radius", header_style="bold")
+    """The assets that need a decision, not every asset in the graph.
+
+    A wide blast radius is mostly SAFE rows, and printing thirty of them buries the four
+    that matter under a wall of noise. The full list is in the impact report.
+    """
+    impacts = state.get("impacts", [])
+    actionable = [i for i in impacts if i.severity != "SAFE"]
+    shown = actionable or impacts[:5]
+    quiet = len(impacts) - len(shown)
+
+    title = "Blast radius"
+    if actionable:
+        title = f"Blast radius - {len(actionable)} of {len(impacts)} assets need attention"
+
+    table = Table(title=title, header_style="bold")
     for column in ("Asset", "Type", "Hops", "Severity", "Score", "Evidence"):
         table.add_column(column, overflow="fold")
-    for impact in state.get("impacts", []):
+    for impact in shown:
         table.add_row(
             impact.name,
             impact.entity_type,
@@ -76,6 +90,8 @@ def _impact_table(state: FuseState) -> Table:
             str(impact.score),
             "; ".join(impact.evidence) or "-",
         )
+    if quiet > 0:
+        table.caption = f"{quiet} further asset(s) scored SAFE - see impact-report.md"
     return table
 
 
@@ -664,7 +680,13 @@ def _report(state: FuseState) -> None:
             flag = " [yellow](needs human review)[/]" if artifact.needs_human else ""
             console.print(f"  {artifact.path}  [dim]{artifact.kind}[/]{flag}")
     writeback = state.get("writeback")
-    if writeback:
+    if writeback and writeback.dry_run:
+        # "tagged 0, document not saved" reads like a failure. Say why it is zero.
+        console.print(
+            "\n[bold]DataHub[/]: nothing written "
+            f"({'replay of a recorded run' if state.get('replay') else 'dry run'})"
+        )
+    elif writeback:
         console.print(
             f"\n[bold]DataHub[/]: tagged {len(writeback.tagged)}, "
             f"properties {len(writeback.properties_set)}, "
