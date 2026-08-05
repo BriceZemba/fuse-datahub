@@ -275,6 +275,11 @@ async def generate_code(state: FuseState) -> dict:
         )
 
     produced = list(artifacts.values())
+    if RT.llm_error:
+        trace.append(
+            f"codegen: the model was unavailable ({RT.llm_error}); "
+            "affected artifacts came from templates instead"
+        )
     if deferred:
         trace.append(
             f"codegen: rewrote the {rewrites} highest-scoring consumer(s); "

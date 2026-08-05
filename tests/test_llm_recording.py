@@ -69,3 +69,25 @@ async def test_replay_takes_whatever_was_recorded(runtime):
 async def test_no_client_and_no_recording_falls_back_to_templates(runtime):
     runtime.llm = None
     assert await runtime.ask_llm("codegen", "prompt") is None
+
+
+class FailingLLM:
+    model = "rate-limited-model"
+
+    async def ainvoke(self, prompt: str):
+        raise RuntimeError("Error code: 429 - rate limit exceeded: free-models-per-day")
+
+
+async def test_a_rate_limit_degrades_instead_of_killing_the_run(runtime):
+    """Free tiers run out. Losing the entire analysis to that would be absurd — the
+    caller falls back to templates and the trace says what happened."""
+    runtime.llm = FailingLLM()
+    assert await runtime.ask_llm("codegen", "prompt") is None
+    assert runtime.llm_error and "429" in runtime.llm_error
+    assert any("falling back to templates" in line for line in runtime.log)
+
+
+async def test_a_failed_call_is_not_recorded(runtime, tmp_path):
+    runtime.llm = FailingLLM()
+    await runtime.ask_llm("codegen", "prompt")
+    assert not list(tmp_path.glob("llm-codegen*.json")), "a failure must not be cached"

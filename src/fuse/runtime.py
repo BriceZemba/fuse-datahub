@@ -18,6 +18,9 @@ class Runtime:
     llm: Any = None
     dry_run: bool = False
     log: list[str] = field(default_factory=list)
+    # Set when a model call fails, so nodes can report degraded output rather than
+    # pretending the templates were a deliberate choice.
+    llm_error: str | None = None
 
     def require_dh(self) -> DataHubMCP:
         if self.dh is None:
@@ -66,7 +69,17 @@ class Runtime:
         if self.llm is None:
             return None
 
-        response = await self.llm.ainvoke(prompt)
+        try:
+            response = await self.llm.ainvoke(prompt)
+        except Exception as exc:
+            # Rate limits, quota exhaustion and provider outages are ordinary on a free
+            # tier. Losing the whole run to one is not: the caller falls back to
+            # deterministic templates, so the analysis and the rest of the artifacts
+            # still land. The trace records what was lost and why.
+            self.llm_error = f"{exc.__class__.__name__}: {str(exc)[:160]}"
+            self.log.append(f"llm:{purpose}: {self.llm_error} — falling back to templates")
+            return None
+
         text = response.content if hasattr(response, "content") else str(response)
         self.dh.cache.put(name, key, {"model": model, "text": text})
         return str(text)
