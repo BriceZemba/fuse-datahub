@@ -38,11 +38,47 @@ def compat_sql() -> str:
         "compat_view.sql.j2",
         model="customers",
         column="credit_limit",
+        kind="drop_column",
+        from_type=None,
+        to_type=None,
         consumers=["Customer Churn Model v3"],
         more=0,
         columns=COLUMNS,
         dialect="snowflake",
     )
+
+
+@pytest.fixture
+def retype_compat_sql() -> str:
+    return _template(
+        "compat_view.sql.j2",
+        model="orders",
+        column="order_total",
+        kind="retype_column",
+        from_type="DOUBLE",
+        to_type="INT",
+        consumers=["order_history"],
+        more=0,
+        columns=COLUMNS,
+        dialect="snowflake",
+    )
+
+
+def test_a_retype_compat_view_holds_the_old_type(retype_compat_sql):
+    """The one place casting back is right: a shim that exists so consumers can migrate.
+    Nulling the column, as the drop-column shim does, would be nonsense here."""
+    assert "cast(order_total as DOUBLE) as order_total" in retype_compat_sql
+    assert "null as order_total" not in retype_compat_sql
+
+
+def test_no_compat_view_emits_a_column_twice(compat_sql, retype_compat_sql):
+    """The changed column is re-added by the template, so it must not also appear in
+    the column list — that produced SQL with a duplicate output column."""
+    for sql in (compat_sql, retype_compat_sql):
+        body = sql.split("select", 1)[1]
+        names = [line.strip().rstrip(",") for line in body.splitlines() if line.startswith("    ")]
+        bare = [n.split(" as ")[-1] for n in names if n]
+        assert len(bare) == len(set(bare)), f"duplicate output column in:\n{sql}"
 
 
 def test_compat_view_preserves_the_dropped_column_as_null(compat_sql):

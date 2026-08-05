@@ -89,20 +89,28 @@ def _instruction(change: Change) -> str:
     )
 
 
-def _allowed_columns(asset: ResolvedAsset) -> list[str]:
+def _allowed_columns(asset: ResolvedAsset, *, exclude_changed: bool = False) -> list[str]:
     """Columns that will exist on this asset after its change.
 
     Scoped to one asset on purpose: pooling the schemas of every changed model would
     let a rewrite of model A reference a column that only exists on model B, and the
     validator would wave it through.
+
+    `exclude_changed` drops the changed column whatever the change was — the
+    compatibility view re-adds it itself, and listing it twice produces SQL with a
+    duplicate output column.
     """
-    dropped = asset.change.column if asset.change.kind in {"drop_column", "rename_column"} else None
+    change = asset.change
+    skip = None
+    if exclude_changed or change.kind in {"drop_column", "rename_column"}:
+        skip = (change.column or "").lower()
+
     names: list[str] = []
     for field in asset.schema_fields:
         path = field.get("fieldPath") or field.get("name") if isinstance(field, dict) else field
         if path:
             name = str(path).split(".")[-1]
-            if not dropped or name.lower() != dropped.lower():
+            if not skip or name.lower() != skip:
                 names.append(name)
     return sorted(set(names))
 
@@ -153,9 +161,12 @@ async def generate_code(state: FuseState) -> dict:
                     "compat_view.sql.j2",
                     model=change.model,
                     column=change.column,
+                    kind=change.kind,
+                    from_type=change.from_type,
+                    to_type=change.to_type,
                     consumers=consumers,
                     more=more,
-                    columns=allowed,
+                    columns=_allowed_columns(asset, exclude_changed=True),
                     dialect=dialect,
                 ),
             )
@@ -202,6 +213,9 @@ async def generate_code(state: FuseState) -> dict:
                         "compat_view.sql.j2",
                         model=change.model,
                         column=change.column,
+                        kind=change.kind,
+                        from_type=change.from_type,
+                        to_type=change.to_type,
                         consumers=consumers,
                         more=more,
                         columns=allowed,

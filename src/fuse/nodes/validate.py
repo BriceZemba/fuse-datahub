@@ -134,6 +134,20 @@ def _check_sql(
     # the output shape and hands every downstream consumer nulls, which no test catches
     # — the failure this whole project exists to prevent. Preserving the shape on
     # purpose is what a compatibility view is for, and that is a separate decision.
+    # Applies to every generated statement: a repeated output name is invalid SQL in
+    # most warehouses and ambiguous in the rest. A compatibility view that both selects
+    # a column and re-adds it produced exactly this.
+    try:
+        emitted = list(output_columns(artifact.content, dialect))
+    except Exception:
+        emitted = []
+    seen: set[str] = set()
+    for name in emitted:
+        lowered = name.lower()
+        if lowered in seen:
+            errors.append(f"{artifact.path}: outputs '{name}' twice")
+        seen.add(lowered)
+
     if artifact.kind == "dbt_model" and (dropped or retyped):
         try:
             produced = {c.lower() for c in output_columns(artifact.content, dialect)}
