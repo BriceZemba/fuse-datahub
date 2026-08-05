@@ -187,7 +187,9 @@ def freeze(
 
     # The reports belong at the top of the folder; only the code Fuse wrote stays
     # under generated/, so a judge sees the verdict before the diff of files.
-    generated = folder / "generated" / folder.name
+    # The run writes under its run id, which is the *final* folder name, not the
+    # staging directory this is being built in.
+    generated = folder / "generated" / final.name
     for produced in ("PR_BODY.md", "impact-report.md", "run.log"):
         source = generated / produced
         if source.exists():
