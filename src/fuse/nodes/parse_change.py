@@ -39,8 +39,7 @@ def strip_jinja(sql: str) -> str:
 
 def output_columns(sql: str, dialect: str = "snowflake") -> dict[str, str | None]:
     """Projected output column name -> declared type (from CAST), if any."""
-    parsed = sqlglot.parse_one(strip_jinja(sql), read=dialect)
-    select = parsed if isinstance(parsed, exp.Select) else parsed.find(exp.Select)
+    select = _final_select(sql, dialect)
     if select is None:
         return {}
     columns: dict[str, str | None] = {}
@@ -51,6 +50,25 @@ def output_columns(sql: str, dialect: str = "snowflake") -> dict[str, str | None
         cast = projection.find(exp.Cast)
         columns[name] = cast.to.sql(dialect=dialect).upper() if cast else None
     return columns
+
+
+def _final_select(sql: str, dialect: str) -> exp.Select | None:
+    parsed = sqlglot.parse_one(strip_jinja(sql), read=dialect)
+    return parsed if isinstance(parsed, exp.Select) else parsed.find(exp.Select)
+
+
+def selects_star(sql: str, dialect: str = "snowflake") -> bool:
+    """True when the projection contains a star.
+
+    A star hides the real column list, so a column missing from the enumerated
+    projection has not necessarily been removed — it may simply be covered by the star.
+    Reporting drops in that case invents a breaking change out of a widening one.
+    """
+    select = _final_select(sql, dialect)
+    if select is None:
+        return False
+    return any(projection.find(exp.Star) or isinstance(projection, exp.Star)
+               for projection in select.expressions)
 
 
 def source_expression(sql: str, column: str, dialect: str = "snowflake") -> str | None:
@@ -69,43 +87,55 @@ def source_expression(sql: str, column: str, dialect: str = "snowflake") -> str 
 def diff_model(
     before_sql: str, after_sql: str, *, file: str, model: str, dialect: str, snippet: str = ""
 ) -> list[Change]:
-    before = output_columns(before_sql, dialect)
-    after = output_columns(after_sql, dialect)
+    before_raw = output_columns(before_sql, dialect)
+    after_raw = output_columns(after_sql, dialect)
 
-    dropped = [c for c in before if c not in after]
-    added = [c for c in after if c not in before]
+    # Compare case-insensitively: unquoted identifiers are case-insensitive in every
+    # dialect Fuse targets, and Snowflake upper-cases them. Treating `order_total` and
+    # `ORDER_TOTAL` as different columns reports a drop and an add for a rename that
+    # never happened.
+    before = {name.lower(): value for name, value in before_raw.items()}
+    after = {name.lower(): value for name, value in after_raw.items()}
+    display = {**{n.lower(): n for n in after_raw}, **{n.lower(): n for n in before_raw}}
+
+    # A star hides the column list, so absence from the enumerated projection proves
+    # nothing. Type and rename detection still work; drops and adds do not.
+    star = selects_star(before_sql, dialect) or selects_star(after_sql, dialect)
+
+    dropped = [] if star else [c for c in before if c not in after]
+    added = [] if star else [c for c in after if c not in before]
     changes: list[Change] = []
 
     # A single drop + single add whose underlying expression is identical is a rename,
     # which is recoverable with an alias, unlike a true drop.
     if len(dropped) == 1 and len(added) == 1:
-        old_expr = source_expression(before_sql, dropped[0], dialect)
-        new_expr = source_expression(after_sql, added[0], dialect)
+        old_expr = source_expression(before_sql, display[dropped[0]], dialect)
+        new_expr = source_expression(after_sql, display[added[0]], dialect)
         if old_expr and old_expr == new_expr:
             return [
                 Change(
                     kind="rename_column",
                     file=file,
                     model=model,
-                    column=dropped[0],
-                    renamed_to=added[0],
+                    column=display[dropped[0]],
+                    renamed_to=display[added[0]],
                     snippet=snippet,
                 )
             ]
 
     changes += [
-        Change(kind="drop_column", file=file, model=model, column=c, from_type=before[c],
-               snippet=snippet)
+        Change(kind="drop_column", file=file, model=model, column=display[c],
+               from_type=before[c], snippet=snippet)
         for c in dropped
     ]
     changes += [
-        Change(kind="add_column", file=file, model=model, column=c, to_type=after[c],
-               snippet=snippet)
+        Change(kind="add_column", file=file, model=model, column=display[c],
+               to_type=after[c], snippet=snippet)
         for c in added
     ]
     changes += [
-        Change(kind="retype_column", file=file, model=model, column=c, from_type=before[c],
-               to_type=after[c], snippet=snippet)
+        Change(kind="retype_column", file=file, model=model, column=display[c],
+               from_type=before[c], to_type=after[c], snippet=snippet)
         for c in before
         if c in after and before[c] != after[c] and (before[c] or after[c])
     ]

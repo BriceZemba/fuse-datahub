@@ -28,17 +28,41 @@ VALID_ENTITY_TYPES = {
 
 
 def sql_references_column(sql: str, column: str, dialect: str = "snowflake") -> bool:
-    """True when the statement really reads that column. Falls back to text search."""
+    """True when the statement really reads that column.
+
+    This is the strongest evidence tier, so a false positive here declares a consumer
+    broken when it is not. Two traps were live before this was tightened:
+
+    - `count(*)` is not a column reference. Matching any `Star` anywhere meant an
+      aggregate — even in a subquery over a different table — counted as proof.
+    - A string literal that happens to contain the column name is not a reference.
+    """
+    wanted = column.lower()
     try:
         tree = sqlglot.parse_one(sql, read=dialect)
     except Exception:
-        return column.lower() in sql.lower()
+        return wanted in sql.lower()
+
+    if tree is None:
+        return wanted in sql.lower()
 
     for node in tree.find_all(exp.Column):
-        if node.name.lower() == column.lower():
+        if node.name.lower() == wanted:
             return True
-    for _ in tree.find_all(exp.Star):
-        return True  # SELECT * inherits the column
+
+    # Only a star in a projection list inherits the column. `count(*)` is an aggregate
+    # over rows and names nothing.
+    for select in tree.find_all(exp.Select):
+        for projection in select.expressions:
+            if isinstance(projection, exp.Star):
+                return True
+            if isinstance(projection, exp.Column) and isinstance(projection.this, exp.Star):
+                return True
+
+    # Nothing that looks like SQL came back, so trust the text instead of a parse that
+    # silently produced no columns at all.
+    if not any(True for _ in tree.find_all(exp.Column)):
+        return wanted in sql.lower()
     return False
 
 
