@@ -27,6 +27,14 @@ JINJA_SOURCE = re.compile(
 JINJA_ANY = re.compile(r"\{\{.*?\}\}", re.DOTALL)
 
 
+UNSAFE_IN_IDENTIFIER = re.compile(r"[^A-Za-z0-9_.-]")
+
+
+def _safe_identifier(name: str) -> str:
+    cleaned = UNSAFE_IN_IDENTIFIER.sub("_", name).strip("._-")
+    return cleaned or "model"
+
+
 def strip_jinja(sql: str) -> str:
     """Make a dbt model parseable by sqlglot without changing its column shape."""
     sql = JINJA_CONFIG.sub("", sql)
@@ -243,7 +251,9 @@ def parse_change(state: FuseState) -> dict:
     for fd in parse_unified_diff(diff_text):
         if not fd.path.endswith(".sql"):
             continue
-        model = Path(fd.path).stem
+        # The model name is derived from a path in an untrusted diff and later becomes
+        # part of a filename. Keep it to characters that cannot redirect a write.
+        model = _safe_identifier(Path(fd.path).stem)
         target = repo / fd.path
         if not target.exists():
             # patch paths are usually relative to the data repo root

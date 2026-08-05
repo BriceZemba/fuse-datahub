@@ -7,7 +7,7 @@ posted as a review comment by .github/workflows/fuse.yml.
 from __future__ import annotations
 
 import json
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
 
@@ -26,6 +26,31 @@ BANNER = {
     "RISKY": "🟠 **RISKY** — downstream consumers need attention",
     "SAFE": "🟢 **SAFE** — no downstream consumer references the changed column",
 }
+
+
+def _contained(out_dir: Path, relative: str) -> Path:
+    """Resolve an artifact path, refusing to leave the run directory.
+
+    Artifact paths are built from names that came out of a diff and out of the catalog,
+    and Fuse runs in CI against untrusted pull requests. A model called `../../id_rsa`
+    would otherwise write wherever the runner can reach.
+    """
+    candidate = PurePosixPath(relative.replace("\\", "/"))
+    parts = [
+        part
+        for part in candidate.parts
+        if part not in ("..", "/", "") and not part.endswith(":")
+    ]
+    if not parts:
+        parts = ["artifact"]
+
+    target = (out_dir / Path(*parts)).resolve()
+    root = out_dir.resolve()
+    if root != target and root not in target.parents:
+        # Nothing should reach this after stripping, but a symlinked out_dir or an
+        # exotic path could; flatten rather than write outside.
+        target = root / "_".join(parts)
+    return target
 
 
 def emit_pr(state: FuseState) -> dict:
@@ -53,7 +78,7 @@ def emit_pr(state: FuseState) -> dict:
         )
 
     for artifact in artifacts:
-        target = out_dir / artifact.path
+        target = _contained(out_dir, artifact.path)
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(artifact.content, encoding="utf-8")
 
