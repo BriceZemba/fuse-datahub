@@ -35,6 +35,7 @@
 
 - `models/order_details.sql` — dbt_model
 - `models/compat/orders_compat.sql` — compat_view
+- `models/orders_schema.yml` — dbt_test
 - `MIGRATION.md` — migration_doc
 
 
@@ -53,18 +54,19 @@ parse_change: 1 change(s)
 timing: parse_change took 0.0s
 resolve: orders -> urn:li:dataset:(urn:li:dataPlatform:dbt,b2fd91.order_entry_db.order_entry.orders,PROD) (search_rank, confidence 0.99)
 resolve: 1/1 change(s) mapped to URNs
-timing: resolve took 9.2s
+timing: resolve took 8.3s
 lineage: no query history on the first 5 dataset(s), skipped the remaining 12
 lineage: schema checked within 2 hop(s); 15 more distant asset(s) cannot reach RISKY on a schema match alone
 lineage: 17 downstream asset(s), 0 ML entit(ies), 0 with query evidence, 2 carrying the column in their schema
-timing: lineage took 22.0s
+timing: lineage took 19.3s
 impact: 17 asset(s) — 1 breaking, 16 risky, 0 safe
 timing: impact took 0.0s
 plan: 17 strategy decision(s)
-timing: plan took 21.1s
-codegen: 3 artifact(s) (attempt 1)
-timing: codegen took 12.0s
-validate: 3 artifact(s) passed
+timing: plan took 14.7s
+codegen: rewrote the 3 highest-scoring consumer(s); 1 more got a contract test instead (raise FUSE_MAX_REWRITES to rewrite more)
+codegen: 4 artifact(s) (attempt 1)
+timing: codegen took 15.3s
+validate: 4 artifact(s) passed
 timing: validate took 0.0s
 writeback: dry run — nothing was written to DataHub
 timing: writeback took 0.0s

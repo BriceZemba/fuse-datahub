@@ -94,12 +94,12 @@
             "value": "sql"
           },
           {
-            "key": "account_id",
-            "value": "107298"
-          },
-          {
             "key": "node_type",
             "value": "model"
+          },
+          {
+            "key": "account_id",
+            "value": "107298"
           },
           {
             "key": "model_maturity",

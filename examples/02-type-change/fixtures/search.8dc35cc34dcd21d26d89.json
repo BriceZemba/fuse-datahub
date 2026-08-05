@@ -476,11 +476,6 @@
       },
       {
         "entity": {
-          "urn": "urn:li:document:ecomm-orders"
-        }
-      },
-      {
-        "entity": {
           "urn": "urn:li:schemaField:(urn:li:dataset:(urn:li:dataPlatform:tableau,b2fd91.4a3af1dd-fd0c-7077-d5fd-aa2fdf87cb23,PROD),ORDERS_COUNT)"
         }
       },
@@ -497,6 +492,11 @@
       {
         "entity": {
           "urn": "urn:li:schemaField:(urn:li:dataset:(urn:li:dataPlatform:tableau,b2fd91.fadbf744-48be-0929-a47c-5786327a3343,PROD),ORDERS_COUNT)"
+        }
+      },
+      {
+        "entity": {
+          "urn": "urn:li:document:ecomm-orders"
         }
       },
       {

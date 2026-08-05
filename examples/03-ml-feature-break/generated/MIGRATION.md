@@ -18,11 +18,11 @@ not inferred from file names.
 | `customer_churn_model` | mlModel | 2 | **BREAKING** | 67 | built on customers.credit_limit | add_compat_view |
 | `prod-retention-service` | mlModelDeployment | 3 | **BREAKING** | 64 | built on customers.credit_limit, not returned by lineage | add_compat_view |
 | `customer_churn_features` | mlFeatureTable | 2 | **BREAKING** | 62 | built on customers.credit_limit, not returned by lineage | add_compat_view |
-| `country_id` | mlFeature | 1 | **RISKY** | 55 | derived from customers but not from `credit_limit` | add_contract_test |
-| `customer_class` | mlFeature | 1 | **RISKY** | 55 | derived from customers but not from `credit_limit` | add_contract_test |
-| `customer_since` | mlFeature | 1 | **RISKY** | 55 | derived from customers but not from `credit_limit` | add_contract_test |
-| `customer_churn_models` | mlModelGroup | 3 | **RISKY** | 44 | built on customers.credit_limit | add_contract_test |
-| `order_details` | dataset | 1 | **RISKY** | 35 | — | rewrite_sql |
+| `country_id` | mlFeature | 1 | **RISKY** | 55 | derived from customers but not from `credit_limit` | no_action |
+| `customer_class` | mlFeature | 1 | **RISKY** | 55 | derived from customers but not from `credit_limit` | no_action |
+| `customer_since` | mlFeature | 1 | **RISKY** | 55 | derived from customers but not from `credit_limit` | no_action |
+| `customer_churn_models` | mlModelGroup | 3 | **RISKY** | 44 | built on customers.credit_limit | add_compat_view |
+| `order_details` | dataset | 1 | **RISKY** | 35 | — | no_action |
 
 <details><summary>23 further asset(s) scored SAFE</summary>
 

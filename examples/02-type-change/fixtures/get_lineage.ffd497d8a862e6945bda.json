@@ -835,12 +835,12 @@
                   "value": "https://cloud.getdbt.com/accounts/107298/jobs/872519/docs/#!/overview"
                 },
                 {
-                  "key": "account_id",
-                  "value": "107298"
-                },
-                {
                   "key": "node_type",
                   "value": "model"
+                },
+                {
+                  "key": "account_id",
+                  "value": "107298"
                 },
                 {
                   "key": "model_maturity",
@@ -1152,12 +1152,12 @@
             "properties": {
               "customProperties": [
                 {
-                  "key": "looker.explore.name",
-                  "value": "order_details"
-                },
-                {
                   "key": "project",
                   "value": "order-entry-looker"
+                },
+                {
+                  "key": "looker.explore.name",
+                  "value": "order_details"
                 },
                 {
                   "key": "model",
@@ -1293,14 +1293,22 @@
                           "total": 0
                         },
                         "dataProducts": {
-                          "total": 4
+                          "total": 1
                         },
                         "entities": {
-                          "total": 2
+                          "total": 22
                         },
                         "parentDomains": {
-                          "count": 1,
+                          "count": 2,
                           "domains": [
+                            {
+                              "properties": {
+                                "description": "Top-level domain for engineering teams and infrastructure.",
+                                "name": "Engineering Division"
+                              },
+                              "type": "DOMAIN",
+                              "urn": "urn:li:domain:b2fd91.ce125416-344c-4db4-9f07-f7086a851606"
+                            },
                             {
                               "properties": {
                                 "description": "Top-level organizational domain for Acme Corporation.",
@@ -1312,18 +1320,18 @@
                           ]
                         },
                         "properties": {
-                          "description": "**Owner:** \\[To be assigned\\]  \n**Parent:** Acme Corporation\n\n#### Description\n\nManages day-to-day e-commerce operations including inventory management, order fulfillment, and customer service.\n\n#### Data Assets from Lineage\n\n*   **Looker Dashboards & Reports:**\n    \n    *   `urn:li:dashboard:(looker,dashboards.53)` - Order Entry Dashboard\n        \n    *   `urn:li:chart:(looker,dashboard_elements.221)` - Popular Products\n        \n    *   `urn:li:chart:(looker,dashboard_elements.222)` - Promotions\n        \n    *   `urn:li:chart:(looker,dashboard_elements.223)` - Order Mode\n        \n    *   `urn:li:chart:(looker,dashboard_elements.224)` - Orders by Day",
-                          "name": "Ecommerce Operations"
+                          "description": "**Owner:** Ian Chen (Director of Data) - [@Ian Chen](urn:li:corpuser:EMP006)  \n**Technical Owner:** Maya Patel (Senior Data Engineer)  \n**Parent:** Engineering Division\n\n#### Description\n\nThe Data Platform Team owns the core data infrastructure, ETL pipelines, and analytics platforms that power Acme's data-driven decision making. They are responsible for the entire order entry data ecosystem.\n\n#### Team Members\n\n*   **Maya Patel** (Senior Data Engineer)\n    \n*   **Carlos Mendoza** (Data Engineer)\n    \n*   **Amanda Foster** (Junior Data Analyst)\n    \n\n\u00a0\n\n#### Data Products\n\n*   **Order Entry Analytics Data Product** (`urn:li:dataProduct:e0e95662-34bb-42fc-9dcc-29002bbbfeda`)\n    \n\n#### Responsibilities\n\n*   **Data Engineering:** Building and maintaining ETL pipelines\n    \n*   **Data Quality:** Monitoring data freshness, completeness, and accuracy\n    \n*   **Infrastructure:** Managing Snowflake, DBT, and Spark environments\n    \n*   **Governance:** Implementing data classification and lineage tracking\n    \n\n#### Service Level Agreements\n\n*   **Data Freshness:** Daily refresh of analytical datasets by 6 AM EST\n    \n*   **Uptime:** 99.9% availability for production data pipelines\n    \n*   **Data Quality:** <1% error rate on critical business metrics",
+                          "name": "Data Platform Team"
                         },
-                        "urn": "urn:li:domain:b2fd91.91994180-93ee-43f7-9c97-5e74a4a43fbd"
+                        "urn": "urn:li:domain:b2fd91.1caf2b7c-ca73-4708-bdec-6687d78cab0e"
                       }
                     },
                     "properties": {
-                      "description": "**Promotions Performance** provides a consolidated view of all promotional activity across ACME's order channels, enabling marketing and commercial teams to evaluate the effectiveness of discount campaigns and promotional events.\n\nThis data product covers the full promotion lifecycle \u2014 from the promotion applied at the point of order through to the revenue and volume impact realised. It is the authoritative source for any reporting on discount activity, promotional uplift, or margin impact.\n\n**What this data product supports:**\n\n*   Revenue and order volume attributed to each promotion\n    \n*   Discount rate analysis by promotion, category, and channel\n    \n*   Promotional uplift measurement (incremental orders vs baseline)\n    \n*   Identification of highest and lowest performing promotions\n    \n*   Channel-level promotion effectiveness (online vs in-store vs phone)\n    \n\n**Key fields covered:** Promotion name, promotion ID, discount amount, discount percentage, order mode, and order totals.",
-                      "name": "Promotions Performance"
+                      "description": "**Order Entry Analytics**\u00a0is a comprehensive data product that consolidates order management data across the entire order lifecycle. It integrates information from multiple upstream sources including orders, customers, products, inventory, promotions, addresses, and warehouses into analytics-ready datasets.\n\n**Core Assets:**\n\n*   **order\\_details**\u00a0(Snowflake & dbt): Denormalized table joining 10+ source tables to provide complete order information including customer demographics, product details, billing/shipping addresses, inventory levels, promotions, and fulfillment status. Contains 55+ fields with PII and PCI data classifications.\n    \n*   **order\\_history**\u00a0(Snowflake & dbt): Incremental historical tracking table capturing order status changes and totals over time, enabling trend analysis and performance monitoring.\n    \n*   **Customer Analytics Measures**\u00a0(Power BI): Business intelligence layer with calculated measures like Customer Lifetime Value (LTV) for executive reporting.\n    \n\n**Key Capabilities:**\n\n*   Customer behavior analysis (segmentation by class, purchase patterns)\n    \n*   Order fulfillment tracking (dispatch, delivery, returns)\n    \n*   Revenue analytics (order totals, discounts, promotions)\n    \n*   Inventory monitoring (stock levels, warehouse allocation)\n    \n*   Multi-channel order processing (online, phone, in-store, partners)\n    \n\n**Designed for:**\u00a0Sales teams, operations managers, data analysts, and executives needing comprehensive visibility into order operations and customer purchasing behavior.",
+                      "name": "Order Entry Analytics"
                     },
                     "type": "DATA_PRODUCT",
-                    "urn": "urn:li:dataProduct:b2fd91.38e6dc7c-83d7-46c2-aece-e4918bd00d09"
+                    "urn": "urn:li:dataProduct:b2fd91.e0e95662-34bb-42fc-9dcc-29002bbbfeda"
                   },
                   "type": "DataProductContains"
                 }
@@ -1810,12 +1818,12 @@
                   "value": "sql"
                 },
                 {
-                  "key": "account_id",
-                  "value": "107298"
-                },
-                {
                   "key": "node_type",
                   "value": "model"
+                },
+                {
+                  "key": "account_id",
+                  "value": "107298"
                 },
                 {
                   "key": "model_maturity",
