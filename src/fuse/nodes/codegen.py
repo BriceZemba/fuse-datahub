@@ -62,9 +62,11 @@ INSTRUCTIONS: dict[str, str] = {
     ),
     "retype_column": (
         "`{column}` changed type upstream from {from_type} to {to_type}. **Keep the "
-        "column** — do not drop it. Adjust casts and aggregations so the new type is "
-        "handled correctly, and be explicit where the narrower type could truncate or "
-        "overflow."
+        "column** — do not drop it — and **do not cast it back to {from_type}**. The "
+        "upstream value is already {to_type}; casting back restores nothing and only "
+        "hides that the type changed, so every consumer keeps reading a silently "
+        "altered value. Let the new type flow through, and adjust any aggregation "
+        "whose result the narrower type would truncate or overflow."
     ),
     "drop_model": (
         "The upstream model is being removed. Point this consumer at the surviving "

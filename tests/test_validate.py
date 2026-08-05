@@ -82,6 +82,22 @@ def test_a_retype_that_keeps_the_column_passes():
     assert validate(_retype_state(sql))["validation_errors"] == []
 
 
+def test_casting_back_to_the_old_type_is_rejected():
+    """Upstream narrowed DOUBLE to INT: the precision is already gone. Casting back to
+    DOUBLE restores nothing and hides the change — which is what the model actually
+    generated before this guard existed."""
+    sql = "select order_id, cast(order_amount as double) as order_amount from orders"
+    errors = validate(_retype_state(sql))["validation_errors"]
+    assert errors
+    assert "back to DOUBLE" in errors[0]
+
+
+def test_letting_the_new_type_flow_through_passes():
+    assert validate(_retype_state("select order_id, order_amount from orders"))[
+        "validation_errors"
+    ] == []
+
+
 def test_clean_sql_passes():
     result = validate(_state("select order_id, customer_id, order_amount from orders"))
     assert result["validation_errors"] == []

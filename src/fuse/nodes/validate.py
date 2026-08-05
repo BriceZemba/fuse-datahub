@@ -35,14 +35,14 @@ def dropped_columns(resolved: list[ResolvedAsset]) -> set[str]:
     }
 
 
-def retyped_columns(resolved: list[ResolvedAsset]) -> set[str]:
-    """Columns whose type changed. These must survive a rewrite.
+def retyped_columns(resolved: list[ResolvedAsset]) -> dict[str, str | None]:
+    """Retyped column -> the type it used to be. These must survive a rewrite.
 
     A retype is not a removal, and a model that quietly drops the column instead of
     handling the new type loses data nobody agreed to lose.
     """
     return {
-        a.change.column.lower()
+        a.change.column.lower(): (a.change.from_type or "").upper() or None
         for a in resolved
         if a.change.kind == "retype_column" and a.change.column
     }
@@ -148,10 +148,41 @@ def _check_sql(
             )
 
         # The mirror image: a type change is not permission to delete the column.
-        for name in sorted(retyped - produced):
+        for name in sorted(set(retyped) - produced):
             errors.append(
                 f"{artifact.path}: dropped '{name}', but the change only altered its "
                 "type. Keep the column and handle the new type."
+            )
+
+        errors += _check_no_cast_back(artifact, tree, retyped, dialect)
+    return errors
+
+
+def _check_no_cast_back(
+    artifact: Artifact, tree: exp.Expression, retyped: dict[str, str | None], dialect: str
+) -> list[str]:
+    """Reject casting a retyped column back to the type it used to be.
+
+    Upstream narrowed DOUBLE to INT, so the precision is already gone. Casting back to
+    DOUBLE downstream restores nothing — it only hides that the type changed, and every
+    consumer keeps reading a value that was quietly truncated. Propagate the new type
+    and let the change be visible.
+    """
+    errors: list[str] = []
+    for cast in tree.find_all(exp.Cast):
+        column = cast.this
+        if not isinstance(column, exp.Column) or not column.name:
+            continue
+        was = retyped.get(column.name.lower())
+        if not was:
+            continue
+        target = cast.to.sql(dialect=dialect).upper()
+        if target.split("(")[0] == was.split("(")[0]:
+            errors.append(
+                f"{artifact.path}: casts '{column.name}' back to {was}, the type it had "
+                "before the change. That hides the narrowing instead of handling it — "
+                "propagate the new type, and if a wider type is genuinely required, say "
+                "so where a reviewer will see it."
             )
     return errors
 
