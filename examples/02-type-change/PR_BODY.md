@@ -33,8 +33,7 @@
 
 ## What Fuse changed
 
-- `models/order_details.sql` — dbt_model
-- `models/compat/orders_compat.sql` — compat_view
+- `models/order_details.sql` — dbt_model ⚠️ **needs human review** (validation failed after 2 retries — needs human review)
 - `models/orders_schema.yml` — dbt_test
 - `MIGRATION.md` — migration_doc
 
@@ -54,19 +53,28 @@ parse_change: 1 change(s)
 timing: parse_change took 0.0s
 resolve: orders -> urn:li:dataset:(urn:li:dataPlatform:dbt,b2fd91.order_entry_db.order_entry.orders,PROD) (search_rank, confidence 0.99)
 resolve: 1/1 change(s) mapped to URNs
-timing: resolve took 8.2s
+timing: resolve took 10.0s
 lineage: no query history on the first 5 dataset(s), skipped the remaining 12
 lineage: schema checked within 2 hop(s); 15 more distant asset(s) cannot reach RISKY on a schema match alone
 lineage: 17 downstream asset(s), 0 ML entit(ies), 0 with query evidence, 2 carrying the column in their schema
-timing: lineage took 20.4s
+timing: lineage took 22.7s
 impact: 17 asset(s) — 1 breaking, 16 risky, 0 safe
 timing: impact took 0.0s
-plan: 17 strategy decision(s)
-timing: plan took 20.7s
+plan: model did not return JSON ('{ "urn:li:dataset:(urn:li:dataPlatform:dbt,b2fd91.ORDER_ENTRY_DB.analytics.order_details,PROD)": "rewrite_sql", "urn:li:dataset:(urn:li:dataPlatform:dbt,b2fd91.ORDER_ENTRY_DB.analytics.order_history,P'), using rules
+timing: plan took 30.8s
+codegen: the model was unavailable (RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day', 'code': 429, 'met); affected artifacts came from templates instead
 codegen: rewrote the 3 highest-scoring consumer(s); 1 more got a contract test instead (raise FUSE_MAX_REWRITES to rewrite more)
-codegen: 4 artifact(s) (attempt 1)
-timing: codegen took 10.5s
-validate: 4 artifact(s) passed
+codegen: 3 artifact(s) (attempt 1)
+timing: codegen took 4.2s
+validate: REJECTED — 1 problem(s)
+  - models/order_details.sql: contains no query. The generated file has no SELECT with output columns, so it would replace a working model with nothing.
+timing: validate took 0.0s
+codegen: the model was unavailable (RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day', 'code': 429, 'met); affected artifacts came from templates instead
+codegen: rewrote the 3 highest-scoring consumer(s); 1 more got a contract test instead (raise FUSE_MAX_REWRITES to rewrite more)
+codegen: 3 artifact(s) (attempt 2)
+timing: codegen took 4.4s
+validate: REJECTED — 1 problem(s)
+  - models/order_details.sql: contains no query. The generated file has no SELECT with output columns, so it would replace a working model with nothing.
 timing: validate took 0.0s
 writeback: dry run — nothing was written to DataHub
 timing: writeback took 0.0s

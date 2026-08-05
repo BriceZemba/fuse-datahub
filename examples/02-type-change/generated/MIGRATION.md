@@ -15,22 +15,22 @@ not inferred from file names.
 | Asset | Type | Hops | Severity | Score | Evidence | Strategy |
 |---|---|---|---|---|---|---|
 | `order_details` | dataset | 1 | **BREAKING** | 70 | column-level lineage edge from orders.order_total | rewrite_sql |
-| `order_history` | dataset | 3 | **RISKY** | 44 | column-level lineage edge from orders.order_total | add_compat_view |
-| `ORDER_HISTORY` | dataset | 3 | **RISKY** | 44 | column-level lineage edge from orders.order_total | add_compat_view |
-| `Customer Analytics Measures` | dataset | 3 | **RISKY** | 44 | column-level lineage edge from orders.order_total | add_compat_view |
-| `Essential KPI Measures` | dataset | 3 | **RISKY** | 44 | column-level lineage edge from orders.order_total | add_compat_view |
-| `Geographic Measures` | dataset | 3 | **RISKY** | 44 | column-level lineage edge from orders.order_total | add_compat_view |
-| `Product Perfromance Measures` | dataset | 3 | **RISKY** | 44 | column-level lineage edge from orders.order_total | add_compat_view |
-| `Time Inteligence Measures` | dataset | 3 | **RISKY** | 44 | column-level lineage edge from orders.order_total | add_compat_view |
-| `Custom SQL Query` | dataset | 3 | **RISKY** | 44 | column-level lineage edge from orders.order_total | add_compat_view |
-| `Custom SQL Query` | dataset | 3 | **RISKY** | 44 | column-level lineage edge from orders.order_total | add_compat_view |
-| `ORDER_DETAILS_REPLICA` | dataset | 3 | **RISKY** | 44 | column-level lineage edge from orders.order_total | add_compat_view |
+| `order_history` | dataset | 3 | **RISKY** | 44 | column-level lineage edge from orders.order_total | add_contract_test |
+| `ORDER_HISTORY` | dataset | 3 | **RISKY** | 44 | column-level lineage edge from orders.order_total | add_contract_test |
+| `Customer Analytics Measures` | dataset | 3 | **RISKY** | 44 | column-level lineage edge from orders.order_total | add_contract_test |
+| `Essential KPI Measures` | dataset | 3 | **RISKY** | 44 | column-level lineage edge from orders.order_total | add_contract_test |
+| `Geographic Measures` | dataset | 3 | **RISKY** | 44 | column-level lineage edge from orders.order_total | add_contract_test |
+| `Product Perfromance Measures` | dataset | 3 | **RISKY** | 44 | column-level lineage edge from orders.order_total | add_contract_test |
+| `Time Inteligence Measures` | dataset | 3 | **RISKY** | 44 | column-level lineage edge from orders.order_total | add_contract_test |
+| `Custom SQL Query` | dataset | 3 | **RISKY** | 44 | column-level lineage edge from orders.order_total | add_contract_test |
+| `Custom SQL Query` | dataset | 3 | **RISKY** | 44 | column-level lineage edge from orders.order_total | add_contract_test |
+| `ORDER_DETAILS_REPLICA` | dataset | 3 | **RISKY** | 44 | column-level lineage edge from orders.order_total | add_contract_test |
 | `ORDER_DETAILS` | dataset | 2 | **RISKY** | 42 | column-level lineage edge from orders.order_total | rewrite_sql |
 | `order_details` | dataset | 3 | **RISKY** | 39 | column-level lineage edge from orders.order_total | rewrite_sql |
 | `ORDER_DETAILS` | dataset | 3 | **RISKY** | 39 | column-level lineage edge from orders.order_total | rewrite_sql |
-| `Order Details` | dataset | 4 | **RISKY** | 36 | column-level lineage edge from orders.order_total | add_compat_view |
-| `Promotions` | dataset | 4 | **RISKY** | 36 | column-level lineage edge from orders.order_total | add_compat_view |
-| `Order Mode` | dataset | 4 | **RISKY** | 36 | column-level lineage edge from orders.order_total | add_compat_view |
+| `Order Details` | dataset | 4 | **RISKY** | 36 | column-level lineage edge from orders.order_total | add_contract_test |
+| `Promotions` | dataset | 4 | **RISKY** | 36 | column-level lineage edge from orders.order_total | add_contract_test |
+| `Order Mode` | dataset | 4 | **RISKY** | 36 | column-level lineage edge from orders.order_total | add_contract_test |
 
 
 

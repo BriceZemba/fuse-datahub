@@ -17,7 +17,7 @@
 | `customer_class` | mlFeature | 1 | **RISKY** | 55 | derived from customers but not from `credit_limit` | _unowned_ |
 | `customer_since` | mlFeature | 1 | **RISKY** | 55 | derived from customers but not from `credit_limit` | _unowned_ |
 | `customer_churn_models` | mlModelGroup | 3 | **RISKY** | 44 | built on customers.credit_limit | _unowned_ |
-| `order_details` | dataset | 1 | **RISKY** | 35 | — | urn:li:corpGroup:b2fd91.1e0398a3-113f-475e-b6fc-32ab72a634d2, urn:li:corpGroup:b2fd91.ORG_DATA_PLATFORM, urn:li:corpuser:b2fd91.EMP006, urn:li:corpuser:b2fd91.brock1@example.com, urn:li:corpuser:b2fd91.bryan@example.com, urn:li:corpuser:b2fd91.jonny1@example.com, urn:li:corpuser:b2fd91.jonny2@example.com, urn:li:corpuser:b2fd91.kirk@example.com, urn:li:corpuser:b2fd91.marty@example.com, urn:li:corpuser:b2fd91.sam@example.com |
+| `order_details` | dataset | 1 | **RISKY** | 35 | reads from customers; no column-level proof either way | urn:li:corpGroup:b2fd91.1e0398a3-113f-475e-b6fc-32ab72a634d2, urn:li:corpGroup:b2fd91.ORG_DATA_PLATFORM, urn:li:corpuser:b2fd91.EMP006, urn:li:corpuser:b2fd91.brock1@example.com, urn:li:corpuser:b2fd91.bryan@example.com, urn:li:corpuser:b2fd91.jonny1@example.com, urn:li:corpuser:b2fd91.jonny2@example.com, urn:li:corpuser:b2fd91.kirk@example.com, urn:li:corpuser:b2fd91.marty@example.com, urn:li:corpuser:b2fd91.sam@example.com |
 
 <details><summary>23 further asset(s) scored SAFE — listed for the record</summary>
 
@@ -68,6 +68,7 @@ This change reaches machine learning assets, which fail silently rather than lou
 
 - `models/compat/customers_compat.sql` — compat_view
 - `models/customers_schema.yml` — dbt_test
+- `models/order_details.sql` — dbt_model ⚠️ **needs human review** (validation failed after 2 retries — needs human review)
 - `MIGRATION.md` — migration_doc
 
 
@@ -86,21 +87,28 @@ parse_change: 1 change(s)
 timing: parse_change took 0.0s
 resolve: customers -> urn:li:dataset:(urn:li:dataPlatform:dbt,b2fd91.order_entry_db.order_entry.customers,PROD) (search_rank, confidence 0.99)
 resolve: 1/1 change(s) mapped to URNs
-timing: resolve took 8.4s
+timing: resolve took 9.8s
 lineage: no column-level edges for credit_limit, falling back to table-level
 lineage: no query history on the first 5 dataset(s), skipped the remaining 12
 lineage: schema checked within 2 hop(s); 15 more distant asset(s) cannot reach RISKY on a schema match alone
 lineage: 8 ML entit(ies), 2 of them reachable only through ML aspects, not through get_lineage
 lineage: 32 downstream asset(s), 8 ML entit(ies), 0 with query evidence, 0 carrying the column in their schema
-timing: lineage took 23.7s
+timing: lineage took 26.7s
 impact: 32 asset(s) — 4 breaking, 5 risky, 23 safe
 timing: impact took 0.0s
-plan: filled 23 gap(s) from rules
-plan: 32 strategy decision(s)
-timing: plan took 26.8s
-codegen: 3 artifact(s) (attempt 1)
-timing: codegen took 0.0s
-validate: 3 artifact(s) passed
+plan: LLM planning failed (ValueError), using rules
+timing: plan took 1.5s
+codegen: the model was unavailable (RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day', 'code': 429, 'met); affected artifacts came from templates instead
+codegen: 4 artifact(s) (attempt 1)
+timing: codegen took 1.5s
+validate: REJECTED — 1 problem(s)
+  - models/order_details.sql: contains no query. The generated file has no SELECT with output columns, so it would replace a working model with nothing.
+timing: validate took 0.0s
+codegen: the model was unavailable (RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day', 'code': 429, 'met); affected artifacts came from templates instead
+codegen: 4 artifact(s) (attempt 2)
+timing: codegen took 1.4s
+validate: REJECTED — 1 problem(s)
+  - models/order_details.sql: contains no query. The generated file has no SELECT with output columns, so it would replace a working model with nothing.
 timing: validate took 0.0s
 writeback: dry run — nothing was written to DataHub
 timing: writeback took 0.0s

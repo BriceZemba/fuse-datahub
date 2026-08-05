@@ -17,7 +17,7 @@ fuse replay examples/03-ml-feature-break
 | `customer_class` | mlFeature | 1 | **RISKY** | 55 | derived from customers but not from `credit_limit` |
 | `customer_since` | mlFeature | 1 | **RISKY** | 55 | derived from customers but not from `credit_limit` |
 | `customer_churn_models` | mlModelGroup | 3 | **RISKY** | 44 | built on customers.credit_limit |
-| `order_details` | dataset | 1 | **RISKY** | 35 | — |
+| `order_details` | dataset | 1 | **RISKY** | 35 | reads from customers; no column-level proof either way |
 
 ## Files
 

@@ -2,40 +2,40 @@
 
 **Change:** drop_column orders.promotion_id  
 **Max severity:** BREAKING  
-**Generated:** 2026-08-05T11:27:50+00:00
+**Generated:** 2026-08-05T13:04:43+00:00
 
 | Asset | Type | Hops | Severity | Score | Evidence | Owners |
 |---|---|---|---|---|---|---|
 | order_details | dataset | 1 | **BREAKING** | 60 | schema carries a field named `promotion_id` | urn:li:corpGroup:b2fd91.1e0398a3-113f-475e-b6fc-32ab72a634d2, urn:li:corpGroup:b2fd91.ORG_DATA_PLATFORM, urn:li:corpuser:b2fd91.EMP006, urn:li:corpuser:b2fd91.brock1@example.com, urn:li:corpuser:b2fd91.bryan@example.com, urn:li:corpuser:b2fd91.jonny1@example.com, urn:li:corpuser:b2fd91.jonny2@example.com, urn:li:corpuser:b2fd91.kirk@example.com, urn:li:corpuser:b2fd91.marty@example.com, urn:li:corpuser:b2fd91.sam@example.com |
 | ORDER_DETAILS | dataset | 2 | **RISKY** | 32 | schema carries a field named `promotion_id` | urn:li:corpGroup:b2fd91.1e0398a3-113f-475e-b6fc-32ab72a634d2, urn:li:corpuser:b2fd91.brock1@example.com, urn:li:corpuser:b2fd91.jonny1@example.com |
-| datahub_order_entries | dashboard | 4 | **SAFE** | 11 | — | urn:li:corpuser:b2fd91.sam@example.com, urn:li:corpuser:b2fd91.michael@example.com, urn:li:corpuser:b2fd91.patrick1@example.com, urn:li:corpuser:b2fd91.alex@example.com |
-| Popular Products | chart | 5 | **SAFE** | 11 | — | — |
-| Promotions | chart | 5 | **SAFE** | 11 | — | — |
-| Order Mode | chart | 5 | **SAFE** | 11 | — | — |
-| Order Entry Dashboard | dashboard | 6 | **SAFE** | 10 | — | — |
-| order_history | dataset | 3 | **SAFE** | 9 | — | — |
-| ORDER_HISTORY | dataset | 3 | **SAFE** | 9 | — | — |
-| Customer Analytics Measures | dataset | 3 | **SAFE** | 9 | — | — |
-| Essential KPI Measures | dataset | 3 | **SAFE** | 9 | — | — |
-| Geographic Measures | dataset | 3 | **SAFE** | 9 | — | — |
-| Product Perfromance Measures | dataset | 3 | **SAFE** | 9 | — | — |
-| Time Inteligence Measures | dataset | 3 | **SAFE** | 9 | — | — |
-| Custom SQL Query | dataset | 3 | **SAFE** | 9 | — | — |
-| Custom SQL Query | dataset | 3 | **SAFE** | 9 | — | — |
-| Custom SQL Query | dataset | 3 | **SAFE** | 9 | — | — |
-| Custom SQL Query | dataset | 3 | **SAFE** | 9 | — | — |
-| Orders By Month | chart | 5 | **SAFE** | 6 | — | urn:li:corpuser:b2fd91.brock1@example.com |
-| Popular Products Categories | chart | 5 | **SAFE** | 6 | — | urn:li:corpuser:b2fd91.brock1@example.com |
-| Promotions | chart | 5 | **SAFE** | 6 | — | urn:li:corpuser:b2fd91.brock1@example.com |
-| Order Mode | chart | 5 | **SAFE** | 6 | — | urn:li:corpuser:b2fd91.brock1@example.com |
-| Order Entry Dashboard | dashboard | 6 | **SAFE** | 5 | — | urn:li:corpuser:b2fd91.brock1@example.com |
-| order_details | dataset | 3 | **SAFE** | 4 | — | urn:li:corpuser:b2fd91.marty@example.com, urn:li:corpuser:b2fd91.EMP006, urn:li:corpGroup:b2fd91.ORG_DATA_PLATFORM, urn:li:corpuser:b2fd91.alex@example.com |
-| ORDER_DETAILS | dataset | 3 | **SAFE** | 4 | — | urn:li:corpuser:b2fd91.kirk@example.com |
-| Order Details | dataset | 4 | **SAFE** | 1 | — | urn:li:corpGroup:b2fd91.ORG_DATA_PLATFORM, urn:li:corpGroup:b2fd91.ORG_BACKEND_ENG, urn:li:corpuser:b2fd91.EMP006 |
-| Promotions | dataset | 4 | **SAFE** | 1 | — | urn:li:corpuser:b2fd91.brock1@example.com |
-| Order Mode | dataset | 4 | **SAFE** | 1 | — | urn:li:corpuser:b2fd91.brock1@example.com |
-| Orders By Day | dataset | 4 | **SAFE** | 1 | — | urn:li:corpuser:b2fd91.brock1@example.com |
-| Top Product Category | dataset | 4 | **SAFE** | 1 | — | urn:li:corpuser:b2fd91.brock1@example.com |
+| datahub_order_entries | dashboard | 4 | **SAFE** | 11 | 4 hops downstream of orders | urn:li:corpuser:b2fd91.sam@example.com, urn:li:corpuser:b2fd91.michael@example.com, urn:li:corpuser:b2fd91.patrick1@example.com, urn:li:corpuser:b2fd91.alex@example.com |
+| Popular Products | chart | 5 | **SAFE** | 11 | 5 hops downstream of orders | — |
+| Promotions | chart | 5 | **SAFE** | 11 | 5 hops downstream of orders | — |
+| Order Mode | chart | 5 | **SAFE** | 11 | 5 hops downstream of orders | — |
+| Order Entry Dashboard | dashboard | 6 | **SAFE** | 10 | 6 hops downstream of orders | — |
+| order_history | dataset | 3 | **SAFE** | 9 | 3 hops downstream of orders | — |
+| ORDER_HISTORY | dataset | 3 | **SAFE** | 9 | 3 hops downstream of orders | — |
+| Customer Analytics Measures | dataset | 3 | **SAFE** | 9 | 3 hops downstream of orders | — |
+| Essential KPI Measures | dataset | 3 | **SAFE** | 9 | 3 hops downstream of orders | — |
+| Geographic Measures | dataset | 3 | **SAFE** | 9 | 3 hops downstream of orders | — |
+| Product Perfromance Measures | dataset | 3 | **SAFE** | 9 | 3 hops downstream of orders | — |
+| Time Inteligence Measures | dataset | 3 | **SAFE** | 9 | 3 hops downstream of orders | — |
+| Custom SQL Query | dataset | 3 | **SAFE** | 9 | 3 hops downstream of orders | — |
+| Custom SQL Query | dataset | 3 | **SAFE** | 9 | 3 hops downstream of orders | — |
+| Custom SQL Query | dataset | 3 | **SAFE** | 9 | 3 hops downstream of orders | — |
+| Custom SQL Query | dataset | 3 | **SAFE** | 9 | 3 hops downstream of orders | — |
+| Orders By Month | chart | 5 | **SAFE** | 6 | 5 hops downstream of orders | urn:li:corpuser:b2fd91.brock1@example.com |
+| Popular Products Categories | chart | 5 | **SAFE** | 6 | 5 hops downstream of orders | urn:li:corpuser:b2fd91.brock1@example.com |
+| Promotions | chart | 5 | **SAFE** | 6 | 5 hops downstream of orders | urn:li:corpuser:b2fd91.brock1@example.com |
+| Order Mode | chart | 5 | **SAFE** | 6 | 5 hops downstream of orders | urn:li:corpuser:b2fd91.brock1@example.com |
+| Order Entry Dashboard | dashboard | 6 | **SAFE** | 5 | 6 hops downstream of orders | urn:li:corpuser:b2fd91.brock1@example.com |
+| order_details | dataset | 3 | **SAFE** | 4 | 3 hops downstream of orders | urn:li:corpuser:b2fd91.marty@example.com, urn:li:corpuser:b2fd91.EMP006, urn:li:corpGroup:b2fd91.ORG_DATA_PLATFORM, urn:li:corpuser:b2fd91.alex@example.com |
+| ORDER_DETAILS | dataset | 3 | **SAFE** | 4 | 3 hops downstream of orders | urn:li:corpuser:b2fd91.kirk@example.com |
+| Order Details | dataset | 4 | **SAFE** | 1 | 4 hops downstream of orders | urn:li:corpGroup:b2fd91.ORG_DATA_PLATFORM, urn:li:corpGroup:b2fd91.ORG_BACKEND_ENG, urn:li:corpuser:b2fd91.EMP006 |
+| Promotions | dataset | 4 | **SAFE** | 1 | 4 hops downstream of orders | urn:li:corpuser:b2fd91.brock1@example.com |
+| Order Mode | dataset | 4 | **SAFE** | 1 | 4 hops downstream of orders | urn:li:corpuser:b2fd91.brock1@example.com |
+| Orders By Day | dataset | 4 | **SAFE** | 1 | 4 hops downstream of orders | urn:li:corpuser:b2fd91.brock1@example.com |
+| Top Product Category | dataset | 4 | **SAFE** | 1 | 4 hops downstream of orders | urn:li:corpuser:b2fd91.brock1@example.com |
 
 ## Why these scores
 
