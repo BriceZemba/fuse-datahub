@@ -97,6 +97,9 @@ class Impact(BaseModel):
     score: int = 0
     reasons: list[str] = Field(default_factory=list)
     source_change: str = ""
+    # The changed asset this impact descends from. A pull request can touch several
+    # models, and each consumer must be remediated against the one that affected it.
+    from_urn: str = ""
 
 
 class Artifact(BaseModel):
@@ -116,6 +119,9 @@ class Artifact(BaseModel):
     content: str
     needs_human: bool = False
     notes: list[str] = Field(default_factory=list)
+    # Which changed asset this artifact remediates, so validation can check it against
+    # that model's schema rather than the union of every schema in the change.
+    source_urn: str = ""
 
 
 class WriteBackResult(BaseModel):

@@ -134,8 +134,22 @@ async def write_back(state: FuseState) -> dict:
     report = _report_markdown(state)
 
     breaking = [i for i in impacts if i.severity in {"BREAKING", "RISKY"}]
-    targets = breaking or impacts
     tag = TAG_PENDING if breaking else TAG_SAFE
+
+    if breaking:
+        targets = breaking
+    else:
+        # A clean run marks the asset that changed, not every asset downstream of it.
+        # Tagging thirty untouched consumers "verified safe" on every pull request
+        # carpets the catalog with noise and would get the tag ignored — and later
+        # filtered out — within a week.
+        changed = {a.urn for a in state.get("resolved", [])}
+        targets = [i for i in impacts if i.urn in changed]
+        if not targets and impacts:
+            trace.append(
+                "writeback: nothing above SAFE and no changed asset in the graph, "
+                "recording the analysis without tagging"
+            )
 
     # add_tags takes a list of entities, so the whole blast radius is one call.
     if targets:

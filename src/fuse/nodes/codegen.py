@@ -87,15 +87,21 @@ def _instruction(change: Change) -> str:
     )
 
 
-def _allowed_columns(resolved: list[ResolvedAsset], dropped: str | None) -> list[str]:
+def _allowed_columns(asset: ResolvedAsset) -> list[str]:
+    """Columns that will exist on this asset after its change.
+
+    Scoped to one asset on purpose: pooling the schemas of every changed model would
+    let a rewrite of model A reference a column that only exists on model B, and the
+    validator would wave it through.
+    """
+    dropped = asset.change.column if asset.change.kind in {"drop_column", "rename_column"} else None
     names: list[str] = []
-    for asset in resolved:
-        for field in asset.schema_fields:
-            path = field.get("fieldPath") or field.get("name") if isinstance(field, dict) else field
-            if path:
-                name = str(path).split(".")[-1]
-                if not dropped or name.lower() != dropped.lower():
-                    names.append(name)
+    for field in asset.schema_fields:
+        path = field.get("fieldPath") or field.get("name") if isinstance(field, dict) else field
+        if path:
+            name = str(path).split(".")[-1]
+            if not dropped or name.lower() != dropped.lower():
+                names.append(name)
     return sorted(set(names))
 
 
@@ -113,8 +119,8 @@ async def generate_code(state: FuseState) -> dict:
     dialect = state.get("dialect", "snowflake")
     llm = RT.llm or get_llm()
 
-    change = resolved[0].change if resolved else None
-    allowed = _allowed_columns(resolved, change.column if change else None)
+    by_urn = {asset.urn: asset for asset in resolved}
+    default_asset = resolved[0] if resolved else None
 
     # Keyed by path: some strategies produce one artifact per changed model, not one
     # per impacted asset, and writing the same file once per consumer is both wrong
@@ -126,6 +132,13 @@ async def generate_code(state: FuseState) -> dict:
         if strategy == "no_action":
             continue
 
+        # Remediate against the model that actually affected this consumer.
+        asset = by_urn.get(impact.from_urn) or default_asset
+        if asset is None:
+            continue
+        change = asset.change
+        allowed = _allowed_columns(asset)
+
         if strategy == "add_compat_view" and change:
             # One view per changed model, listing every consumer that needs it.
             path = f"models/compat/{change.model}_compat.sql"
@@ -133,6 +146,7 @@ async def generate_code(state: FuseState) -> dict:
             artifacts[path] = Artifact(
                 path=path,
                 kind="compat_view",
+                source_urn=asset.urn,
                 content=_template(
                     "compat_view.sql.j2",
                     model=change.model,
@@ -148,6 +162,7 @@ async def generate_code(state: FuseState) -> dict:
             artifacts[path] = Artifact(
                 path=path,
                 kind="backfill",
+                source_urn=asset.urn,
                 content=_template(
                     "backfill.py.j2",
                     model=change.model,
@@ -162,6 +177,7 @@ async def generate_code(state: FuseState) -> dict:
             artifacts[path] = Artifact(
                 path=path,
                 kind="dbt_test",
+                source_urn=asset.urn,
                 content=_template(
                     "schema_contract.yml.j2",
                     model=change.model,
@@ -179,6 +195,7 @@ async def generate_code(state: FuseState) -> dict:
                 artifacts[path] = Artifact(
                     path=path,
                     kind="compat_view",
+                    source_urn=asset.urn,
                     content=_template(
                         "compat_view.sql.j2",
                         model=change.model,
@@ -218,6 +235,7 @@ async def generate_code(state: FuseState) -> dict:
                 artifacts[path] = Artifact(
                     path=path,
                     kind="dbt_model",
+                    source_urn=asset.urn,
                     content=_strip_fences(body),
                 )
 

@@ -115,6 +115,7 @@ def assess_impact(state: FuseState) -> dict:
                 score=score,
                 reasons=reasons,
                 source_change=change.describe(),
+                from_urn=str(entry.get("from_urn", "")),
             )
         )
 

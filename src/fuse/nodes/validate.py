@@ -54,13 +54,19 @@ def validate(state: FuseState) -> dict:
     dialect = state.get("dialect", "snowflake")
     trace = list(state.get("trace", []))
 
-    allowed = known_columns(resolved)
-    dropped = dropped_columns(resolved)
-    retyped = retyped_columns(resolved)
+    by_urn = {asset.urn: asset for asset in resolved}
     errors: list[str] = []
     per_artifact: dict[str, list[str]] = {}
 
     for artifact in artifacts:
+        # Check against the schema of the model this artifact remediates. Falling back
+        # to the union is only for artifacts that predate source attribution; pooling
+        # schemas would accept a column that exists on a different changed model.
+        scope = [by_urn[artifact.source_urn]] if artifact.source_urn in by_urn else resolved
+        allowed = known_columns(scope)
+        dropped = dropped_columns(scope)
+        retyped = retyped_columns(scope)
+
         found: list[str] = []
         if artifact.kind in SQL_KINDS:
             found = _check_sql(artifact, allowed, dropped, retyped, dialect)
