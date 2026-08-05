@@ -36,7 +36,7 @@ def test_strip_jinja_makes_dbt_parseable():
 def test_output_columns_reads_the_final_projection():
     columns = output_columns(ORDERS_BEFORE)
     assert "discount_code" in columns
-    # sqlglot canonicalises snowflake FLOAT to DOUBLE — types are compared after
+    # sqlglot canonicalises snowflake FLOAT to DOUBLE - types are compared after
     # normalisation, so the risk engine sees a stable vocabulary.
     assert columns["order_amount"] == "DOUBLE"
 

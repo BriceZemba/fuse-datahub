@@ -1,4 +1,4 @@
-# Fuse impact report — 01-drop-column
+# Fuse impact report - 01-drop-column
 
 **Change:** drop_column orders.promotion_id  
 **Max severity:** BREAKING  
@@ -9,21 +9,21 @@
 | order_details | dataset | 1 | **BREAKING** | 60 | schema carries a field named `promotion_id` | urn:li:corpGroup:b2fd91.1e0398a3-113f-475e-b6fc-32ab72a634d2, urn:li:corpGroup:b2fd91.ORG_DATA_PLATFORM, urn:li:corpuser:b2fd91.EMP006, urn:li:corpuser:b2fd91.brock1@example.com, urn:li:corpuser:b2fd91.bryan@example.com, urn:li:corpuser:b2fd91.jonny1@example.com, urn:li:corpuser:b2fd91.jonny2@example.com, urn:li:corpuser:b2fd91.kirk@example.com, urn:li:corpuser:b2fd91.marty@example.com, urn:li:corpuser:b2fd91.sam@example.com |
 | ORDER_DETAILS | dataset | 2 | **RISKY** | 32 | schema carries a field named `promotion_id` | urn:li:corpGroup:b2fd91.1e0398a3-113f-475e-b6fc-32ab72a634d2, urn:li:corpuser:b2fd91.brock1@example.com, urn:li:corpuser:b2fd91.jonny1@example.com |
 | datahub_order_entries | dashboard | 4 | **SAFE** | 11 | 4 hops downstream of orders | urn:li:corpuser:b2fd91.sam@example.com, urn:li:corpuser:b2fd91.michael@example.com, urn:li:corpuser:b2fd91.patrick1@example.com, urn:li:corpuser:b2fd91.alex@example.com |
-| Popular Products | chart | 5 | **SAFE** | 11 | 5 hops downstream of orders | — |
-| Promotions | chart | 5 | **SAFE** | 11 | 5 hops downstream of orders | — |
-| Order Mode | chart | 5 | **SAFE** | 11 | 5 hops downstream of orders | — |
-| Order Entry Dashboard | dashboard | 6 | **SAFE** | 10 | 6 hops downstream of orders | — |
-| order_history | dataset | 3 | **SAFE** | 9 | 3 hops downstream of orders | — |
-| ORDER_HISTORY | dataset | 3 | **SAFE** | 9 | 3 hops downstream of orders | — |
-| Customer Analytics Measures | dataset | 3 | **SAFE** | 9 | 3 hops downstream of orders | — |
-| Essential KPI Measures | dataset | 3 | **SAFE** | 9 | 3 hops downstream of orders | — |
-| Geographic Measures | dataset | 3 | **SAFE** | 9 | 3 hops downstream of orders | — |
-| Product Perfromance Measures | dataset | 3 | **SAFE** | 9 | 3 hops downstream of orders | — |
-| Time Inteligence Measures | dataset | 3 | **SAFE** | 9 | 3 hops downstream of orders | — |
-| Custom SQL Query | dataset | 3 | **SAFE** | 9 | 3 hops downstream of orders | — |
-| Custom SQL Query | dataset | 3 | **SAFE** | 9 | 3 hops downstream of orders | — |
-| Custom SQL Query | dataset | 3 | **SAFE** | 9 | 3 hops downstream of orders | — |
-| Custom SQL Query | dataset | 3 | **SAFE** | 9 | 3 hops downstream of orders | — |
+| Popular Products | chart | 5 | **SAFE** | 11 | 5 hops downstream of orders | - |
+| Promotions | chart | 5 | **SAFE** | 11 | 5 hops downstream of orders | - |
+| Order Mode | chart | 5 | **SAFE** | 11 | 5 hops downstream of orders | - |
+| Order Entry Dashboard | dashboard | 6 | **SAFE** | 10 | 6 hops downstream of orders | - |
+| order_history | dataset | 3 | **SAFE** | 9 | 3 hops downstream of orders | - |
+| ORDER_HISTORY | dataset | 3 | **SAFE** | 9 | 3 hops downstream of orders | - |
+| Customer Analytics Measures | dataset | 3 | **SAFE** | 9 | 3 hops downstream of orders | - |
+| Essential KPI Measures | dataset | 3 | **SAFE** | 9 | 3 hops downstream of orders | - |
+| Geographic Measures | dataset | 3 | **SAFE** | 9 | 3 hops downstream of orders | - |
+| Product Perfromance Measures | dataset | 3 | **SAFE** | 9 | 3 hops downstream of orders | - |
+| Time Inteligence Measures | dataset | 3 | **SAFE** | 9 | 3 hops downstream of orders | - |
+| Custom SQL Query | dataset | 3 | **SAFE** | 9 | 3 hops downstream of orders | - |
+| Custom SQL Query | dataset | 3 | **SAFE** | 9 | 3 hops downstream of orders | - |
+| Custom SQL Query | dataset | 3 | **SAFE** | 9 | 3 hops downstream of orders | - |
+| Custom SQL Query | dataset | 3 | **SAFE** | 9 | 3 hops downstream of orders | - |
 | Orders By Month | chart | 5 | **SAFE** | 6 | 5 hops downstream of orders | urn:li:corpuser:b2fd91.brock1@example.com |
 | Popular Products Categories | chart | 5 | **SAFE** | 6 | 5 hops downstream of orders | urn:li:corpuser:b2fd91.brock1@example.com |
 | Promotions | chart | 5 | **SAFE** | 6 | 5 hops downstream of orders | urn:li:corpuser:b2fd91.brock1@example.com |

@@ -74,7 +74,7 @@ def _impact_table(state: FuseState) -> Table:
             str(impact.hops),
             f"[{SEVERITY_STYLE[impact.severity]}]{impact.severity}[/]",
             str(impact.score),
-            "; ".join(impact.evidence) or "—",
+            "; ".join(impact.evidence) or "-",
         )
     return table
 
@@ -142,11 +142,11 @@ def freeze(
     """Run a scenario and freeze the whole thing into examples/ for judging.
 
     Captures the input diff, a copy of the repo, every recorded DataHub response, the
-    generated artifacts and the trace — so `fuse replay` reproduces it with no DataHub,
+    generated artifacts and the trace - so `fuse replay` reproduces it with no DataHub,
     no Docker and no API key.
     """
     # Build in a staging directory and swap it in only once the run has succeeded.
-    # Wiping the target first means any failure — a stopped DataHub, a missing key —
+    # Wiping the target first means any failure - a stopped DataHub, a missing key -
     # destroys a good recorded example and leaves a half-written husk behind.
     final = Path("examples") / (name or scenario.stem)
     folder = final.with_name(final.name + ".staging")
@@ -208,7 +208,7 @@ def freeze(
     if final.exists():
         shutil.rmtree(final)
     folder.rename(final)
-    console.print(f"\n[green]Frozen to {final}[/] — verify with: fuse replay {final}")
+    console.print(f"\n[green]Frozen to {final}[/] - verify with: fuse replay {final}")
 
 
 def _example_readme(name: str, state: FuseState) -> str:
@@ -218,7 +218,7 @@ def _example_readme(name: str, state: FuseState) -> str:
         f"# {name}",
         "",
         f"**Change:** {impacts[0].source_change if impacts else 'n/a'}  ",
-        f"**Verdict:** {state.get('max_severity', 'SAFE')} — "
+        f"**Verdict:** {state.get('max_severity', 'SAFE')} - "
         f"{len(actionable)} of {len(impacts)} downstream assets need attention",
         "",
         "```bash",
@@ -232,7 +232,7 @@ def _example_readme(name: str, state: FuseState) -> str:
         lines.append(
             f"| `{impact.name}` | {impact.entity_type} | {impact.hops} | "
             f"**{impact.severity}** | {impact.score} | "
-            f"{'; '.join(impact.evidence) or '—'} |"
+            f"{'; '.join(impact.evidence) or '-'} |"
         )
     lines += [
         "",
@@ -261,7 +261,7 @@ def revert(
     """Undo what a run wrote to DataHub.
 
     Reads the run's `writeback.json` and removes exactly the tags and structured
-    properties that run added — not every asset carrying a Fuse tag, which would undo
+    properties that run added - not every asset carrying a Fuse tag, which would undo
     other people's runs too. The saved impact document is left in place: it is a record
     of what was analysed, and deleting history is not a rollback.
     """
@@ -274,7 +274,7 @@ def revert(
     tagged = record.get("tagged") or []
     properties = record.get("properties_set") or []
     if record.get("dry_run"):
-        console.print("[yellow]That run was a dry run — nothing was written.[/]")
+        console.print("[yellow]That run was a dry run - nothing was written.[/]")
         raise typer.Exit()
     if not tagged and not properties:
         console.print("Nothing to revert: the run wrote no tags or properties.")
@@ -321,7 +321,7 @@ def doctor() -> None:
     provider = settings.llm_provider
     console.print(
         f"LLM provider   : {provider} "
-        f"({'available' if llm_available() else 'not configured — template fallback'})"
+        f"({'available' if llm_available() else 'not configured - template fallback'})"
     )
     if provider != "none":
         # Say which key is missing rather than just "not configured": a provider set
@@ -359,7 +359,7 @@ def doctor() -> None:
                 console.print(f"[red]Missing read tools: {', '.join(sorted(missing))}[/]")
             if "add_tags" not in dh.available:
                 console.print(
-                    "[yellow]Mutation tools absent — set TOOLS_IS_MUTATION_ENABLED=true[/]"
+                    "[yellow]Mutation tools absent - set TOOLS_IS_MUTATION_ENABLED=true[/]"
                 )
             else:
                 console.print("Write-back     : available")
@@ -429,7 +429,7 @@ def spike(
                 )
 
                 # get_lineage does not traverse MLFeature.sources, so check the ML
-                # aspects directly — this is the path Fuse actually uses.
+                # aspects directly - this is the path Fuse actually uses.
                 via_graphql, gql_error = await ml_graph._urns_via_graphql()
                 console.print(f"\nML URNs via GraphQL by type: [bold]{len(via_graphql)}[/]")
                 if gql_error:
@@ -489,7 +489,7 @@ def spike(
                 console.print(
                     "[yellow]No URN parsed. Either the catalog is empty (re-run "
                     "`datahub datapack load showcase-ecommerce`) or the response is text "
-                    "rather than JSON — the raw dump above tells us which.[/]"
+                    "rather than JSON - the raw dump above tells us which.[/]"
                 )
                 return
 
@@ -601,7 +601,7 @@ def models(
 ) -> None:
     """List OpenRouter models, cheapest first.
 
-    The free tier's `:free` ids come and go — models are delisted with no notice — so
+    The free tier's `:free` ids come and go - models are delisted with no notice - so
     rather than trusting a hardcoded default, ask what is actually available today and
     set FUSE_LLM_MODEL from the result.
     """

@@ -83,7 +83,7 @@ class FailingLLM:
 
 
 async def test_a_rate_limit_degrades_instead_of_killing_the_run(runtime):
-    """Free tiers run out. Losing the entire analysis to that would be absurd — the
+    """Free tiers run out. Losing the entire analysis to that would be absurd - the
     caller falls back to templates and the trace says what happened."""
     runtime.llm = FailingLLM()
     assert await runtime.ask_llm("codegen", "prompt") is None
@@ -98,7 +98,7 @@ async def test_a_failed_call_is_not_recorded(runtime, tmp_path):
 
 
 class FlakyLLM:
-    """Fails with a busy-provider error, then succeeds — what actually happened."""
+    """Fails with a busy-provider error, then succeeds - what actually happened."""
 
     model = "flaky-model"
 

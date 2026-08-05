@@ -1,4 +1,4 @@
-"""Node 1 — turn a diff into structured schema changes. Fully deterministic.
+"""Node 1 - turn a diff into structured schema changes. Fully deterministic.
 
 Parsing is done with sqlglot against the projected output columns of the model
 before and after the change, not with regex over the diff text: a column removed
@@ -69,7 +69,7 @@ def selects_star(sql: str, dialect: str = "snowflake") -> bool:
     """True when the projection contains a star.
 
     A star hides the real column list, so a column missing from the enumerated
-    projection has not necessarily been removed — it may simply be covered by the star.
+    projection has not necessarily been removed - it may simply be covered by the star.
     Reporting drops in that case invents a breaking change out of a widening one.
     """
     select = _final_select(sql, dialect)
@@ -80,7 +80,7 @@ def selects_star(sql: str, dialect: str = "snowflake") -> bool:
 
 
 def source_expression(sql: str, column: str, dialect: str = "snowflake") -> str | None:
-    """The expression behind an output column, alias stripped — used to spot renames."""
+    """The expression behind an output column, alias stripped - used to spot renames."""
     parsed = sqlglot.parse_one(strip_jinja(sql), read=dialect)
     select = parsed if isinstance(parsed, exp.Select) else parsed.find(exp.Select)
     if select is None:

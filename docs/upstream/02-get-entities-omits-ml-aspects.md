@@ -1,4 +1,4 @@
-# Issue draft — `get_entities` returns no ML aspects
+# Issue draft - `get_entities` returns no ML aspects
 
 **Repository:** `acryldata/mcp-server-datahub`
 **Type:** bug / gap
@@ -37,7 +37,7 @@
 Missing: `MLFeatureProperties.sources`, `MLFeatureTableProperties.mlFeatures`,
 `MLModelProperties.mlFeatures`, `.deployments`, `.groups`.
 
-The aspects are intact in GMS — `datahub get --urn ...` returns all of them, and
+The aspects are intact in GMS - `datahub get --urn ...` returns all of them, and
 `DataHubGraph.get_aspect(urn, MLModelPropertiesClass)` reads them fine.
 
 ### Expected
@@ -49,7 +49,7 @@ datasets (`ownership`, `glossaryTerms`, `properties`).
 
 Those fields *are* the ML graph. Without them an agent can list ML entities but cannot
 tell which dataset a feature is derived from, which features a model consumes, or where
-a model is deployed — so it cannot answer "does this schema change affect a model in
+a model is deployed - so it cannot answer "does this schema change affect a model in
 production?", which is the main reason to ask a catalog about ML at all.
 
 Combined with `get_lineage` not traversing `MLFeature.sources`, there is currently **no

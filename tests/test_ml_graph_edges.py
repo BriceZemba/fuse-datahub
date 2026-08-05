@@ -45,7 +45,7 @@ def test_a_table_referencing_a_deleted_feature_is_ignored():
 
 def test_a_model_deployment_absent_from_the_catalog_is_still_reported():
     """The deployment is what serves traffic. If a model names one, report it even when
-    the search index never returned it — which is exactly what DataHub does."""
+    the search index never returned it - which is exactly what DataHub does."""
     catalog = [
         {"urn": FEATURE, "properties": {"sources": [DATASET]}},
         {"urn": MODEL, "properties": {"mlFeatures": [FEATURE], "deployments": [DEPLOYMENT]}},

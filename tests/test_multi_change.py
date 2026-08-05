@@ -1,7 +1,7 @@
 """A pull request usually touches more than one model.
 
 Before this was fixed, every artifact was generated against `resolved[0]` and validated
-against the union of every changed model's schema — so a rewrite of one model could
+against the union of every changed model's schema - so a rewrite of one model could
 reference a column that only exists on another, and nothing complained.
 """
 
@@ -62,7 +62,7 @@ def test_each_artifact_is_checked_against_its_own_model():
 
 
 def test_the_right_column_is_treated_as_dropped_per_model():
-    """`credit_limit` is dropped from customers, not from orders — an orders artifact
+    """`credit_limit` is dropped from customers, not from orders - an orders artifact
     that mentions it should fail on the unknown column, not pass by coincidence."""
     artifact = Artifact(
         path="models/z.sql",

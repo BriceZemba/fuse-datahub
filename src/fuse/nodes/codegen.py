@@ -1,4 +1,4 @@
-"""Node 6 — generate the remediation artifacts.
+"""Node 6 - generate the remediation artifacts.
 
 Two hard rules:
   1. The prompt always carries the *real* schema from DataHub, never a guess.
@@ -54,7 +54,7 @@ INSTRUCTIONS: dict[str, str] = {
         "**Remove `{column}` from the output entirely.** Do not keep it as "
         "`NULL as {column}`, an empty string, a zero, or any other placeholder. A "
         "column filled with nulls breaks every consumer silently and no test catches "
-        "it — preserving the output shape on purpose is a compatibility view, decided "
+        "it - preserving the output shape on purpose is a compatibility view, decided "
         "elsewhere, not something this rewrite should improvise."
     ),
     "rename_column": (
@@ -63,7 +63,7 @@ INSTRUCTIONS: dict[str, str] = {
     ),
     "retype_column": (
         "`{column}` changed type upstream from {from_type} to {to_type}. **Keep the "
-        "column** — do not drop it — and **do not cast it back to {from_type}**. The "
+        "column** - do not drop it - and **do not cast it back to {from_type}**. The "
         "upstream value is already {to_type}; casting back restores nothing and only "
         "hides that the type changed, so every consumer keeps reading a silently "
         "altered value. Let the new type flow through, and adjust any aggregation "
@@ -71,7 +71,7 @@ INSTRUCTIONS: dict[str, str] = {
     ),
     "drop_model": (
         "The upstream model is being removed. Point this consumer at the surviving "
-        "source of the same data, or fail loudly — do not silently return nothing."
+        "source of the same data, or fail loudly - do not silently return nothing."
     ),
 }
 DEFAULT_INSTRUCTION = (
@@ -97,7 +97,7 @@ def _allowed_columns(asset: ResolvedAsset, *, exclude_changed: bool = False) -> 
     let a rewrite of model A reference a column that only exists on model B, and the
     validator would wave it through.
 
-    `exclude_changed` drops the changed column whatever the change was — the
+    `exclude_changed` drops the changed column whatever the change was - the
     compatibility view re-adds it itself, and listing it twice produces SQL with a
     duplicate output column.
     """
@@ -305,7 +305,7 @@ def _consumers_for(
 ) -> tuple[list[str], int]:
     """(names, remaining) of the assets a shared artifact is generated for.
 
-    Ordered by severity and excluding the entity that *is* the changed column — listing
+    Ordered by severity and excluding the entity that *is* the changed column - listing
     `credit_limit` as a consumer of `credit_limit` reads like a bug in the output.
     """
     names: list[str] = []
@@ -323,7 +323,7 @@ def _consumer_sql(state: FuseState, impact: Impact) -> str:
     """The SQL that defines an impacted consumer, so it can be rewritten.
 
     The repo comes first: in a real pull request the downstream models are right there,
-    and a catalog's query history is often empty — the showcase datapack has none at
+    and a catalog's query history is often empty - the showcase datapack has none at
     all. DataHub's recorded queries are the fallback for consumers that live outside
     this repo.
     """

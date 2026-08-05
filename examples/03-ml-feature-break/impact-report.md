@@ -1,4 +1,4 @@
-# Fuse impact report — 03-ml-feature-break
+# Fuse impact report - 03-ml-feature-break
 
 **Change:** drop_column customers.credit_limit  
 **Max severity:** BREAKING  
@@ -6,25 +6,25 @@
 
 | Asset | Type | Hops | Severity | Score | Evidence | Owners |
 |---|---|---|---|---|---|---|
-| credit_limit | mlFeature | 1 | **BREAKING** | 90 | built on customers.credit_limit | — |
-| customer_churn_model | mlModel | 2 | **BREAKING** | 67 | built on customers.credit_limit | — |
-| prod-retention-service | mlModelDeployment | 3 | **BREAKING** | 64 | built on customers.credit_limit, not returned by lineage | — |
-| customer_churn_features | mlFeatureTable | 2 | **BREAKING** | 62 | built on customers.credit_limit, not returned by lineage | — |
-| country_id | mlFeature | 1 | **RISKY** | 55 | derived from customers but not from `credit_limit` | — |
-| customer_class | mlFeature | 1 | **RISKY** | 55 | derived from customers but not from `credit_limit` | — |
-| customer_since | mlFeature | 1 | **RISKY** | 55 | derived from customers but not from `credit_limit` | — |
-| customer_churn_models | mlModelGroup | 3 | **RISKY** | 44 | built on customers.credit_limit | — |
+| credit_limit | mlFeature | 1 | **BREAKING** | 90 | built on customers.credit_limit | - |
+| customer_churn_model | mlModel | 2 | **BREAKING** | 67 | built on customers.credit_limit | - |
+| prod-retention-service | mlModelDeployment | 3 | **BREAKING** | 64 | built on customers.credit_limit, not returned by lineage | - |
+| customer_churn_features | mlFeatureTable | 2 | **BREAKING** | 62 | built on customers.credit_limit, not returned by lineage | - |
+| country_id | mlFeature | 1 | **RISKY** | 55 | derived from customers but not from `credit_limit` | - |
+| customer_class | mlFeature | 1 | **RISKY** | 55 | derived from customers but not from `credit_limit` | - |
+| customer_since | mlFeature | 1 | **RISKY** | 55 | derived from customers but not from `credit_limit` | - |
+| customer_churn_models | mlModelGroup | 3 | **RISKY** | 44 | built on customers.credit_limit | - |
 | order_details | dataset | 1 | **RISKY** | 35 | reads from customers; no column-level proof either way | urn:li:corpGroup:b2fd91.1e0398a3-113f-475e-b6fc-32ab72a634d2, urn:li:corpGroup:b2fd91.ORG_DATA_PLATFORM, urn:li:corpuser:b2fd91.EMP006, urn:li:corpuser:b2fd91.brock1@example.com, urn:li:corpuser:b2fd91.bryan@example.com, urn:li:corpuser:b2fd91.jonny1@example.com, urn:li:corpuser:b2fd91.jonny2@example.com, urn:li:corpuser:b2fd91.kirk@example.com, urn:li:corpuser:b2fd91.marty@example.com, urn:li:corpuser:b2fd91.sam@example.com |
 | datahub_order_entries | dashboard | 4 | **SAFE** | 11 | 4 hops downstream of customers | urn:li:corpuser:b2fd91.sam@example.com, urn:li:corpuser:b2fd91.michael@example.com, urn:li:corpuser:b2fd91.patrick1@example.com, urn:li:corpuser:b2fd91.alex@example.com |
-| Order Entry Dashboard | dashboard | 6 | **SAFE** | 10 | 6 hops downstream of customers | — |
-| order_history | dataset | 3 | **SAFE** | 9 | 3 hops downstream of customers | — |
-| ORDER_HISTORY | dataset | 3 | **SAFE** | 9 | 3 hops downstream of customers | — |
-| Customer Analytics Measures | dataset | 3 | **SAFE** | 9 | 3 hops downstream of customers | — |
-| Essential KPI Measures | dataset | 3 | **SAFE** | 9 | 3 hops downstream of customers | — |
-| Geographic Measures | dataset | 3 | **SAFE** | 9 | 3 hops downstream of customers | — |
-| Product Perfromance Measures | dataset | 3 | **SAFE** | 9 | 3 hops downstream of customers | — |
-| Time Inteligence Measures | dataset | 3 | **SAFE** | 9 | 3 hops downstream of customers | — |
-| Custom SQL Query | dataset | 3 | **SAFE** | 9 | 3 hops downstream of customers | — |
+| Order Entry Dashboard | dashboard | 6 | **SAFE** | 10 | 6 hops downstream of customers | - |
+| order_history | dataset | 3 | **SAFE** | 9 | 3 hops downstream of customers | - |
+| ORDER_HISTORY | dataset | 3 | **SAFE** | 9 | 3 hops downstream of customers | - |
+| Customer Analytics Measures | dataset | 3 | **SAFE** | 9 | 3 hops downstream of customers | - |
+| Essential KPI Measures | dataset | 3 | **SAFE** | 9 | 3 hops downstream of customers | - |
+| Geographic Measures | dataset | 3 | **SAFE** | 9 | 3 hops downstream of customers | - |
+| Product Perfromance Measures | dataset | 3 | **SAFE** | 9 | 3 hops downstream of customers | - |
+| Time Inteligence Measures | dataset | 3 | **SAFE** | 9 | 3 hops downstream of customers | - |
+| Custom SQL Query | dataset | 3 | **SAFE** | 9 | 3 hops downstream of customers | - |
 | ORDER_DETAILS | dataset | 2 | **SAFE** | 7 | 2 hops downstream of customers | urn:li:corpGroup:b2fd91.1e0398a3-113f-475e-b6fc-32ab72a634d2, urn:li:corpuser:b2fd91.brock1@example.com, urn:li:corpuser:b2fd91.jonny1@example.com |
 | Orders By Month | chart | 5 | **SAFE** | 6 | 5 hops downstream of customers | urn:li:corpuser:b2fd91.brock1@example.com |
 | Popular Products Categories | chart | 5 | **SAFE** | 6 | 5 hops downstream of customers | urn:li:corpuser:b2fd91.brock1@example.com |

@@ -9,7 +9,7 @@ fuse replay examples/01-drop-column
 ```
 
 Every column named below is a real column of the `showcase-ecommerce` catalog, not an
-invented one — the demo dbt project mirrors `order_entry.orders` and
+invented one - the demo dbt project mirrors `order_entry.orders` and
 `order_entry.customers`, so a local diff lands on the actual DataHub graph.
 
 | Scenario | Input | Why it matters |

@@ -1,4 +1,4 @@
-# ARCHITECTURE — Fuse
+# ARCHITECTURE - Fuse
 
 Precise contracts for every component. Written to be implementable without further design decisions.
 
@@ -50,7 +50,7 @@ class Impact(BaseModel):
     tier: str | None             # from tags/glossary, e.g. Tier1
     severity: Severity
     score: int                   # 0..100
-    reasons: list[str]           # one line per contributing rule — fully explainable
+    reasons: list[str]           # one line per contributing rule - fully explainable
 
 class Artifact(BaseModel):
     path: str                    # relative path to write in the PR
@@ -113,25 +113,25 @@ app = g.compile(checkpointer=MemorySaver(),
 
 ## 4. Node contracts
 
-### 4.1 `parse_change` — deterministic
+### 4.1 `parse_change` - deterministic
 **In:** `repo_path`, `diff` (from `git diff`, `--staged`, or the Action's PR diff)
 **Does:** For each changed `.sql` file, parse the before/after with `sqlglot` (dialect from `dbt_project.yml` / `--dialect`). Diff the projected output columns and their inferred types. Also handle `.yml` contract changes and deleted models. Regex is a fallback only, never the primary path.
 **Out:** `changes: list[Change]`
 **Test:** three scenario patches produce exactly the expected `Change` objects.
 
-### 4.2 `resolve` — MCP `search`, `list_schema_fields`
+### 4.2 `resolve` - MCP `search`, `list_schema_fields`
 **Does:** map each changed model to a DataHub URN.
 1. Try exact-name search scoped by platform (`search` with `/q` filters).
 2. Rank candidates; if the top-2 gap is < 0.15, fetch `list_schema_fields` for each and score by column-set overlap with the parsed model.
 3. Only if still ambiguous, ask the LLM to pick, with the candidate schemas in the prompt. Record `method` so the report can say *how* it resolved.
 **Out:** `resolved`, plus a warning artifact when `confidence < 0.6`.
 
-### 4.3 `lineage` — MCP `get_lineage`, `get_entities`, `get_dataset_queries`
-**Does:** downstream traversal from each resolved URN, N hops (default 3, `--hops`, passed as `max_hops`). Collect datasets, charts, dashboards, dataJobs **and ML entities** (`mlFeature`, `mlFeatureTable`, `mlModel`, `mlModelGroup`, deployments). When a column changed, the call is **column-scoped** — `get_lineage` takes `column` natively, so DataHub returns what depends on that field rather than everything downstream of the table; an empty column-scoped result falls back to table-level and records that in the trace. Owners, tags and tier come back on the lineage results themselves, with `get_entities` filling the gaps. `get_dataset_queries` supplies SQL evidence where the instance has query history.
+### 4.3 `lineage` - MCP `get_lineage`, `get_entities`, `get_dataset_queries`
+**Does:** downstream traversal from each resolved URN, N hops (default 3, `--hops`, passed as `max_hops`). Collect datasets, charts, dashboards, dataJobs **and ML entities** (`mlFeature`, `mlFeatureTable`, `mlModel`, `mlModelGroup`, deployments). When a column changed, the call is **column-scoped** - `get_lineage` takes `column` natively, so DataHub returns what depends on that field rather than everything downstream of the table; an empty column-scoped result falls back to table-level and records that in the trace. Owners, tags and tier come back on the lineage results themselves, with `get_entities` filling the gaps. `get_dataset_queries` supplies SQL evidence where the instance has query history.
 **Note:** an earlier design carried a `POST /api/graphql` fallback for fine-grained lineage. The Day-2 spike showed the MCP tool covers it, so that module was deleted rather than kept as dead weight.
 **Out:** a lineage graph in state + every response written to `fixtures/`.
 
-### 4.4 `impact` — deterministic risk engine
+### 4.4 `impact` - deterministic risk engine
 For each downstream node compute `score` from `risk/rules.yaml`:
 
 ```yaml
@@ -163,28 +163,28 @@ thresholds:
 
 Every applied rule appends a human-readable line to `Impact.reasons`. **`max_severity` drives routing and the interrupt.**
 
-### 4.5 `plan` — LLM
+### 4.5 `plan` - LLM
 Given the change, the impacted set and their evidence, choose one strategy per impacted asset:
 `rewrite_sql` · `add_compat_view` · `backfill` · `add_contract_test` · `no_action`.
 
 The vocabulary is exactly what `codegen` can produce. An earlier `deprecate_with_shim` was removed because nothing generated it, so any asset the model assigned it to silently received no remediation at all.
 Output is a strict JSON object validated by pydantic; a parse failure retries once, then falls back to a rule-based default map.
 
-### 4.6 `codegen` — LLM + Jinja, schema-grounded
+### 4.6 `codegen` - LLM + Jinja, schema-grounded
 Prompt carries: the diff hunk, the **real** schema of source and target from `list_schema_fields`, the existing downstream SQL, and the chosen strategy. Deterministic scaffolding (file headers, dbt config blocks, backfill boilerplate, `MIGRATION.md` skeleton) comes from Jinja templates so the LLM only writes the part that needs judgment.
 
 Emits: patched downstream dbt models · `compat_view.sql` (old column preserved as a view for a deprecation window) · `backfill_<model>.py` or `.sql` · Airflow DAG patch · dbt `schema.yml` tests pinning the new contract · `MIGRATION.md` · `PR_BODY.md`.
 
-### 4.7 `validate` — deterministic self-check (the technical centrepiece)
-1. `sqlglot.parse` every generated SQL — syntax must be valid in the target dialect.
+### 4.7 `validate` - deterministic self-check (the technical centrepiece)
+1. `sqlglot.parse` every generated SQL - syntax must be valid in the target dialect.
 2. Extract every referenced `table.column`; assert each exists in the schema DataHub returned. **Any unknown identifier is a hard failure.**
 3. Assert generated code does not reintroduce the dropped column against the new schema.
 4. `dbt parse` if the binary is available (skipped gracefully otherwise).
 5. Python artifacts: `compile()` check.
 
-Failures become `validation_errors` and route back to `codegen` with the errors appended to the prompt. Max 2 retries, then the artifact ships flagged `needs-human` rather than silently broken. **Log the retry count — "the agent caught its own hallucination and fixed it" is the best 15 seconds of the video.**
+Failures become `validation_errors` and route back to `codegen` with the errors appended to the prompt. Max 2 retries, then the artifact ships flagged `needs-human` rather than silently broken. **Log the retry count - "the agent caught its own hallucination and fixed it" is the best 15 seconds of the video.**
 
-### 4.8 `writeback` — MCP mutations + Python SDK
+### 4.8 `writeback` - MCP mutations + Python SDK
 On every run, regardless of severity:
 - `add_tags` on impacted assets → `urn:li:tag:fuse-pending-breaking-change` (and `fuse-verified-safe` on the SAFE path)
 - `update_description` on the changed column/dataset with a deprecation note + PR link
@@ -192,9 +192,9 @@ On every run, regardless of severity:
 - `save_document`: the full impact report, so the next agent or human inherits the analysis via `search_documents` / `grep_documents`
 - Optional (verify on OSS first): emit a custom assertion result via the Python SDK for the contract test
 
-Writes are idempotent and reversible. Each run records a `writeback.json` next to its artifacts listing exactly what it touched, and `fuse revert out/<run-id>` removes those tags and structured properties — only the ones that run added, so a rollback cannot undo somebody else's run. The saved impact document is deliberately left in place: it is a record of what was analysed, and deleting history is not a rollback.
+Writes are idempotent and reversible. Each run records a `writeback.json` next to its artifacts listing exactly what it touched, and `fuse revert out/<run-id>` removes those tags and structured properties - only the ones that run added, so a rollback cannot undo somebody else's run. The saved impact document is deliberately left in place: it is a record of what was analysed, and deleting history is not a rollback.
 
-### 4.9 `pr` — branch + PR body
+### 4.9 `pr` - branch + PR body
 Creates `fuse/impact-<short-sha>`, writes artifacts, composes `PR_BODY.md`: a severity banner, the impact table (asset · type · hops · severity · evidence · owner), a "what I changed and why" section, and the DataHub links. In CI the same body is posted as a PR review comment. Local mode writes to `out/` and prints the path.
 
 ---
@@ -229,15 +229,15 @@ def get_llm(provider: str | None = None):
     """anthropic (default) | openai | ollama | none"""
 ```
 
-`none` disables `plan` and `codegen` LLM calls and uses rule-based strategy selection plus pure-template generation. Output is less elegant but the pipeline still completes — the repo is never unrunnable for a judge without keys.
+`none` disables `plan` and `codegen` LLM calls and uses rule-based strategy selection plus pure-template generation. Output is less elegant but the pipeline still completes - the repo is never unrunnable for a judge without keys.
 
 ---
 
 ## 7. Demo assets
 
-- `demo/dbt-shop/` — a small dbt project whose model names match `showcase-ecommerce` datasets, so a local diff maps onto the real catalog graph. **This is what makes the demo feel like production instead of a toy.**
-- `demo/seed_ml_lineage.py` — builds `orders → order_features (MLFeatureTable) → churn_model (MLModel, in MLModelGroup) → prod deployment` with the Python SDK (`MLModelGroup`, `MLModel`, `client.create_training_run`, `add_input_datasets_to_run`, `model.add_training_job`, `client._emit_mcps`). Scenario 03 drops a column that feeds a feature — the agent traces it all the way to a deployed model. That single trace is the Track 3 win.
-- `demo/scenarios/*.patch` — three canned diffs, applied with `git apply`, so the demo is one command and never fails live.
+- `demo/dbt-shop/` - a small dbt project whose model names match `showcase-ecommerce` datasets, so a local diff maps onto the real catalog graph. **This is what makes the demo feel like production instead of a toy.**
+- `demo/seed_ml_lineage.py` - builds `orders → order_features (MLFeatureTable) → churn_model (MLModel, in MLModelGroup) → prod deployment` with the Python SDK (`MLModelGroup`, `MLModel`, `client.create_training_run`, `add_input_datasets_to_run`, `model.add_training_job`, `client._emit_mcps`). Scenario 03 drops a column that feeds a feature - the agent traces it all the way to a deployed model. That single trace is the Track 3 win.
+- `demo/scenarios/*.patch` - three canned diffs, applied with `git apply`, so the demo is one command and never fails live.
 
 ---
 

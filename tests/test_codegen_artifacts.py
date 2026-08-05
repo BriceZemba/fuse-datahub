@@ -73,7 +73,7 @@ def test_a_retype_compat_view_holds_the_old_type(retype_compat_sql):
 
 def test_no_compat_view_emits_a_column_twice(compat_sql, retype_compat_sql):
     """The changed column is re-added by the template, so it must not also appear in
-    the column list — that produced SQL with a duplicate output column."""
+    the column list - that produced SQL with a duplicate output column."""
     for sql in (compat_sql, retype_compat_sql):
         body = sql.split("select", 1)[1]
         names = [line.strip().rstrip(",") for line in body.splitlines() if line.startswith("    ")]

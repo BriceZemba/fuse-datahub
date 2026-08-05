@@ -1,9 +1,9 @@
 # Proves the pull-request workflow end to end without needing a DataHub instance.
 #
 # The published action in fuse.yml talks to a live catalog, which cannot be reached from
-# a public runner. This exercises everything else — install from a clean checkout, parse
+# a public runner. This exercises everything else - install from a clean checkout, parse
 # a real diff, run the full pipeline against recorded fixtures, and post the impact
-# report as a PR comment — so the only untested part is the network call itself.
+# report as a PR comment - so the only untested part is the network call itself.
 name: selftest
 
 on:
@@ -31,7 +31,7 @@ jobs:
       - name: Replay the ML scenario offline
         env:
           # Rich wraps its table to the terminal width, which is 80 on a runner. Widen
-          # it so the log stays readable — the assertions below do not depend on it.
+          # it so the log stays readable - the assertions below do not depend on it.
           COLUMNS: "200"
         run: fuse replay examples/03-ml-feature-break
 

@@ -5,7 +5,7 @@ one blocked a real feature, each has a minimal reproduction, and each is written
 before being filed so the measurement travels with the report.
 
 Together they mean there is currently no path **through the MCP surface alone** from a
-dataset column to the ML model that depends on it — which is why Fuse reaches outside it
+dataset column to the ML model that depends on it - which is why Fuse reaches outside it
 for two specific things, documented in [../spike.md](../spike.md).
 
 | # | Finding | Repository | Filed |

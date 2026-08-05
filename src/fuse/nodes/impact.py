@@ -1,9 +1,9 @@
-"""Node 4 — score every downstream asset. Deterministic.
+"""Node 4 - score every downstream asset. Deterministic.
 
 Evidence is ranked, not assumed. Strongest is a consumer whose own SQL selects the
 changed column; next is a column-level lineage edge from DataHub; weakest is a plain
 table dependency. The showcase catalog carries no query history, so most real runs
-lean on the column edge — the report always says which one applied.
+lean on the column edge - the report always says which one applied.
 """
 
 from __future__ import annotations
@@ -34,7 +34,7 @@ def sql_references_column(sql: str, column: str, dialect: str = "snowflake") -> 
     broken when it is not. Two traps were live before this was tightened:
 
     - `count(*)` is not a column reference. Matching any `Star` anywhere meant an
-      aggregate — even in a subquery over a different table — counted as proof.
+      aggregate - even in a subquery over a different table - counted as proof.
     - A string literal that happens to contain the column name is not a reference.
     """
     wanted = column.lower()
@@ -97,8 +97,8 @@ def assess_impact(state: FuseState) -> dict:
         elif ml_path and not references:
             # Be precise about what lineage did and did not show. Some ML entities do
             # come back from get_lineage; the feature table, the deployment and the
-            # model group generally do not, and lineage never says which feature — and
-            # so which column — is the one that breaks.
+            # model group generally do not, and lineage never says which feature - and
+            # so which column - is the one that breaks.
             reach = "" if entry.get("in_lineage") else ", not returned by lineage"
             evidence.append(
                 f"built on {change.model}.{column}{reach}"
@@ -156,7 +156,7 @@ def assess_impact(state: FuseState) -> dict:
     worst = max_severity(impacts)
     counts = {s: sum(1 for i in impacts if i.severity == s) for s in ("BREAKING", "RISKY", "SAFE")}
     trace.append(
-        f"impact: {len(impacts)} asset(s) — "
+        f"impact: {len(impacts)} asset(s) - "
         f"{counts['BREAKING']} breaking, {counts['RISKY']} risky, {counts['SAFE']} safe"
     )
     return {"impacts": impacts, "max_severity": worst, "trace": trace}

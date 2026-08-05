@@ -77,7 +77,7 @@ def test_argument_order_does_not_change_the_key(tmp_path):
 
 
 def test_a_falsy_response_is_still_a_hit(tmp_path):
-    """An empty list is a real answer — "no downstream assets" — and must not be
+    """An empty list is a real answer - "no downstream assets" - and must not be
     mistaken for a cache miss, which in replay mode raises."""
     cache = CallCache(tmp_path)
     cache.put("get_lineage", {"urn": "x"}, [])

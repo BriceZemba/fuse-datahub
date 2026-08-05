@@ -11,13 +11,13 @@
 | Asset | Type | Hops | Severity | Score | Evidence | Owners |
 |---|---|---|---|---|---|---|
 {%- for i in actionable %}
-| `{{ i.name }}` | {{ i.entity_type }} | {{ i.hops }} | **{{ i.severity }}** | {{ i.score }} | {{ i.evidence | join('; ') if i.evidence else '—' }} | {{ i.owners | join(', ') if i.owners else '_unowned_' }} |
+| `{{ i.name }}` | {{ i.entity_type }} | {{ i.hops }} | **{{ i.severity }}** | {{ i.score }} | {{ i.evidence | join('; ') if i.evidence else '-' }} | {{ i.owners | join(', ') if i.owners else '_unowned_' }} |
 {%- endfor %}
 {%- else %}
 Nothing downstream scored above SAFE.
 {%- endif %}
 
-{% if quiet %}<details><summary>{{ quiet | length }} further asset(s) scored SAFE — listed for the record</summary>
+{% if quiet %}<details><summary>{{ quiet | length }} further asset(s) scored SAFE - listed for the record</summary>
 
 | Asset | Type | Hops | Score |
 |---|---|---|---|
@@ -33,13 +33,13 @@ Nothing downstream scored above SAFE.
 
 This change reaches machine learning assets, which fail silently rather than loudly:
 
-{% for i in ml %}- `{{ i.name }}` ({{ i.entity_type }}, {{ i.hops }} hops) — {{ i.severity }}
+{% for i in ml %}- `{{ i.name }}` ({{ i.entity_type }}, {{ i.hops }} hops) - {{ i.severity }}
 {% endfor %}
 {%- endif %}
 
 ## What Fuse changed
 
-{% for a in artifacts if a.kind != 'pr_body' %}- `{{ a.path }}` — {{ a.kind }}{% if a.needs_human %} ⚠️ **needs human review**{% endif %}{% if a.notes %} ({{ a.notes | join('; ') }}){% endif %}
+{% for a in artifacts if a.kind != 'pr_body' %}- `{{ a.path }}` - {{ a.kind }}{% if a.needs_human %} ⚠️ **needs human review**{% endif %}{% if a.notes %} ({{ a.notes | join('; ') }}){% endif %}
 {% endfor %}
 
 Every generated identifier was checked against the schema DataHub returned; anything the
@@ -47,7 +47,7 @@ catalog could not confirm was rejected and regenerated.
 
 ## Written back to DataHub
 
-{% if writeback and writeback.dry_run %}_Dry run — Fuse read DataHub but wrote nothing. Re-run without `--dry-run` to record the verdict._
+{% if writeback and writeback.dry_run %}_Dry run - Fuse read DataHub but wrote nothing. Re-run without `--dry-run` to record the verdict._
 {% elif writeback %}- Tagged: {{ writeback.tagged | length }} asset(s)
 - Structured properties set: {{ writeback.properties_set | length }} asset(s)
 - Descriptions annotated: {{ writeback.described | length }}

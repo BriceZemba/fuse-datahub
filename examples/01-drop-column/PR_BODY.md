@@ -1,4 +1,4 @@
-🔴 **BREAKING** — merging this will break downstream consumers
+🔴 **BREAKING** - merging this will break downstream consumers
 
 **Change:** drop_column orders.promotion_id
 **Blast radius:** 30 downstream asset(s) found in DataHub
@@ -12,7 +12,7 @@
 | `order_details` | dataset | 1 | **BREAKING** | 60 | schema carries a field named `promotion_id` | urn:li:corpGroup:b2fd91.1e0398a3-113f-475e-b6fc-32ab72a634d2, urn:li:corpGroup:b2fd91.ORG_DATA_PLATFORM, urn:li:corpuser:b2fd91.EMP006, urn:li:corpuser:b2fd91.brock1@example.com, urn:li:corpuser:b2fd91.bryan@example.com, urn:li:corpuser:b2fd91.jonny1@example.com, urn:li:corpuser:b2fd91.jonny2@example.com, urn:li:corpuser:b2fd91.kirk@example.com, urn:li:corpuser:b2fd91.marty@example.com, urn:li:corpuser:b2fd91.sam@example.com |
 | `ORDER_DETAILS` | dataset | 2 | **RISKY** | 32 | schema carries a field named `promotion_id` | urn:li:corpGroup:b2fd91.1e0398a3-113f-475e-b6fc-32ab72a634d2, urn:li:corpuser:b2fd91.brock1@example.com, urn:li:corpuser:b2fd91.jonny1@example.com |
 
-<details><summary>28 further asset(s) scored SAFE — listed for the record</summary>
+<details><summary>28 further asset(s) scored SAFE - listed for the record</summary>
 
 | Asset | Type | Hops | Score |
 |---|---|---|---|
@@ -51,9 +51,9 @@
 
 ## What Fuse changed
 
-- `models/order_details.sql` — dbt_model
-- `models/orders_schema.yml` — dbt_test
-- `MIGRATION.md` — migration_doc
+- `models/order_details.sql` - dbt_model
+- `models/orders_schema.yml` - dbt_test
+- `MIGRATION.md` - migration_doc
 
 
 Every generated identifier was checked against the schema DataHub returned; anything the
@@ -61,7 +61,7 @@ catalog could not confirm was rejected and regenerated.
 
 ## Written back to DataHub
 
-_Dry run — Fuse read DataHub but wrote nothing. Re-run without `--dry-run` to record the verdict._
+_Dry run - Fuse read DataHub but wrote nothing. Re-run without `--dry-run` to record the verdict._
 
 
 <details><summary>Agent trace</summary>
@@ -77,7 +77,7 @@ lineage: no query history on the first 5 dataset(s), skipped the remaining 15
 lineage: schema checked within 2 hop(s); 18 more distant asset(s) cannot reach RISKY on a schema match alone
 lineage: 30 downstream asset(s), 0 ML entit(ies), 0 with query evidence, 2 carrying the column in their schema
 timing: lineage took 27.2s
-impact: 30 asset(s) — 1 breaking, 1 risky, 28 safe
+impact: 30 asset(s) - 1 breaking, 1 risky, 28 safe
 timing: impact took 0.0s
 plan: filled 28 gap(s) from rules
 plan: 30 strategy decision(s)
@@ -86,7 +86,7 @@ codegen: 3 artifact(s) (attempt 1)
 timing: codegen took 8.5s
 validate: 3 artifact(s) passed
 timing: validate took 0.0s
-writeback: dry run — nothing was written to DataHub
+writeback: dry run - nothing was written to DataHub
 timing: writeback took 0.0s
 ```
 </details>

@@ -16,7 +16,7 @@
 {% if kind == 'retype_column' -%}
 -- The upstream value is already {{ to_type }}, so this cast cannot restore precision it
 -- has lost. It exists only to keep the old column type available during the migration
--- window — delete the view once every consumer above reads {{ to_type }} directly.
+-- window - delete the view once every consumer above reads {{ to_type }} directly.
 {%- else -%}
 -- Drop this view once none of them reference `{{ column }}`.
 {%- endif %}

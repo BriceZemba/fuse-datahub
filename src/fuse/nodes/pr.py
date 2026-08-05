@@ -1,4 +1,4 @@
-"""Node 9 — assemble what a reviewer actually sees.
+"""Node 9 - assemble what a reviewer actually sees.
 
 Writes every artifact plus a PR body under out/<run_id>/. In CI the same body is
 posted as a review comment by .github/workflows/fuse.yml.
@@ -22,9 +22,9 @@ env = Environment(
 )
 
 BANNER = {
-    "BREAKING": "🔴 **BREAKING** — merging this will break downstream consumers",
-    "RISKY": "🟠 **RISKY** — downstream consumers need attention",
-    "SAFE": "🟢 **SAFE** — no downstream consumer references the changed column",
+    "BREAKING": "🔴 **BREAKING** - merging this will break downstream consumers",
+    "RISKY": "🟠 **RISKY** - downstream consumers need attention",
+    "SAFE": "🟢 **SAFE** - no downstream consumer references the changed column",
 }
 
 

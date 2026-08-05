@@ -1,7 +1,7 @@
 # 01-drop-column
 
 **Change:** drop_column orders.promotion_id  
-**Verdict:** BREAKING — 2 of 30 downstream assets need attention
+**Verdict:** BREAKING - 2 of 30 downstream assets need attention
 
 ```bash
 fuse replay examples/01-drop-column

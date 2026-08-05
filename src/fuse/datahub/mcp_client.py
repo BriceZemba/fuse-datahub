@@ -128,7 +128,7 @@ class DataHubMCP:
     async def cached(self, name: str, args: dict[str, Any], producer: Any) -> Any:
         """Record/replay a call that does not go through an MCP tool.
 
-        Some data is only reachable outside the MCP surface — ML entity discovery via
+        Some data is only reachable outside the MCP surface - ML entity discovery via
         GraphQL, ML aspects via the typed SDK. Those still have to be captured, or
         `fuse replay` reaches for a live DataHub that a judge does not have.
         """
@@ -172,8 +172,8 @@ class DataHubMCP:
 def _coerce(raw: Any) -> Any:
     """Unwrap an MCP tool result into plain data.
 
-    The DataHub MCP server answers with content blocks — `[{"id": ..., "type": "text",
-    "text": "<json>"}]` — so the payload is a JSON *string* nested one level down.
+    The DataHub MCP server answers with content blocks - `[{"id": ..., "type": "text",
+    "text": "<json>"}]` - so the payload is a JSON *string* nested one level down.
     Reading the wrapper instead of its contents is silent failure: parsers find no
     entities and report an empty catalog, which is exactly what happened before the
     shapes were recorded (see docs/spike-raw/).

@@ -13,7 +13,7 @@ from typing import Any
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 
 # OpenRouter's free tier carries open-weight models at no cost, but the `:free` ids are
-# volatile — qwen3-coder:free was delisted in July 2026, Kimi lost its free tag in June.
+# volatile - qwen3-coder:free was delisted in July 2026, Kimi lost its free tag in June.
 # So this is a default, not a promise: run `fuse models` to see what is free today and
 # set FUSE_LLM_MODEL accordingly.
 DEFAULT_MODELS = {

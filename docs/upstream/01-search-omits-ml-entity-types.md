@@ -1,4 +1,4 @@
-# Issue draft — `search` never returns ML entity types
+# Issue draft - `search` never returns ML entity types
 
 **Repository:** `acryldata/mcp-server-datahub`
 **Type:** bug / gap
@@ -16,7 +16,7 @@
 ### What happens
 
 `search` returns datasets, schema fields, charts, dashboards, data jobs and glossary
-terms, but never ML entities — not for a keyword matching their name, and not for
+terms, but never ML entities - not for a keyword matching their name, and not for
 `query="*"`.
 
 ```python
@@ -56,7 +56,7 @@ a complete agent interface.
 
 Query `searchAcrossEntities` with an explicit `types` list, then hydrate through
 `get_entities`. See also the companion issue on `get_entities` not projecting ML
-aspects — both are needed for the workaround to be useful.
+aspects - both are needed for the workaround to be useful.
 
 ### Repro
 

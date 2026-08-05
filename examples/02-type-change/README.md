@@ -1,7 +1,7 @@
 # 02-type-change
 
 **Change:** orders.order_total retyped DOUBLE -> INT  
-**Verdict:** BREAKING — 17 of 17 downstream assets need attention
+**Verdict:** BREAKING - 17 of 17 downstream assets need attention
 
 ```bash
 fuse replay examples/02-type-change

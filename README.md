@@ -1,6 +1,6 @@
 # Fuse
 
-**The blast-radius agent for DataHub.** Fuse reads a schema change in your data repo, walks DataHub to find what actually breaks — including the ML feature and the production deployment that ordinary lineage won't show you — then writes the remediation code, opens a PR, and records the verdict back in the catalog.
+**The blast-radius agent for DataHub.** Fuse reads a schema change in your data repo, walks DataHub to find what actually breaks - including the ML feature and the production deployment that ordinary lineage won't show you - then writes the remediation code, opens a PR, and records the verdict back in the catalog.
 
 [![ci](https://github.com/BriceZemba/fuse-datahub/actions/workflows/ci.yml/badge.svg)](https://github.com/BriceZemba/fuse-datahub/actions/workflows/ci.yml)
 [![selftest](https://github.com/BriceZemba/fuse-datahub/actions/workflows/selftest.yml/badge.svg)](https://github.com/BriceZemba/fuse-datahub/actions/workflows/selftest.yml)
@@ -10,7 +10,7 @@
 
 ---
 
-## Try it in 60 seconds — no Docker, no DataHub, no API key
+## Try it in 60 seconds - no Docker, no DataHub, no API key
 
 ```bash
 pip install -e . && fuse replay examples/03-ml-feature-break
@@ -29,13 +29,13 @@ Someone drops `credit_limit` from a dbt model. Nine of 32 downstream assets need
 | `prod-retention-service` | mlModelDeployment | 3 | **BREAKING** | 64 | built on customers.credit_limit, **not returned by lineage** |
 | `customer_churn_features` | mlFeatureTable | 2 | **BREAKING** | 62 | built on customers.credit_limit, **not returned by lineage** |
 | `country_id` | mlFeature | 1 | RISKY | 55 | derived from customers but not from `credit_limit` |
-| `order_details` | dataset | 1 | RISKY | 35 | — |
+| `order_details` | dataset | 1 | RISKY | 35 | - |
 
 Then it generates a compatibility view, contract tests and a migration plan, and tags the affected assets in DataHub. Full output: [examples/03-ml-feature-break](examples/03-ml-feature-break).
 
 ## The ML problem this exists for
 
-DataHub's `get_lineage` will show you the model. It will **not** show you the deployment serving traffic, and it cannot tell you *which* feature — and therefore which column — is the one that broke. It returns the same four features whether you dropped one of them or none of them.
+DataHub's `get_lineage` will show you the model. It will **not** show you the deployment serving traffic, and it cannot tell you *which* feature - and therefore which column - is the one that broke. It returns the same four features whether you dropped one of them or none of them.
 
 Fuse reads `MLFeature.sources` directly, so it names `credit_limit` as the feature that breaks, separates it from its three siblings, and reaches the deployment. The report marks which entities came from lineage and which came only from the aspects, so you can see the difference rather than take our word for it.
 
@@ -87,7 +87,7 @@ flowchart LR
   H --> I[open PR]
 ```
 
-Judgment is the LLM's job; correctness is the code's. Parsing, traversal, scoring and validation are deterministic. Scores come from [`rules.yaml`](src/fuse/risk/rules.yaml) and every point is explained in the report — no score is ever the output of a language model.
+Judgment is the LLM's job; correctness is the code's. Parsing, traversal, scoring and validation are deterministic. Scores come from [`rules.yaml`](src/fuse/risk/rules.yaml) and every point is explained in the report - no score is ever the output of a language model.
 
 Two design choices worth calling out:
 
@@ -109,11 +109,11 @@ Full node contracts: [ARCHITECTURE.md](ARCHITECTURE.md).
 | `add_tags`, `update_description`, `add_structured_properties` | `write_back` | the catalog records the verdict |
 | `save_document` | `write_back` | the next agent inherits the analysis |
 
-The MCP server is the primary surface. Two things it doesn't cover — ML entity discovery and ML aspects — are documented in [docs/spike.md](docs/spike.md) with the measurements behind them.
+The MCP server is the primary surface. Two things it doesn't cover - ML entity discovery and ML aspects - are documented in [docs/spike.md](docs/spike.md) with the measurements behind them.
 
 ## How this differs from DataHub's built-in Skills
 
-- The catalog Skills **find and describe**; Fuse **decides and repairs** — the output is code in a PR, not an answer in a chat.
+- The catalog Skills **find and describe**; Fuse **decides and repairs** - the output is code in a PR, not an answer in a chat.
 - Lineage is an **input to code generation**: every generated identifier is grounded in the real schema and rejected if the catalog can't confirm it.
 - The loop closes: the analysis is **written back** as tags, structured properties and a document, so the graph gets smarter after each change.
 
@@ -132,10 +132,10 @@ Every column named is a real column of the `showcase-ecommerce` datapack. Nothin
 | Variable | Default | Purpose |
 |---|---|---|
 | `DATAHUB_GMS_URL` | `http://localhost:8080` | GMS endpoint (not the `:9002` UI) |
-| `DATAHUB_GMS_TOKEN` | — | personal access token; optional on a default OSS quickstart |
+| `DATAHUB_GMS_TOKEN` | - | personal access token; optional on a default OSS quickstart |
 | `TOOLS_IS_MUTATION_ENABLED` | `true` | required for write-back |
 | `FUSE_LLM_PROVIDER` | `none` | `openrouter` \| `anthropic` \| `openai` \| `ollama` \| `none` |
-| `FUSE_LLM_MODEL` | per provider | e.g. a free OpenRouter id — run `fuse models` |
+| `FUSE_LLM_MODEL` | per provider | e.g. a free OpenRouter id - run `fuse models` |
 | `FUSE_HOPS` | `3` | lineage traversal depth |
 | `FUSE_SCHEMA_PROBE_HOPS` | `2` | how far out to check schemas for the changed column |
 | `FUSE_MAX_REWRITES` | `3` | how many consumers get an LLM-written fix; the rest get a contract test |
@@ -157,7 +157,7 @@ FUSE_LLM_MODEL=z-ai/glm-4.5-air:free
 OPENROUTER_API_KEY=...
 ```
 
-`fuse models` exists because OpenRouter's `:free` ids are withdrawn without notice — `qwen3-coder:free` was delisted in July 2026 — so the right model is whatever is free when you run it, not whatever a README hardcoded.
+`fuse models` exists because OpenRouter's `:free` ids are withdrawn without notice - `qwen3-coder:free` was delisted in July 2026 - so the right model is whatever is free when you run it, not whatever a README hardcoded.
 
 ## Commands
 
@@ -204,9 +204,9 @@ pip install -e ".[dev]" && pytest -q
 Two workflows run on every pull request. `ci` runs the suite on Python 3.10–3.12.
 `selftest` installs the project from a clean checkout on a runner, replays the ML
 scenario with no DataHub and no API key, asserts the regenerated report still reaches
-`prod-retention-service`, and posts the impact table as a PR comment — so the path a
+`prod-retention-service`, and posts the impact table as a PR comment - so the path a
 judge takes is itself covered by CI.
 
 ## License
 
-Apache 2.0 — see [LICENSE](LICENSE).
+Apache 2.0 - see [LICENSE](LICENSE).

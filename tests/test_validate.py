@@ -70,7 +70,7 @@ def _retype_state(sql: str):
 
 
 def test_a_retype_may_not_delete_the_column():
-    """A type change is not permission to drop the column — that loses data nobody
+    """A type change is not permission to drop the column - that loses data nobody
     agreed to lose, and it is what the generator actually did before this guard."""
     result = validate(_retype_state("select order_id, customer_id from orders"))
     assert result["validation_errors"]
@@ -84,7 +84,7 @@ def test_a_retype_that_keeps_the_column_passes():
 
 def test_casting_back_to_the_old_type_is_rejected():
     """Upstream narrowed DOUBLE to INT: the precision is already gone. Casting back to
-    DOUBLE restores nothing and hides the change — which is what the model actually
+    DOUBLE restores nothing and hides the change - which is what the model actually
     generated before this guard existed."""
     sql = "select order_id, cast(order_amount as double) as order_amount from orders"
     errors = validate(_retype_state(sql))["validation_errors"]
@@ -110,7 +110,7 @@ def test_local_aliases_are_allowed():
 
 def test_a_config_block_with_no_query_is_rejected():
     """What a 9B model actually returned: the dbt config and nothing else. Every other
-    check asks whether the columns present are right, and there were none — so it passed."""
+    check asks whether the columns present are right, and there were none - so it passed."""
     result = validate(_state("{{ config(materialized='table') }}"))
     assert result["validation_errors"]
     assert "no query" in result["validation_errors"][0]

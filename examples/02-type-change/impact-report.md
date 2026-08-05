@@ -1,4 +1,4 @@
-# Fuse impact report — 02-type-change
+# Fuse impact report - 02-type-change
 
 **Change:** orders.order_total retyped DOUBLE -> INT  
 **Max severity:** BREAKING  
@@ -7,16 +7,16 @@
 | Asset | Type | Hops | Severity | Score | Evidence | Owners |
 |---|---|---|---|---|---|---|
 | order_details | dataset | 1 | **BREAKING** | 70 | column-level lineage edge from orders.order_total | urn:li:corpGroup:b2fd91.1e0398a3-113f-475e-b6fc-32ab72a634d2, urn:li:corpGroup:b2fd91.ORG_DATA_PLATFORM, urn:li:corpuser:b2fd91.EMP006, urn:li:corpuser:b2fd91.brock1@example.com, urn:li:corpuser:b2fd91.bryan@example.com, urn:li:corpuser:b2fd91.jonny1@example.com, urn:li:corpuser:b2fd91.jonny2@example.com, urn:li:corpuser:b2fd91.kirk@example.com, urn:li:corpuser:b2fd91.marty@example.com, urn:li:corpuser:b2fd91.sam@example.com |
-| order_history | dataset | 3 | **RISKY** | 44 | column-level lineage edge from orders.order_total | — |
-| ORDER_HISTORY | dataset | 3 | **RISKY** | 44 | column-level lineage edge from orders.order_total | — |
-| Customer Analytics Measures | dataset | 3 | **RISKY** | 44 | column-level lineage edge from orders.order_total | — |
-| Essential KPI Measures | dataset | 3 | **RISKY** | 44 | column-level lineage edge from orders.order_total | — |
-| Geographic Measures | dataset | 3 | **RISKY** | 44 | column-level lineage edge from orders.order_total | — |
-| Product Perfromance Measures | dataset | 3 | **RISKY** | 44 | column-level lineage edge from orders.order_total | — |
-| Time Inteligence Measures | dataset | 3 | **RISKY** | 44 | column-level lineage edge from orders.order_total | — |
-| Custom SQL Query | dataset | 3 | **RISKY** | 44 | column-level lineage edge from orders.order_total | — |
-| Custom SQL Query | dataset | 3 | **RISKY** | 44 | column-level lineage edge from orders.order_total | — |
-| ORDER_DETAILS_REPLICA | dataset | 3 | **RISKY** | 44 | column-level lineage edge from orders.order_total | — |
+| order_history | dataset | 3 | **RISKY** | 44 | column-level lineage edge from orders.order_total | - |
+| ORDER_HISTORY | dataset | 3 | **RISKY** | 44 | column-level lineage edge from orders.order_total | - |
+| Customer Analytics Measures | dataset | 3 | **RISKY** | 44 | column-level lineage edge from orders.order_total | - |
+| Essential KPI Measures | dataset | 3 | **RISKY** | 44 | column-level lineage edge from orders.order_total | - |
+| Geographic Measures | dataset | 3 | **RISKY** | 44 | column-level lineage edge from orders.order_total | - |
+| Product Perfromance Measures | dataset | 3 | **RISKY** | 44 | column-level lineage edge from orders.order_total | - |
+| Time Inteligence Measures | dataset | 3 | **RISKY** | 44 | column-level lineage edge from orders.order_total | - |
+| Custom SQL Query | dataset | 3 | **RISKY** | 44 | column-level lineage edge from orders.order_total | - |
+| Custom SQL Query | dataset | 3 | **RISKY** | 44 | column-level lineage edge from orders.order_total | - |
+| ORDER_DETAILS_REPLICA | dataset | 3 | **RISKY** | 44 | column-level lineage edge from orders.order_total | - |
 | ORDER_DETAILS | dataset | 2 | **RISKY** | 42 | column-level lineage edge from orders.order_total | urn:li:corpGroup:b2fd91.1e0398a3-113f-475e-b6fc-32ab72a634d2, urn:li:corpuser:b2fd91.brock1@example.com, urn:li:corpuser:b2fd91.jonny1@example.com |
 | order_details | dataset | 3 | **RISKY** | 39 | column-level lineage edge from orders.order_total | urn:li:corpuser:b2fd91.marty@example.com, urn:li:corpuser:b2fd91.EMP006, urn:li:corpGroup:b2fd91.ORG_DATA_PLATFORM, urn:li:corpuser:b2fd91.alex@example.com |
 | ORDER_DETAILS | dataset | 3 | **RISKY** | 39 | column-level lineage edge from orders.order_total | urn:li:corpuser:b2fd91.kirk@example.com |

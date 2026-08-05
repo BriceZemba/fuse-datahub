@@ -1,8 +1,8 @@
-"""Node 7 — reject anything the catalog can't confirm.
+"""Node 7 - reject anything the catalog can't confirm.
 
 This is the node that makes generated code trustworthy: every identifier in every
 generated statement must exist in the schema DataHub returned. A hallucinated column
-never reaches the PR — it comes back here as an error and the generator tries again.
+never reaches the PR - it comes back here as an error and the generator tries again.
 """
 
 from __future__ import annotations
@@ -77,19 +77,19 @@ def validate(state: FuseState) -> dict:
             errors += found
 
     if errors:
-        trace.append(f"validate: REJECTED — {len(errors)} problem(s)")
+        trace.append(f"validate: REJECTED - {len(errors)} problem(s)")
         for err in errors[:5]:
             trace.append(f"  - {err}")
     else:
         trace.append(f"validate: {len(artifacts)} artifact(s) passed")
 
-    # On the final attempt, ship flagged rather than silently broken — but flag only
+    # On the final attempt, ship flagged rather than silently broken - but flag only
     # the artifacts that actually failed, not every file in the change.
     if errors and state.get("retries", 0) >= 2:
         for artifact in artifacts:
             if artifact.path in per_artifact:
                 artifact.needs_human = True
-                artifact.notes.append("validation failed after 2 retries — needs human review")
+                artifact.notes.append("validation failed after 2 retries - needs human review")
 
     return {"validation_errors": errors, "artifacts": artifacts, "trace": trace}
 
@@ -102,13 +102,13 @@ def _check_sql(
     dialect: str,
 ) -> list[str]:
     errors: list[str] = []
-    # Generated dbt models carry Jinja — {{ config() }}, {{ ref() }} — which sqlglot
+    # Generated dbt models carry Jinja - {{ config() }}, {{ ref() }} - which sqlglot
     # cannot parse. Strip it the same way the diff parser does, so validation checks
     # the SQL rather than failing on the templating.
     stripped = strip_jinja(artifact.content)
 
     # A model that is only a config block is not a model. A smaller model returned
-    # exactly that, and it passed — because every other check asks whether the columns
+    # exactly that, and it passed - because every other check asks whether the columns
     # present are correct, and there were none. Checked before parsing, since sqlglot
     # rejects the empty string with a message that explains nothing.
     no_query = (
@@ -149,7 +149,7 @@ def _check_sql(
 
     # A rewrite must drop the column, not paper over it. `NULL as promotion_id` keeps
     # the output shape and hands every downstream consumer nulls, which no test catches
-    # — the failure this whole project exists to prevent. Preserving the shape on
+    # - the failure this whole project exists to prevent. Preserving the shape on
     # purpose is what a compatibility view is for, and that is a separate decision.
     # Applies to every generated statement: a repeated output name is invalid SQL in
     # most warehouses and ambiguous in the rest. A compatibility view that both selects
@@ -195,7 +195,7 @@ def _check_no_cast_back(
     """Reject casting a retyped column back to the type it used to be.
 
     Upstream narrowed DOUBLE to INT, so the precision is already gone. Casting back to
-    DOUBLE downstream restores nothing — it only hides that the type changed, and every
+    DOUBLE downstream restores nothing - it only hides that the type changed, and every
     consumer keeps reading a value that was quietly truncated. Propagate the new type
     and let the change be visible.
     """
@@ -211,7 +211,7 @@ def _check_no_cast_back(
         if target.split("(")[0] == was.split("(")[0]:
             errors.append(
                 f"{artifact.path}: casts '{column.name}' back to {was}, the type it had "
-                "before the change. That hides the narrowing instead of handling it — "
+                "before the change. That hides the narrowing instead of handling it - "
                 "propagate the new type, and if a wider type is genuinely required, say "
                 "so where a reviewer will see it."
             )

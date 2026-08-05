@@ -1,11 +1,11 @@
-"""Node 2 — map each changed model onto a DataHub URN.
+"""Node 2 - map each changed model onto a DataHub URN.
 
 Order of attack: exact name, then search ranking, then column-set overlap against
 `list_schema_fields`, and only then the LLM. The method used is recorded so the
 impact report can state *how* the asset was identified instead of asserting it.
 
-`search` returns every entity type — schema fields, charts, data jobs, glossary
-terms — so datasets are filtered by URN prefix before any of that begins.
+`search` returns every entity type - schema fields, charts, data jobs, glossary
+terms - so datasets are filtered by URN prefix before any of that begins.
 """
 
 from __future__ import annotations
@@ -60,7 +60,7 @@ async def _resolve_one(change: Change, model_columns: set[str]) -> ResolvedAsset
 
     if len(pool) == 1:
         # Search returns something for almost any query, so a lone candidate is not a
-        # match — it is the only thing that came back. Confirm it shares a name token or
+        # match - it is the only thing that came back. Confirm it shares a name token or
         # a column before reporting a blast radius for it, or Fuse confidently analyses
         # a different table.
         only = pool[0]
@@ -81,7 +81,7 @@ async def _resolve_one(change: Change, model_columns: set[str]) -> ResolvedAsset
 
     # Disambiguate on evidence: how much of the model's column set the candidate has.
     # Fetched concurrently, and the winner's fields are kept so hydration does not ask
-    # for the same schema a second time — every call here costs a round trip.
+    # for the same schema a second time - every call here costs a round trip.
     dh = RT.require_dh()
 
     async def schema_of(candidate: dict) -> tuple[float, dict, list[dict]]:
@@ -99,7 +99,7 @@ async def _resolve_one(change: Change, model_columns: set[str]) -> ResolvedAsset
     runner_up = scored[1][0] if len(scored) > 1 else 0.0
 
     # Refuse to guess. A candidate that shares neither a name token nor a single column
-    # with the changed model is not a weak match, it is a different table — and naming
+    # with the changed model is not a weak match, it is a different table - and naming
     # the wrong table is worse than admitting the model is unknown.
     if best[0] <= 0 and not _name_tokens(change.model) & _name_tokens(
         shapes.entity_name(best[1])
@@ -152,7 +152,7 @@ async def resolve(state: FuseState) -> dict:
         asset = await _resolve_one(change, by_model.get(change.model, set()))
         if asset is None:
             trace.append(
-                f"resolve: no confident DataHub match for {change.model} — "
+                f"resolve: no confident DataHub match for {change.model} - "
                 "skipped rather than reported against the wrong table"
             )
             continue

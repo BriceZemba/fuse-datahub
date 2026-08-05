@@ -2,7 +2,7 @@
 
 `get_lineage` walks datasets, jobs, charts and dashboards. It does **not** traverse
 `MLFeature.sources`, so a column feeding a production model is invisible to ordinary
-lineage — verified against a live DataHub 1.5.0.6, where a dataset with four features
+lineage - verified against a live DataHub 1.5.0.6, where a dataset with four features
 derived from it reported thirty downstream entities and none of them were ML.
 
 That gap is the whole point of the "silent ML breakage" problem: the dependency
@@ -127,7 +127,7 @@ def _hydrate_via_sdk(urns: list[str]) -> list[dict]:
     """Read the ML aspects with the typed SDK.
 
     The MCP `get_entities` projection returns only `urn`, `name`, `description` and
-    `relatedDocuments` for ML entities — none of the relationships. Verified on
+    `relatedDocuments` for ML entities - none of the relationships. Verified on
     DataHub 1.5.0.6; see docs/spike-raw/11-ml-entities.json. The aspects themselves are
     intact in GMS, so they are read with the same generated classes the seed emitted,
     which removes any guessing about field names.

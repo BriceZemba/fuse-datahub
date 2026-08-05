@@ -1,4 +1,4 @@
-# Issue draft — `MLMODEL_DEPLOYMENT` is not a valid `EntityType`
+# Issue draft - `MLMODEL_DEPLOYMENT` is not a valid `EntityType`
 
 **Repository:** `datahub-project/datahub`
 **Type:** bug or documentation gap
@@ -30,7 +30,7 @@ not in allowable values for enum 'EntityType'
 ```
 
 The first four types are accepted; only the deployment is rejected. The entity itself is
-real — `MLModelProperties.deployments` references it, and `datahub get` returns its
+real - `MLModelProperties.deployments` references it, and `datahub get` returns its
 `mlModelDeploymentProperties`.
 
 Note the failure mode: one invalid member fails **the entire query**, so a caller
@@ -44,7 +44,7 @@ states that deployments are not independently searchable and must be reached thr
 
 ### Why it matters
 
-The deployment is the entity that answers "is this model actually serving traffic?" —
+The deployment is the entity that answers "is this model actually serving traffic?" -
 the one that matters most when judging the blast radius of an upstream change. Reaching
 it only via a model's properties means you must already know the model.
 

@@ -1,6 +1,6 @@
 """Readers for DataHub MCP response shapes.
 
-Written against recorded responses from a live DataHub 1.5.0.6 — the raw payloads are
+Written against recorded responses from a live DataHub 1.5.0.6 - the raw payloads are
 in `docs/spike-raw/` and the tests read them directly, so if the server's shape ever
 changes the tests fail rather than the agent silently reporting an empty graph.
 
@@ -275,7 +275,7 @@ def _urn_list(entity: dict, *keys: str) -> list[str]:
 def ml_feature_sources(entity: dict) -> list[str]:
     """Datasets an MLFeature is derived from.
 
-    This is *not* a lineage edge — `get_lineage` does not traverse it — so ML impact
+    This is *not* a lineage edge - `get_lineage` does not traverse it - so ML impact
     has to be resolved by reading the aspect directly.
     """
     return _urn_list(entity, "sources")

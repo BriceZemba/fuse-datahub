@@ -1,4 +1,4 @@
-"""Node 8 — record the verdict in DataHub.
+"""Node 8 - record the verdict in DataHub.
 
 Without this step Fuse is a linter. With it, the catalog learns: the next agent that
 asks DataHub about this table finds the blast-radius score, the tag, and the full
@@ -29,7 +29,7 @@ FUSE_PROPERTY_URNS = (
 def _report_markdown(state: FuseState) -> str:
     impacts: list[Impact] = state.get("impacts", [])
     lines = [
-        f"# Fuse impact report — {state.get('run_id', 'local')}",
+        f"# Fuse impact report - {state.get('run_id', 'local')}",
         "",
         f"**Change:** {impacts[0].source_change if impacts else 'n/a'}  ",
         f"**Max severity:** {state.get('max_severity', 'SAFE')}  ",
@@ -41,7 +41,7 @@ def _report_markdown(state: FuseState) -> str:
     for i in impacts:
         lines.append(
             f"| {i.name} | {i.entity_type} | {i.hops} | **{i.severity}** | {i.score} | "
-            f"{'; '.join(i.evidence) or '—'} | {', '.join(i.owners) or '—'} |"
+            f"{'; '.join(i.evidence) or '-'} | {', '.join(i.owners) or '-'} |"
         )
     lines += ["", "## Why these scores", ""]
     for i in impacts:
@@ -86,7 +86,7 @@ def _looks_like_error(response: object) -> bool:
 async def _save_report(dh, title: str, report: str, related: list[str]) -> tuple[str | None, str]:
     """Save the impact report, narrowing the arguments if the tool rejects them.
 
-    The tool's optional parameters are the fragile part — `document_type` had a
+    The tool's optional parameters are the fragile part - `document_type` had a
     closed vocabulary that was not obvious, and `related_assets` may be equally
     picky. Losing the report entirely because of an optional field would be the
     wrong trade, so this degrades to the minimum viable call and says which
@@ -141,8 +141,8 @@ async def write_back(state: FuseState) -> dict:
     else:
         # A clean run marks the asset that changed, not every asset downstream of it.
         # Tagging thirty untouched consumers "verified safe" on every pull request
-        # carpets the catalog with noise and would get the tag ignored — and later
-        # filtered out — within a week.
+        # carpets the catalog with noise and would get the tag ignored - and later
+        # filtered out - within a week.
         changed = {a.urn for a in state.get("resolved", [])}
         targets = [i for i in impacts if i.urn in changed]
         if not targets and impacts:
@@ -203,7 +203,7 @@ async def write_back(state: FuseState) -> dict:
 
     urn, detail = await _save_report(
         dh,
-        f"Fuse impact report — {run_id}",
+        f"Fuse impact report - {run_id}",
         report,
         [i.urn for i in impacts],
     )
@@ -214,7 +214,7 @@ async def write_back(state: FuseState) -> dict:
         result.errors.append(f"save_document: {detail}")
 
     if result.dry_run:
-        trace.append("writeback: dry run — nothing was written to DataHub")
+        trace.append("writeback: dry run - nothing was written to DataHub")
     else:
         trace.append(
             f"writeback: tagged {len(result.tagged)}, described {len(result.described)}, "

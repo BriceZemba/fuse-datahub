@@ -63,7 +63,7 @@ ACTOR = "urn:li:corpuser:datahub"
 #
 # Named after real columns of `order_entry.customers` in the showcase catalog, so the
 # lineage Fuse traces is literal: drop `credit_limit` upstream and the feature that
-# reads it — and the model serving on it — are genuinely affected.
+# reads it - and the model serving on it - are genuinely affected.
 FEATURES: list[tuple[str, str, str]] = [
     ("credit_limit", "Customer credit limit; strongest single churn predictor", "CONTINUOUS"),
     ("customer_class", "Segment the customer belongs to", "NOMINAL"),
@@ -81,7 +81,7 @@ def audit() -> AuditStampClass:
 
 
 def build_mcps(upstream_dataset: str) -> list[MetadataChangeProposalWrapper]:
-    """Every aspect, in dependency order. Pure construction — nothing is emitted here."""
+    """Every aspect, in dependency order. Pure construction - nothing is emitted here."""
     feature_urns = [str(MlFeatureUrn(NAMESPACE, name)) for name, _, _ in FEATURES]
     table_urn = str(MlFeatureTableUrn(FEATURE_PLATFORM, FEATURE_TABLE))
     run_urn = str(DataProcessInstanceUrn(RUN_ID))

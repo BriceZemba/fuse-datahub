@@ -1,7 +1,7 @@
 """Graph routing, artifact paths and shape parsing under hostile input.
 
-The model name and file path both originate outside Fuse — a diff, a catalog entity, or
-a language model's output — so they are untrusted input that ends up in a filesystem
+The model name and file path both originate outside Fuse - a diff, a catalog entity, or
+a language model's output - so they are untrusted input that ends up in a filesystem
 path.
 """
 

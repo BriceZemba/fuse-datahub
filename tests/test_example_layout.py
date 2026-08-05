@@ -35,7 +35,7 @@ def test_example_has_the_expected_files(folder: Path):
 def test_generated_is_not_nested_under_a_run_id(folder: Path):
     nested = folder / "generated" / folder.name
     assert not nested.exists(), (
-        f"{folder.name}/generated/{folder.name}/ — the run id leaked into the layout"
+        f"{folder.name}/generated/{folder.name}/ - the run id leaked into the layout"
     )
 
 

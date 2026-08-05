@@ -27,7 +27,7 @@ pytestmark = pytest.mark.skipif(not RAW.exists(), reason="spike recordings not p
 
 def test_fixture_filenames_are_portable(tmp_path):
     """Fixtures are committed, and judges clone on Windows too. A key like "llm:codegen"
-    yields a path git cannot check out there — the repo fails before any code runs."""
+    yields a path git cannot check out there - the repo fails before any code runs."""
     from fuse.datahub.cache import CallCache
 
     cache = CallCache(tmp_path)

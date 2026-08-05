@@ -19,7 +19,7 @@ class ReplayMiss(RuntimeError):
 
 
 # Windows rejects : < > " | ? * in filenames, so a key like "llm:codegen" produces a
-# repository that cannot be checked out there at all — git fails with "invalid path"
+# repository that cannot be checked out there at all - git fails with "invalid path"
 # before any code runs. Fixtures are committed and judges clone on every platform, so
 # the filename has to be portable even though the key need not be.
 UNSAFE_IN_FILENAME = re.compile(r"[^A-Za-z0-9._-]")

@@ -1,7 +1,7 @@
 # 03-ml-feature-break
 
 **Change:** drop_column customers.credit_limit  
-**Verdict:** BREAKING — 9 of 32 downstream assets need attention
+**Verdict:** BREAKING - 9 of 32 downstream assets need attention
 
 ```bash
 fuse replay examples/03-ml-feature-break

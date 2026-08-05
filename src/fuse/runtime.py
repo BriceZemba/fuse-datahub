@@ -32,7 +32,7 @@ class Runtime:
         """Call the model, recording the response alongside the DataHub calls.
 
         Generation is nondeterministic, so a replay that re-ran the model would not
-        reproduce the artifacts it is meant to reproduce — and would need a network and
+        reproduce the artifacts it is meant to reproduce - and would need a network and
         an API key to do it. Recording the response makes a frozen example an honest
         reproduction of the run that produced it, LLM-authored SQL included.
 
@@ -54,7 +54,7 @@ class Runtime:
 
         if recorded is not None:
             cached_model, text = _unpack(recorded)
-            # Replay takes whatever was recorded — there is no client to ask.
+            # Replay takes whatever was recorded - there is no client to ask.
             if self.llm is None:
                 return text
             # Live, the recording is only this model's answer if it says so. Treating an
@@ -82,7 +82,7 @@ class Runtime:
                 if attempt + 1 < MAX_LLM_ATTEMPTS and _is_transient(message):
                     delay = LLM_BACKOFF_SECONDS * (2**attempt)
                     self.log.append(
-                        f"llm:{purpose}: {message[:100]} — retrying in {delay}s"
+                        f"llm:{purpose}: {message[:100]} - retrying in {delay}s"
                     )
                     await asyncio.sleep(delay)
                     continue
@@ -93,7 +93,7 @@ class Runtime:
                 # artifacts still land. The trace records what was lost and why.
                 self.llm_error = f"{exc.__class__.__name__}: {message[:160]}"
                 self.log.append(
-                    f"llm:{purpose}: {self.llm_error} — falling back to templates"
+                    f"llm:{purpose}: {self.llm_error} - falling back to templates"
                 )
                 return None
 

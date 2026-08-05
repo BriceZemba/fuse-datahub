@@ -1,4 +1,4 @@
-"""Node 5 — pick a remediation strategy per impacted asset.
+"""Node 5 - pick a remediation strategy per impacted asset.
 
 The LLM decides here because the right move genuinely depends on context (is this
 consumer worth a compatibility view, or should it just be rewritten?). Its answer is
@@ -43,7 +43,7 @@ For each asset choose exactly one strategy from:
 - add_contract_test  the consumer is fine, but pin the contract so this can't recur
 - no_action          genuinely unaffected
 
-Respond with a single JSON object and nothing else — no explanation, no reasoning, no
+Respond with a single JSON object and nothing else - no explanation, no reasoning, no
 markdown fences:
 
 {{"<urn>": "<strategy>"}}"""
@@ -53,7 +53,7 @@ def _extract_json(text: str) -> dict | None:
     """Pull a JSON object out of a model response.
 
     Open-weight models wrap answers in markdown fences, prefix them with reasoning, or
-    append a summary — and reasoning models emit whole paragraphs of it. Scanning for
+    append a summary - and reasoning models emit whole paragraphs of it. Scanning for
     balanced braces from each opening brace handles all three without assuming the
     object sits at either end of the string.
     """

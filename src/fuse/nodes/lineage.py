@@ -1,4 +1,4 @@
-"""Node 3 — walk downstream lineage and collect the evidence the risk engine needs.
+"""Node 3 - walk downstream lineage and collect the evidence the risk engine needs.
 
 Deliberately does not stop at datasets. Charts, dashboards, data jobs, feature
 tables, models, model groups and deployments are all downstream consumers, and the
@@ -25,7 +25,7 @@ ML_TYPES = {"mlFeature", "mlFeatureTable", "mlModel", "mlModelGroup", "mlModelDe
 # can actually change a verdict rather than by what is merely interesting.
 #
 # A schema hit scores 35, and hop decay is 3 per hop beyond the first. At 3 hops that is
-# 29 — below the RISKY threshold of 30 — so probing further can add an evidence line but
+# 29 - below the RISKY threshold of 30 - so probing further can add an evidence line but
 # never a severity. Two hops keeps every result that matters and drops most of the work.
 SCHEMA_PROBE_HOPS = int(os.getenv("FUSE_SCHEMA_PROBE_HOPS", "2"))
 SCHEMA_PROBE_LIMIT = 40
@@ -102,10 +102,10 @@ async def trace_lineage(state: FuseState) -> dict:
 
     # ML entities are not reachable through get_lineage: MLFeature.sources is an aspect,
     # not a lineage edge. Without this pass a column feeding a deployed model looks
-    # completely safe — which is the failure mode the ML challenge is about.
+    # completely safe - which is the failure mode the ML challenge is about.
     ml_entities, ml_error = await ml_graph.ml_entities(dh)
     if ml_error:
-        trace.append(f"lineage: ML discovery problem — {ml_error}")
+        trace.append(f"lineage: ML discovery problem - {ml_error}")
     if ml_entities:
         for asset in state.get("resolved", []):
             for entity, degree in ml_graph.dependents_of(
@@ -115,7 +115,7 @@ async def trace_lineage(state: FuseState) -> dict:
                 existing = graph.get(urn)
                 if existing is not None:
                     # Lineage already returned this entity, but without saying which
-                    # feature — and therefore which column — is the one that breaks.
+                    # feature - and therefore which column - is the one that breaks.
                     # Merge rather than skip, or the aspect evidence is thrown away.
                     existing["ml_path"] = True
                     existing["ml_column_match"] = bool(entity.get("_column_match"))
@@ -156,7 +156,7 @@ async def trace_lineage(state: FuseState) -> dict:
 
     # Third evidence source, and on most instances the only one that fires: does the
     # consumer's own schema carry a field with that name? Weaker than a column-lineage
-    # edge — a name collision is possible — but far stronger than a table dependency,
+    # edge - a name collision is possible - but far stronger than a table dependency,
     # and the report labels it as the inference it is.
     column = next(
         (a.change.column for a in state.get("resolved", []) if a.change.column), None
@@ -164,7 +164,7 @@ async def trace_lineage(state: FuseState) -> dict:
     datasets = [(urn, e) for urn, e in graph.items() if e["type"] == "dataset"]
 
     # These are dozens of independent round trips. Run them concurrently, bounded so a
-    # wide blast radius cannot flood GMS — sequentially this was the slowest part of a
+    # wide blast radius cannot flood GMS - sequentially this was the slowest part of a
     # run by a wide margin.
     limiter = asyncio.Semaphore(CONCURRENT_PROBES)
 
