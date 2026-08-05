@@ -57,8 +57,27 @@ async def _resolve_one(change: Change, model_columns: set[str]) -> ResolvedAsset
 
     if len(exact) == 1:
         return await _hydrate(change, exact[0], 0.95, "exact_name")
+
     if len(pool) == 1:
-        return await _hydrate(change, pool[0], 0.8, "search_rank")
+        # Search returns something for almost any query, so a lone candidate is not a
+        # match — it is the only thing that came back. Confirm it shares a name token or
+        # a column before reporting a blast radius for it, or Fuse confidently analyses
+        # a different table.
+        only = pool[0]
+        fields = shapes.field_names(await RT.require_dh().call("list_schema_fields",
+                                                              urn=only["urn"]))
+        overlap = model_columns & {f.lower() for f in fields}
+        if not overlap and not _name_tokens(change.model) & _name_tokens(
+            shapes.entity_name(only)
+        ):
+            return None
+        confidence = 0.8 if overlap else 0.65
+        return await _hydrate(
+            change, only, confidence, "schema_match" if overlap else "search_rank",
+            fields=shapes.schema_fields(
+                await RT.require_dh().call("list_schema_fields", urn=only["urn"])
+            ),
+        )
 
     # Disambiguate on evidence: how much of the model's column set the candidate has.
     # Fetched concurrently, and the winner's fields are kept so hydration does not ask
