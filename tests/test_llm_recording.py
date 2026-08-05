@@ -74,7 +74,11 @@ async def test_no_client_and_no_recording_falls_back_to_templates(runtime):
 class FailingLLM:
     model = "rate-limited-model"
 
+    def __init__(self) -> None:
+        self.calls = 0
+
     async def ainvoke(self, prompt: str):
+        self.calls += 1
         raise RuntimeError("Error code: 429 - rate limit exceeded: free-models-per-day")
 
 
@@ -91,3 +95,47 @@ async def test_a_failed_call_is_not_recorded(runtime, tmp_path):
     runtime.llm = FailingLLM()
     await runtime.ask_llm("codegen", "prompt")
     assert not list(tmp_path.glob("llm-codegen*.json")), "a failure must not be cached"
+
+
+class FlakyLLM:
+    """Fails with a busy-provider error, then succeeds — what actually happened."""
+
+    model = "flaky-model"
+
+    def __init__(self, failures: int) -> None:
+        self.remaining = failures
+        self.calls = 0
+
+    async def ainvoke(self, prompt: str):
+        self.calls += 1
+        if self.remaining > 0:
+            self.remaining -= 1
+            raise ValueError(
+                "{'message': 'Upstream error from Nvidia: ResourceExhausted: Worker "
+                "local total request limit reached (33/32)', 'code': 502}"
+            )
+        return type("Response", (), {"content": "recovered answer"})()
+
+
+async def test_a_busy_provider_is_retried(runtime, monkeypatch):
+    monkeypatch.setattr("fuse.runtime.LLM_BACKOFF_SECONDS", 0)
+    runtime.llm = FlakyLLM(failures=1)
+    assert await runtime.ask_llm("codegen", "prompt") == "recovered answer"
+    assert runtime.llm.calls == 2
+    assert runtime.llm_error is None
+
+
+async def test_retries_give_up_and_fall_back(runtime, monkeypatch):
+    monkeypatch.setattr("fuse.runtime.LLM_BACKOFF_SECONDS", 0)
+    runtime.llm = FlakyLLM(failures=99)
+    assert await runtime.ask_llm("codegen", "prompt") is None
+    assert runtime.llm.calls == 3
+    assert runtime.llm_error
+
+
+async def test_a_quota_error_is_not_retried(runtime, monkeypatch):
+    """Waiting cannot fix an exhausted daily quota, and retrying burns the clock."""
+    monkeypatch.setattr("fuse.runtime.LLM_BACKOFF_SECONDS", 0)
+    runtime.llm = FailingLLM()  # 429 free-models-per-day
+    assert await runtime.ask_llm("codegen", "prompt") is None
+    assert runtime.llm.calls == 1, "a quota failure must not be retried"

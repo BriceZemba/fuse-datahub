@@ -6,6 +6,7 @@ LangGraph state carries data; this carries connections. Set once by the CLI befo
 
 from __future__ import annotations
 
+import asyncio
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -69,15 +70,34 @@ class Runtime:
         if self.llm is None:
             return None
 
-        try:
-            response = await self.llm.ainvoke(prompt)
-        except Exception as exc:
-            # Rate limits, quota exhaustion and provider outages are ordinary on a free
-            # tier. Losing the whole run to one is not: the caller falls back to
-            # deterministic templates, so the analysis and the rest of the artifacts
-            # still land. The trace records what was lost and why.
-            self.llm_error = f"{exc.__class__.__name__}: {str(exc)[:160]}"
-            self.log.append(f"llm:{purpose}: {self.llm_error} — falling back to templates")
+        response = None
+        for attempt in range(MAX_LLM_ATTEMPTS):
+            try:
+                response = await self.llm.ainvoke(prompt)
+                break
+            except Exception as exc:
+                message = str(exc)
+                # A busy upstream provider is worth waiting for; an exhausted daily
+                # quota or a bad key is not, and retrying those just wastes the run.
+                if attempt + 1 < MAX_LLM_ATTEMPTS and _is_transient(message):
+                    delay = LLM_BACKOFF_SECONDS * (2**attempt)
+                    self.log.append(
+                        f"llm:{purpose}: {message[:100]} — retrying in {delay}s"
+                    )
+                    await asyncio.sleep(delay)
+                    continue
+
+                # Rate limits, quota exhaustion and provider outages are ordinary on a
+                # free tier. Losing the whole run to one is not: the caller falls back
+                # to deterministic templates, so the analysis and the remaining
+                # artifacts still land. The trace records what was lost and why.
+                self.llm_error = f"{exc.__class__.__name__}: {message[:160]}"
+                self.log.append(
+                    f"llm:{purpose}: {self.llm_error} — falling back to templates"
+                )
+                return None
+
+        if response is None:
             return None
 
         text = response.content if hasattr(response, "content") else str(response)
@@ -92,6 +112,40 @@ class Runtime:
             if isinstance(value, str) and value:
                 return value
         return ""
+
+
+MAX_LLM_ATTEMPTS = 3
+LLM_BACKOFF_SECONDS = 4
+
+# A provider at capacity answers 502/503 or "ResourceExhausted"; those clear in seconds.
+# Anything about the daily quota, credits or authentication will not clear by waiting.
+TRANSIENT_MARKERS = (
+    "resourceexhausted",
+    "worker local total request limit",
+    "502",
+    "503",
+    "504",
+    "upstream error",
+    "timeout",
+    "timed out",
+    "temporarily unavailable",
+    "connection",
+)
+PERMANENT_MARKERS = (
+    "free-models-per-day",
+    "insufficient credits",
+    "invalid api key",
+    "no auth credentials",
+    "401",
+    "402",
+)
+
+
+def _is_transient(message: str) -> bool:
+    lowered = message.lower()
+    if any(marker in lowered for marker in PERMANENT_MARKERS):
+        return False
+    return any(marker in lowered for marker in TRANSIENT_MARKERS)
 
 
 def _unpack(recorded: object) -> tuple[str, str]:
