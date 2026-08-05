@@ -1,0 +1,30 @@
+version: 2
+
+# Declares the sources the models read from, so this project parses with dbt rather
+# than only looking like it would. Names and columns mirror the `order_entry` schema in
+# the showcase-ecommerce datapack.
+sources:
+  - name: order_entry
+    description: Operational tables replicated into the warehouse.
+    schema: order_entry
+    tables:
+      - name: orders
+        columns:
+          - name: order_id
+          - name: customer_id
+          - name: order_date
+          - name: order_status
+          - name: order_mode
+          - name: promotion_id
+          - name: payment_method_code
+          - name: order_total
+          - name: cost_of_delivery
+          - name: warehouse_id
+      - name: customers
+        columns:
+          - name: customer_id
+          - name: customer_class
+          - name: customer_since
+          - name: credit_limit
+          - name: country_id
+          - name: region_id

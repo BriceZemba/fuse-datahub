@@ -101,12 +101,12 @@
             "value": "sql"
           },
           {
-            "key": "node_type",
-            "value": "model"
-          },
-          {
             "key": "account_id",
             "value": "107298"
+          },
+          {
+            "key": "node_type",
+            "value": "model"
           },
           {
             "key": "model_maturity",
@@ -480,7 +480,7 @@
         "description": "",
         "externalUrl": "https://demo.cloud.looker.com/dashboards/53",
         "lastModified": {
-          "time": 1768583692476
+          "time": 1769485363598
         },
         "name": "Order Entry Dashboard"
       },

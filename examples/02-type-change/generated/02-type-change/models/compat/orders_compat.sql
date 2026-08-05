@@ -22,6 +22,7 @@ select
     order_id,
     order_mode,
     order_status,
+    order_total,
     payment_method_code,
     promotion_id,
     sales_rep_id,
