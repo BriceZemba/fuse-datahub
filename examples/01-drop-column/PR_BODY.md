@@ -71,24 +71,19 @@ parse_change: 1 change(s)
 timing: parse_change took 0.0s
 resolve: orders -> urn:li:dataset:(urn:li:dataPlatform:dbt,b2fd91.order_entry_db.order_entry.orders,PROD) (search_rank, confidence 0.99)
 resolve: 1/1 change(s) mapped to URNs
-timing: resolve took 8.8s
+timing: resolve took 9.8s
 lineage: no column-level edges for promotion_id, falling back to table-level
 lineage: no query history on the first 5 dataset(s), skipped the remaining 15
 lineage: schema checked within 2 hop(s); 18 more distant asset(s) cannot reach RISKY on a schema match alone
 lineage: 30 downstream asset(s), 0 ML entit(ies), 0 with query evidence, 2 carrying the column in their schema
-timing: lineage took 23.8s
+timing: lineage took 25.4s
 impact: 30 asset(s) — 1 breaking, 1 risky, 28 safe
 timing: impact took 0.0s
 plan: filled 28 gap(s) from rules
 plan: 30 strategy decision(s)
-timing: plan took 3.4s
+timing: plan took 2.4s
 codegen: 3 artifact(s) (attempt 1)
-timing: codegen took 603.6s
-validate: REJECTED — 1 problem(s)
-  - models/order_details.sql: SQL does not parse as snowflake: No expression was parsed from ''
-timing: validate took 0.0s
-codegen: 3 artifact(s) (attempt 2)
-timing: codegen took 6.6s
+timing: codegen took 10.7s
 validate: 3 artifact(s) passed
 timing: validate took 0.0s
 writeback: dry run — nothing was written to DataHub

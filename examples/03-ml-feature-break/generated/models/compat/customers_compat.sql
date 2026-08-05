@@ -4,10 +4,9 @@
 --   - customer_churn_model
 --   - prod-retention-service
 --   - customer_churn_features
---   - customer_churn_models
 --
--- Drop this view once none of them reference `credit_limit`. Every column below was
--- confirmed against DataHub at generation time.
+-- Drop this view once none of them reference `credit_limit`.
+-- Every column below was confirmed against DataHub at generation time.
 
 select
     account_mgr_id,

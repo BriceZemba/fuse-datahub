@@ -68,6 +68,7 @@ This change reaches machine learning assets, which fail silently rather than lou
 
 - `models/compat/customers_compat.sql` — compat_view
 - `models/customers_schema.yml` — dbt_test
+- `models/order_details.sql` — dbt_model
 - `MIGRATION.md` — migration_doc
 
 
@@ -86,21 +87,30 @@ parse_change: 1 change(s)
 timing: parse_change took 0.0s
 resolve: customers -> urn:li:dataset:(urn:li:dataPlatform:dbt,b2fd91.order_entry_db.order_entry.customers,PROD) (search_rank, confidence 0.99)
 resolve: 1/1 change(s) mapped to URNs
-timing: resolve took 9.2s
+timing: resolve took 9.4s
 lineage: no column-level edges for credit_limit, falling back to table-level
 lineage: no query history on the first 5 dataset(s), skipped the remaining 12
 lineage: schema checked within 2 hop(s); 15 more distant asset(s) cannot reach RISKY on a schema match alone
 lineage: 8 ML entit(ies), 2 of them reachable only through ML aspects, not through get_lineage
 lineage: 32 downstream asset(s), 8 ML entit(ies), 0 with query evidence, 0 carrying the column in their schema
-timing: lineage took 24.9s
+timing: lineage took 49.5s
 impact: 32 asset(s) — 4 breaking, 5 risky, 23 safe
 timing: impact took 0.0s
 plan: filled 23 gap(s) from rules
 plan: 32 strategy decision(s)
-timing: plan took 18.2s
-codegen: 3 artifact(s) (attempt 1)
-timing: codegen took 0.0s
-validate: 3 artifact(s) passed
+timing: plan took 12.3s
+codegen: 4 artifact(s) (attempt 1)
+timing: codegen took 10.2s
+validate: REJECTED — 6 problem(s)
+  - models/order_details.sql: column 'cost_of_delivery' is not in the DataHub schema for any upstream of this change
+  - models/order_details.sql: column 'order_date' is not in the DataHub schema for any upstream of this change
+  - models/order_details.sql: column 'order_id' is not in the DataHub schema for any upstream of this change
+  - models/order_details.sql: column 'order_total' is not in the DataHub schema for any upstream of this change
+  - models/order_details.sql: column 'payment_method_code' is not in the DataHub schema for any upstream of this change
+timing: validate took 0.0s
+codegen: 4 artifact(s) (attempt 2)
+timing: codegen took 43.5s
+validate: 4 artifact(s) passed
 timing: validate took 0.0s
 writeback: dry run — nothing was written to DataHub
 timing: writeback took 0.0s
