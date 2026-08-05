@@ -137,6 +137,7 @@ Every column named is a real column of the `showcase-ecommerce` datapack. Nothin
 | `FUSE_LLM_MODEL` | per provider | e.g. a free OpenRouter id — run `fuse models` |
 | `FUSE_HOPS` | `3` | lineage traversal depth |
 | `FUSE_SCHEMA_PROBE_HOPS` | `2` | how far out to check schemas for the changed column |
+| `FUSE_MAX_REWRITES` | `3` | how many consumers get an LLM-written fix; the rest get a contract test |
 | `FUSE_FAIL_ON` | `BREAKING` | severity that fails CI |
 | `FUSE_DIALECT` | `snowflake` | sqlglot dialect |
 

@@ -10,6 +10,7 @@ Validation errors from a previous attempt are fed back in verbatim on retry.
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
@@ -137,10 +138,20 @@ async def generate_code(state: FuseState) -> dict:
     # and unreadable in a PR.
     artifacts: dict[str, Artifact] = {}
 
-    for impact in impacts:
+    # Highest severity first, so the rewrite budget is spent on the consumers that
+    # actually break rather than on whichever asset lineage happened to return first.
+    ordered = sorted(impacts, key=lambda i: i.score, reverse=True)
+    rewrites = 0
+    deferred = 0
+
+    for impact in ordered:
         strategy = plan.get(impact.urn, "no_action")
         if strategy == "no_action":
             continue
+
+        if strategy == "rewrite_sql" and rewrites >= MAX_REWRITES:
+            strategy = "add_contract_test"
+            deferred += 1
 
         # Remediate against the model that actually affected this consumer.
         asset = by_urn.get(impact.from_urn) or default_asset
@@ -254,6 +265,7 @@ async def generate_code(state: FuseState) -> dict:
                     source_urn=asset.urn,
                     content=_strip_fences(body),
                 )
+                rewrites += 1
 
     if change:
         artifacts["MIGRATION.md"] = Artifact(
@@ -263,11 +275,24 @@ async def generate_code(state: FuseState) -> dict:
         )
 
     produced = list(artifacts.values())
+    if deferred:
+        trace.append(
+            f"codegen: rewrote the {rewrites} highest-scoring consumer(s); "
+            f"{deferred} more got a contract test instead "
+            f"(raise FUSE_MAX_REWRITES to rewrite more)"
+        )
     trace.append(f"codegen: {len(produced)} artifact(s) (attempt {retries + 1})")
     return {"artifacts": produced, "retries": retries + 1, "validation_errors": [], "trace": trace}
 
 
 CONSUMER_LIST_LIMIT = 6
+
+# Rewriting every affected consumer is neither reviewable nor affordable: a wide blast
+# radius produces a pull request nobody can read, and one model call per consumer
+# exhausts a free-tier daily quota in a couple of runs. Rewrite the ones that matter
+# most and protect the rest with a contract test, which is the change a reviewer would
+# make by hand anyway.
+MAX_REWRITES = int(os.getenv("FUSE_MAX_REWRITES", "3"))
 
 
 def _consumers_for(
