@@ -50,13 +50,17 @@ class Runtime:
 
         if recorded is not None:
             cached_model, text = _unpack(recorded)
-            # A recording made by a different model is not this model's answer. Reusing
-            # it silently makes FUSE_LLM_MODEL do nothing and turns any comparison
-            # between models into a comparison of the same cached text.
-            if self.llm is None or not cached_model or cached_model == model:
+            # Replay takes whatever was recorded — there is no client to ask.
+            if self.llm is None:
+                return text
+            # Live, the recording is only this model's answer if it says so. Treating an
+            # unattributed recording as a match is how the first version of this check
+            # still served 120B output to a 9B request, making FUSE_LLM_MODEL a no-op.
+            if cached_model == model:
                 return text
             self.log.append(
-                f"llm:{purpose}: recording was made by {cached_model}, regenerating with {model}"
+                f"llm:{purpose}: recording is from "
+                f"{cached_model or 'an unrecorded model'}, regenerating with {model}"
             )
 
         if self.llm is None:
