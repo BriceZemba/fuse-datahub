@@ -14,10 +14,11 @@ from fuse.nodes.codegen import _consumer_sql
 from fuse.runtime import RT
 from fuse.state import FuseState, Impact, Strategy
 
+# Only strategies codegen can actually produce. Offering the model a choice that
+# generates nothing means an asset silently gets no remediation at all.
 VALID: set[str] = {
     "rewrite_sql",
     "add_compat_view",
-    "deprecate_with_shim",
     "backfill",
     "add_contract_test",
     "no_action",
@@ -38,7 +39,6 @@ better than leaving a compatibility shim behind for someone else to clean up.
 For each asset choose exactly one strategy from:
 - rewrite_sql        the consumer's SQL can be updated directly
 - add_compat_view    keep the old shape available during a deprecation window
-- deprecate_with_shim keep the column, filled with a sentinel, and mark it deprecated
 - backfill           the consumer needs historical data restated
 - add_contract_test  the consumer is fine, but pin the contract so this can't recur
 - no_action          genuinely unaffected

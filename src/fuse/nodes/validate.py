@@ -35,6 +35,19 @@ def dropped_columns(resolved: list[ResolvedAsset]) -> set[str]:
     }
 
 
+def retyped_columns(resolved: list[ResolvedAsset]) -> set[str]:
+    """Columns whose type changed. These must survive a rewrite.
+
+    A retype is not a removal, and a model that quietly drops the column instead of
+    handling the new type loses data nobody agreed to lose.
+    """
+    return {
+        a.change.column.lower()
+        for a in resolved
+        if a.change.kind == "retype_column" and a.change.column
+    }
+
+
 def validate(state: FuseState) -> dict:
     artifacts: list[Artifact] = state.get("artifacts", [])
     resolved: list[ResolvedAsset] = state.get("resolved", [])
@@ -43,13 +56,14 @@ def validate(state: FuseState) -> dict:
 
     allowed = known_columns(resolved)
     dropped = dropped_columns(resolved)
+    retyped = retyped_columns(resolved)
     errors: list[str] = []
     per_artifact: dict[str, list[str]] = {}
 
     for artifact in artifacts:
         found: list[str] = []
         if artifact.kind in SQL_KINDS:
-            found = _check_sql(artifact, allowed, dropped, dialect)
+            found = _check_sql(artifact, allowed, dropped, retyped, dialect)
         elif artifact.kind in PY_KINDS:
             found = _check_python(artifact)
         if found:
@@ -75,7 +89,11 @@ def validate(state: FuseState) -> dict:
 
 
 def _check_sql(
-    artifact: Artifact, allowed: set[str], dropped: set[str], dialect: str
+    artifact: Artifact,
+    allowed: set[str],
+    dropped: set[str],
+    retyped: set[str],
+    dialect: str,
 ) -> list[str]:
     errors: list[str] = []
     # Generated dbt models carry Jinja — {{ config() }}, {{ ref() }} — which sqlglot
@@ -110,16 +128,24 @@ def _check_sql(
     # the output shape and hands every downstream consumer nulls, which no test catches
     # — the failure this whole project exists to prevent. Preserving the shape on
     # purpose is what a compatibility view is for, and that is a separate decision.
-    if artifact.kind == "dbt_model" and dropped:
+    if artifact.kind == "dbt_model" and (dropped or retyped):
         try:
             produced = {c.lower() for c in output_columns(artifact.content, dialect)}
         except Exception:
             produced = set()
+
         for name in sorted(produced & dropped):
             errors.append(
                 f"{artifact.path}: still outputs '{name}' after the change removed it. "
                 "Remove the column instead of substituting a placeholder; if the output "
                 "shape must be preserved, that is a compatibility view."
+            )
+
+        # The mirror image: a type change is not permission to delete the column.
+        for name in sorted(retyped - produced):
+            errors.append(
+                f"{artifact.path}: dropped '{name}', but the change only altered its "
+                "type. Keep the column and handle the new type."
             )
     return errors
 

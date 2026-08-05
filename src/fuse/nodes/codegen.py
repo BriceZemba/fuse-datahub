@@ -16,7 +16,7 @@ from jinja2 import Environment, FileSystemLoader, StrictUndefined
 
 from fuse.llm.provider import get_llm
 from fuse.runtime import RT
-from fuse.state import Artifact, FuseState, Impact, ResolvedAsset
+from fuse.state import Artifact, Change, FuseState, Impact, ResolvedAsset
 
 TEMPLATES = Path(__file__).resolve().parents[1] / "templates"
 env = Environment(
@@ -40,15 +40,51 @@ The ONLY columns that will exist upstream after the change:
 
 Rules:
 - Use only columns from that list. Inventing a column is a failure.
-- **Remove `{removed}` from the output entirely.** Do not keep it as `NULL as
-  {removed}`, an empty string, a zero, or any other placeholder. A column filled with
-  nulls breaks every consumer silently and no test catches it — if the output shape
-  must be preserved, that is a deliberate compatibility view, decided elsewhere, not
-  something this rewrite should improvise.
+- {instruction}
 - Preserve every other output column name and the grain of the query.
 - Keep the dialect: {dialect}.
 {errors}
 Return the corrected SQL only, no explanation, no fences."""
+
+# What "fix the consumer" means depends entirely on what changed. Telling the model to
+# remove a column that was merely retyped deletes data nobody asked to lose.
+INSTRUCTIONS: dict[str, str] = {
+    "drop_column": (
+        "**Remove `{column}` from the output entirely.** Do not keep it as "
+        "`NULL as {column}`, an empty string, a zero, or any other placeholder. A "
+        "column filled with nulls breaks every consumer silently and no test catches "
+        "it — preserving the output shape on purpose is a compatibility view, decided "
+        "elsewhere, not something this rewrite should improvise."
+    ),
+    "rename_column": (
+        "`{column}` has been renamed to `{renamed_to}` upstream. Read the new name and "
+        "keep this model's own output column names exactly as they are."
+    ),
+    "retype_column": (
+        "`{column}` changed type upstream from {from_type} to {to_type}. **Keep the "
+        "column** — do not drop it. Adjust casts and aggregations so the new type is "
+        "handled correctly, and be explicit where the narrower type could truncate or "
+        "overflow."
+    ),
+    "drop_model": (
+        "The upstream model is being removed. Point this consumer at the surviving "
+        "source of the same data, or fail loudly — do not silently return nothing."
+    ),
+}
+DEFAULT_INSTRUCTION = (
+    "Adjust this consumer for the upstream change without altering its own output "
+    "column names."
+)
+
+
+def _instruction(change: Change) -> str:
+    template = INSTRUCTIONS.get(change.kind, DEFAULT_INSTRUCTION)
+    return template.format(
+        column=change.column or "the column",
+        renamed_to=change.renamed_to or "the new name",
+        from_type=change.from_type or "its old type",
+        to_type=change.to_type or "its new type",
+    )
 
 
 def _allowed_columns(resolved: list[ResolvedAsset], dropped: str | None) -> list[str]:
@@ -166,7 +202,7 @@ async def generate_code(state: FuseState) -> dict:
                         name=impact.name,
                         urn=impact.urn,
                         sql=sql,
-                        removed=change.column or "the column",
+                        instruction=_instruction(change),
                         allowed="\n".join(f"- {c}" for c in allowed),
                         dialect=dialect,
                         errors=(

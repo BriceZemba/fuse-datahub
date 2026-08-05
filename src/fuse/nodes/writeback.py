@@ -15,7 +15,15 @@ from fuse.state import FuseState, Impact, WriteBackResult
 
 TAG_PENDING = "urn:li:tag:fuse-pending-breaking-change"
 TAG_SAFE = "urn:li:tag:fuse-verified-safe"
+WRITEBACK_TAGS = (TAG_PENDING, TAG_SAFE)
 DOCUMENT_TYPE = "Analysis"
+
+FUSE_PROPERTY_URNS = (
+    "urn:li:structuredProperty:fuse.blast_radius_score",
+    "urn:li:structuredProperty:fuse.severity",
+    "urn:li:structuredProperty:fuse.run_id",
+    "urn:li:structuredProperty:fuse.last_checked",
+)
 
 
 def _report_markdown(state: FuseState) -> str:
@@ -146,13 +154,12 @@ async def write_back(state: FuseState) -> dict:
             response = await dh.call(
                 "add_structured_properties",
                 property_values=[
-                    {"propertyUrn": "urn:li:structuredProperty:fuse.blast_radius_score",
+                    {"propertyUrn": FUSE_PROPERTY_URNS[0],
                      "values": [max(i.score for i in targets)]},
-                    {"propertyUrn": "urn:li:structuredProperty:fuse.severity",
+                    {"propertyUrn": FUSE_PROPERTY_URNS[1],
                      "values": [state.get("max_severity", "SAFE")]},
-                    {"propertyUrn": "urn:li:structuredProperty:fuse.run_id",
-                     "values": [run_id]},
-                    {"propertyUrn": "urn:li:structuredProperty:fuse.last_checked",
+                    {"propertyUrn": FUSE_PROPERTY_URNS[2], "values": [run_id]},
+                    {"propertyUrn": FUSE_PROPERTY_URNS[3],
                      "values": [datetime.now(timezone.utc).isoformat(timespec="seconds")]},
                 ],
                 entity_urns=[i.urn for i in targets],

@@ -23,7 +23,8 @@ jobs:
         with:
           python-version: "3.11"
 
-      - run: pip install fuse-datahub
+      # Not published to PyPI yet, so install from the repository.
+      - run: pip install "fuse-datahub[openrouter] @ git+https://github.com/BriceZemba/fuse-datahub@main"
 
       - name: Analyse the change
         id: fuse
@@ -31,20 +32,33 @@ jobs:
           DATAHUB_GMS_URL: ${{ secrets.DATAHUB_GMS_URL }}
           DATAHUB_GMS_TOKEN: ${{ secrets.DATAHUB_GMS_TOKEN }}
           TOOLS_IS_MUTATION_ENABLED: "true"
-          FUSE_LLM_PROVIDER: anthropic
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          # Any provider works; openrouter needs no paid account. Leave unset to run
+          # with deterministic templates and no model at all.
+          FUSE_LLM_PROVIDER: openrouter
+          FUSE_LLM_MODEL: ${{ vars.FUSE_LLM_MODEL }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         run: |
           git diff origin/${{ github.base_ref }}...HEAD > /tmp/pr.patch
           fuse check --repo . --diff /tmp/pr.patch --auto-approve --fail-on BREAKING
         continue-on-error: true
 
       - name: Comment the impact report
+        if: always()
         uses: actions/github-script@v8
         with:
           script: |
             const fs = require('fs');
-            const glob = fs.readdirSync('out');
-            const body = fs.readFileSync(`out/${glob[0]}/PR_BODY.md`, 'utf8');
+            const path = require('path');
+            if (!fs.existsSync('out')) {
+              core.info('No output produced; nothing to comment.');
+              return;
+            }
+            // A run writes one directory named after its id; pick the newest rather
+            // than whatever readdir happens to return first.
+            const runs = fs.readdirSync('out')
+              .map(name => ({ name, time: fs.statSync(path.join('out', name)).mtimeMs }))
+              .sort((a, b) => b.time - a.time);
+            const body = fs.readFileSync(path.join('out', runs[0].name, 'PR_BODY.md'), 'utf8');
             await github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,

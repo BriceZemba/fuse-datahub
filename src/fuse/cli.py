@@ -25,6 +25,7 @@ from fuse.datahub import ml_graph, shapes
 from fuse.datahub.mcp_client import DataHubMCP, GMSUnreachable, probe_gms
 from fuse.graph import build_graph
 from fuse.llm.provider import OPENROUTER_BASE_URL, get_llm, llm_available
+from fuse.nodes.writeback import FUSE_PROPERTY_URNS, WRITEBACK_TAGS
 from fuse.runtime import RT
 from fuse.state import FuseState
 
@@ -227,6 +228,63 @@ def _example_readme(name: str, state: FuseState) -> str:
         "",
     ]
     return "\n".join(lines)
+
+
+@app.command()
+def revert(
+    run: Path = typer.Argument(..., help="A run directory under out/, or its writeback.json"),
+) -> None:
+    """Undo what a run wrote to DataHub.
+
+    Reads the run's `writeback.json` and removes exactly the tags and structured
+    properties that run added — not every asset carrying a Fuse tag, which would undo
+    other people's runs too. The saved impact document is left in place: it is a record
+    of what was analysed, and deleting history is not a rollback.
+    """
+    manifest = run / "writeback.json" if run.is_dir() else run
+    if not manifest.exists():
+        console.print(f"[red]No writeback.json at {manifest}[/]")
+        raise typer.Exit(code=1)
+
+    record = json.loads(manifest.read_text(encoding="utf-8"))
+    tagged = record.get("tagged") or []
+    properties = record.get("properties_set") or []
+    if record.get("dry_run"):
+        console.print("[yellow]That run was a dry run — nothing was written.[/]")
+        raise typer.Exit()
+    if not tagged and not properties:
+        console.print("Nothing to revert: the run wrote no tags or properties.")
+        raise typer.Exit()
+
+    async def run_revert() -> None:
+        async with DataHubMCP() as dh:
+            if tagged:
+                for tag in (WRITEBACK_TAGS):
+                    try:
+                        await dh.call("remove_tags", tag_urns=[tag], entity_urns=tagged)
+                    except Exception as exc:
+                        console.print(f"[yellow]remove_tags {tag}: {exc}[/]")
+                console.print(f"Removed Fuse tags from {len(tagged)} asset(s)")
+            if properties:
+                try:
+                    await dh.call(
+                        "remove_structured_properties",
+                        property_urns=list(FUSE_PROPERTY_URNS),
+                        entity_urns=properties,
+                    )
+                    console.print(f"Removed Fuse properties from {len(properties)} asset(s)")
+                except Exception as exc:
+                    console.print(f"[yellow]remove_structured_properties: {exc}[/]")
+        if record.get("document_urn"):
+            console.print(
+                f"[dim]Left the impact document in place: {record['document_urn']}[/]"
+            )
+
+    try:
+        asyncio.run(run_revert())
+    except GMSUnreachable as exc:
+        console.print(f"[red]{exc}[/]")
+        raise typer.Exit(code=2) from exc
 
 
 @app.command()

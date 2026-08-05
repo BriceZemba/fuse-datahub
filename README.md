@@ -172,8 +172,13 @@ fuse freeze demo/scenarios/01-drop-column.patch --name 01-drop-column
 ```
 
 ```bash
+fuse revert out/<run-id>   # undo exactly what that run wrote to DataHub
+```
+
+```bash
 fuse doctor    # connection, tools, write-back availability
 fuse schema orders    # what columns DataHub really has
+fuse models    # which OpenRouter models are free today
 fuse spike --urn <urn>    # raw responses, for debugging against a live instance
 ```
 
@@ -191,7 +196,7 @@ fuse spike --urn <urn>    # raw responses, for debugging against a live instance
 pip install -e ".[dev]" && pytest -q
 ```
 
-58 tests, including offline replays of every committed example.
+73 tests, including offline replays of every committed example.
 
 ## License
 

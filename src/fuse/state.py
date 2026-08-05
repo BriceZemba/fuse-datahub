@@ -41,7 +41,6 @@ ResolveMethod = Literal["exact_name", "search_rank", "schema_match", "llm_disamb
 Strategy = Literal[
     "rewrite_sql",
     "add_compat_view",
-    "deprecate_with_shim",
     "backfill",
     "add_contract_test",
     "no_action",

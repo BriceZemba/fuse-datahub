@@ -54,6 +54,34 @@ def test_removing_the_column_outright_passes():
     ] == []
 
 
+def _retype_state(sql: str):
+    change = Change(
+        kind="retype_column", file="orders.sql", model="orders",
+        column="order_amount", from_type="DOUBLE", to_type="INT",
+    )
+    asset = ResolvedAsset(change=change, urn="urn:li:dataset:test", schema_fields=SCHEMA)
+    return {
+        "artifacts": [Artifact(path="models/x.sql", kind="dbt_model", content=sql)],
+        "resolved": [asset],
+        "dialect": "snowflake",
+        "retries": 0,
+        "trace": [],
+    }
+
+
+def test_a_retype_may_not_delete_the_column():
+    """A type change is not permission to drop the column — that loses data nobody
+    agreed to lose, and it is what the generator actually did before this guard."""
+    result = validate(_retype_state("select order_id, customer_id from orders"))
+    assert result["validation_errors"]
+    assert "only altered its type" in result["validation_errors"][0]
+
+
+def test_a_retype_that_keeps_the_column_passes():
+    sql = "select order_id, customer_id, cast(order_amount as int) as order_amount from orders"
+    assert validate(_retype_state(sql))["validation_errors"] == []
+
+
 def test_clean_sql_passes():
     result = validate(_state("select order_id, customer_id, order_amount from orders"))
     assert result["validation_errors"] == []

@@ -165,7 +165,9 @@ Every applied rule appends a human-readable line to `Impact.reasons`. **`max_sev
 
 ### 4.5 `plan` — LLM
 Given the change, the impacted set and their evidence, choose one strategy per impacted asset:
-`rewrite_sql` · `add_compat_view` · `deprecate_with_shim` · `backfill` · `add_contract_test` · `no_action`.
+`rewrite_sql` · `add_compat_view` · `backfill` · `add_contract_test` · `no_action`.
+
+The vocabulary is exactly what `codegen` can produce. An earlier `deprecate_with_shim` was removed because nothing generated it, so any asset the model assigned it to silently received no remediation at all.
 Output is a strict JSON object validated by pydantic; a parse failure retries once, then falls back to a rule-based default map.
 
 ### 4.6 `codegen` — LLM + Jinja, schema-grounded
@@ -190,7 +192,7 @@ On every run, regardless of severity:
 - `save_document`: the full impact report, so the next agent or human inherits the analysis via `search_documents` / `grep_documents`
 - Optional (verify on OSS first): emit a custom assertion result via the Python SDK for the contract test
 
-Writes are idempotent and reversible; `fuse revert <run-id>` removes the tags it added.
+Writes are idempotent and reversible. Each run records a `writeback.json` next to its artifacts listing exactly what it touched, and `fuse revert out/<run-id>` removes those tags and structured properties — only the ones that run added, so a rollback cannot undo somebody else's run. The saved impact document is deliberately left in place: it is a record of what was analysed, and deleting history is not a rollback.
 
 ### 4.9 `pr` — branch + PR body
 Creates `fuse/impact-<short-sha>`, writes artifacts, composes `PR_BODY.md`: a severity banner, the impact table (asset · type · hops · severity · evidence · owner), a "what I changed and why" section, and the DataHub links. In CI the same body is posted as a PR review comment. Local mode writes to `out/` and prints the path.

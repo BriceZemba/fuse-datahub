@@ -6,6 +6,7 @@ posted as a review comment by .github/workflows/fuse.yml.
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
@@ -57,5 +58,14 @@ def emit_pr(state: FuseState) -> dict:
         target.write_text(artifact.content, encoding="utf-8")
 
     (out_dir / "run.log").write_text("\n".join(trace) + "\n", encoding="utf-8")
+
+    # A machine-readable record of what was written to DataHub, so `fuse revert` can
+    # undo exactly this run rather than guessing from tags.
+    writeback = state.get("writeback")
+    if writeback is not None:
+        (out_dir / "writeback.json").write_text(
+            json.dumps(writeback.model_dump(), indent=2, sort_keys=True),
+            encoding="utf-8",
+        )
     trace.append(f"pr: wrote {len(artifacts)} file(s) to {out_dir}")
     return {"artifacts": artifacts, "trace": trace}
