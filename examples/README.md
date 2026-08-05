@@ -31,3 +31,4 @@ run.log             node-by-node trace, including validation retries
 ```
 
 Populated on Day 13 from real runs. Nothing here is hand-written.
+
