@@ -145,10 +145,14 @@ def freeze(
     generated artifacts and the trace — so `fuse replay` reproduces it with no DataHub,
     no Docker and no API key.
     """
-    folder = Path("examples") / (name or scenario.stem)
-    fixtures = folder / "fixtures"
+    # Build in a staging directory and swap it in only once the run has succeeded.
+    # Wiping the target first means any failure — a stopped DataHub, a missing key —
+    # destroys a good recorded example and leaves a half-written husk behind.
+    final = Path("examples") / (name or scenario.stem)
+    folder = final.with_name(final.name + ".staging")
     if folder.exists():
         shutil.rmtree(folder)
+    fixtures = folder / "fixtures"
     fixtures.mkdir(parents=True)
 
     shutil.copytree(repo, folder / "repo")
@@ -162,11 +166,24 @@ def freeze(
         "diff": str(folder / "diff.patch"),
         "dialect": settings.dialect,
         "hops": settings.hops,
-        "run_id": folder.name,
+        "run_id": final.name,
         "trace": [],
     }
-    result = asyncio.run(_run(state, replay=False, dry_run=dry_run, auto_approve=True))
+    try:
+        result = asyncio.run(_run(state, replay=False, dry_run=dry_run, auto_approve=True))
+    except BaseException:
+        shutil.rmtree(folder, ignore_errors=True)
+        console.print(f"[red]Run failed; {final} was left untouched.[/]")
+        raise
     _report(result)
+
+    if not result.get("impacts"):
+        shutil.rmtree(folder, ignore_errors=True)
+        console.print(
+            f"[red]The run found no downstream impact, which means it did not really "
+            f"reach DataHub. {final} was left untouched.[/]"
+        )
+        raise typer.Exit(code=1)
 
     # The reports belong at the top of the folder; only the code Fuse wrote stays
     # under generated/, so a judge sees the verdict before the diff of files.
@@ -182,9 +199,14 @@ def freeze(
         generated.rmdir()
 
     (folder / "README.md").write_text(
-        _example_readme(folder.name, result), encoding="utf-8"
+        _example_readme(final.name, result), encoding="utf-8"
     )
-    console.print(f"\n[green]Frozen to {folder}[/] — verify with: fuse replay {folder}")
+
+    # Swap in only now that the folder is complete.
+    if final.exists():
+        shutil.rmtree(final)
+    folder.rename(final)
+    console.print(f"\n[green]Frozen to {final}[/] — verify with: fuse replay {final}")
 
 
 def _example_readme(name: str, state: FuseState) -> str:

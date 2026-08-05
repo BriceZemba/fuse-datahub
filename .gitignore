@@ -18,3 +18,4 @@ demo/dbt-shop/logs/
 !examples/**/run.log
 .DS_Store
 .pytest-out/
+examples/*.staging/
