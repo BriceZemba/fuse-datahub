@@ -2,7 +2,7 @@
 
 **Change:** drop_column orders.promotion_id  
 **Max severity:** BREAKING  
-**Generated:** 2026-08-05T13:25:33+00:00
+**Generated:** 2026-08-05T13:49:51+00:00
 
 | Asset | Type | Hops | Severity | Score | Evidence | Owners |
 |---|---|---|---|---|---|---|
