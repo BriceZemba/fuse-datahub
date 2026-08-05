@@ -66,9 +66,8 @@ This change reaches machine learning assets, which fail silently rather than lou
 
 ## What Fuse changed
 
-- `models/compat/customers_compat.sql` - compat_view
+- `models/compat/customers_compat.sql` - compat_view (the model returned nothing: compatibility view instead of a rewrite)
 - `models/customers_schema.yml` - dbt_test
-- `models/order_details.sql` - dbt_model ⚠️ **needs human review** (validation failed after 2 retries - needs human review)
 - `MIGRATION.md` - migration_doc
 
 
@@ -87,28 +86,21 @@ parse_change: 1 change(s)
 timing: parse_change took 0.0s
 resolve: customers -> urn:li:dataset:(urn:li:dataPlatform:dbt,b2fd91.order_entry_db.order_entry.customers,PROD) (search_rank, confidence 0.99)
 resolve: 1/1 change(s) mapped to URNs
-timing: resolve took 10.9s
+timing: resolve took 8.4s
 lineage: no column-level edges for credit_limit, falling back to table-level
 lineage: no query history on the first 5 dataset(s), skipped the remaining 12
 lineage: schema checked within 2 hop(s); 15 more distant asset(s) cannot reach RISKY on a schema match alone
 lineage: 8 ML entit(ies), 2 of them reachable only through ML aspects, not through get_lineage
 lineage: 32 downstream asset(s), 8 ML entit(ies), 0 with query evidence, 0 carrying the column in their schema
-timing: lineage took 28.1s
+timing: lineage took 22.8s
 impact: 32 asset(s) - 4 breaking, 5 risky, 23 safe
 timing: impact took 0.0s
 plan: LLM planning failed (ValueError), using rules
-timing: plan took 1.4s
+timing: plan took 1.3s
 codegen: the model was unavailable (RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day', 'code': 429, 'met); affected artifacts came from templates instead
-codegen: 4 artifact(s) (attempt 1)
+codegen: 3 artifact(s) (attempt 1)
 timing: codegen took 1.3s
-validate: REJECTED - 1 problem(s)
-  - models/order_details.sql: contains no query. The generated file has no SELECT with output columns, so it would replace a working model with nothing.
-timing: validate took 0.0s
-codegen: the model was unavailable (RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day', 'code': 429, 'met); affected artifacts came from templates instead
-codegen: 4 artifact(s) (attempt 2)
-timing: codegen took 1.5s
-validate: REJECTED - 1 problem(s)
-  - models/order_details.sql: contains no query. The generated file has no SELECT with output columns, so it would replace a working model with nothing.
+validate: 3 artifact(s) passed
 timing: validate took 0.0s
 writeback: dry run - nothing was written to DataHub
 timing: writeback took 0.0s
