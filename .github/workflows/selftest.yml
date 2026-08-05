@@ -1,0 +1,55 @@
+# Proves the pull-request workflow end to end without needing a DataHub instance.
+#
+# The published action in fuse.yml talks to a live catalog, which cannot be reached from
+# a public runner. This exercises everything else — install from a clean checkout, parse
+# a real diff, run the full pipeline against recorded fixtures, and post the impact
+# report as a PR comment — so the only untested part is the network call itself.
+name: selftest
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  replay-and-comment:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      # Installs the way a judge would, from the repository rather than a wheel.
+      - run: pip install -e ".[dev]"
+
+      - name: Replay the ML scenario offline
+        run: |
+          fuse replay examples/03-ml-feature-break | tee /tmp/replay.txt
+          test -s /tmp/replay.txt
+
+      - name: Check the verdict is the one the README claims
+        run: |
+          grep -q "BREAKING" /tmp/replay.txt
+          grep -q "prod-retention-service" /tmp/replay.txt
+
+      - name: Comment the impact report on the PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const fs = require('fs');
+            const body = fs.readFileSync(
+              'examples/03-ml-feature-break/PR_BODY.md', 'utf8'
+            );
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `<!-- fuse selftest -->\n${body}`,
+            });
