@@ -19,3 +19,9 @@ demo/dbt-shop/logs/
 .DS_Store
 .pytest-out/
 examples/*.staging/
+
+# Scratch recordings from live runs. Only examples/*/fixtures are committed — those are
+# the ones replay and CI use. Tracking these meant every `fuse check` dirtied the tree
+# and blocked a pull.
+/fixtures/*
+!/fixtures/.gitkeep
