@@ -201,6 +201,20 @@ def freeze(
         )
         raise typer.Exit(code=1)
 
+    # A frozen example is a showcase of what the agent produces. If a model was
+    # configured but never answered - an exhausted quota, a provider outage - the run
+    # silently degrades to templates, and committing that replaces LLM-authored SQL
+    # with a shim. Better to keep the previous example than to ship a weaker one.
+    if llm_available() and RT.llm_error:
+        shutil.rmtree(folder, ignore_errors=True)
+        console.print(
+            f"[red]A model was configured but did not answer: {RT.llm_error}[/]\n"
+            f"The artifacts would have come from templates, so {final} was left "
+            "untouched. Retry when the model is available, or pass "
+            "FUSE_LLM_PROVIDER=none to freeze a deliberately template-only example."
+        )
+        raise typer.Exit(code=1)
+
     # The reports belong at the top of the folder; only the code Fuse wrote stays
     # under generated/, so a judge sees the verdict before the diff of files.
     # The run writes under its run id, which is the *final* folder name, not the
