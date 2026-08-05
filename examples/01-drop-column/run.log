@@ -2,19 +2,19 @@ parse_change: 1 change(s)
 timing: parse_change took 0.0s
 resolve: orders -> urn:li:dataset:(urn:li:dataPlatform:dbt,b2fd91.order_entry_db.order_entry.orders,PROD) (search_rank, confidence 0.99)
 resolve: 1/1 change(s) mapped to URNs
-timing: resolve took 10.9s
+timing: resolve took 10.8s
 lineage: no column-level edges for promotion_id, falling back to table-level
 lineage: no query history on the first 5 dataset(s), skipped the remaining 15
 lineage: schema checked within 2 hop(s); 18 more distant asset(s) cannot reach RISKY on a schema match alone
 lineage: 30 downstream asset(s), 0 ML entit(ies), 0 with query evidence, 2 carrying the column in their schema
-timing: lineage took 29.5s
+timing: lineage took 28.8s
 impact: 30 asset(s) - 1 breaking, 1 risky, 28 safe
 timing: impact took 0.0s
 plan: LLM planning failed (ValueError), using rules
 timing: plan took 1.6s
 codegen: the model was unavailable (RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day', 'code': 429, 'met); affected artifacts came from templates instead
 codegen: 3 artifact(s) (attempt 1)
-timing: codegen took 3.1s
+timing: codegen took 2.6s
 validate: REJECTED - 1 problem(s)
   - models/order_details.sql: contains no query. The generated file has no SELECT with output columns, so it would replace a working model with nothing.
 timing: validate took 0.0s
