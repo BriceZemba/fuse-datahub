@@ -108,6 +108,22 @@ def test_local_aliases_are_allowed():
     assert validate(_state(sql))["validation_errors"] == []
 
 
+def test_a_config_block_with_no_query_is_rejected():
+    """What a 9B model actually returned: the dbt config and nothing else. Every other
+    check asks whether the columns present are right, and there were none — so it passed."""
+    result = validate(_state("{{ config(materialized='table') }}"))
+    assert result["validation_errors"]
+    assert "no query" in result["validation_errors"][0]
+
+
+def test_an_empty_artifact_is_rejected():
+    assert validate(_state(""))["validation_errors"]
+
+
+def test_prose_instead_of_sql_is_rejected():
+    assert validate(_state("Here is the corrected model for you."))["validation_errors"]
+
+
 def test_unparseable_sql_is_rejected():
     assert validate(_state("select from where"))["validation_errors"]
 

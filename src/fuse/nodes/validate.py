@@ -105,10 +105,27 @@ def _check_sql(
     # Generated dbt models carry Jinja — {{ config() }}, {{ ref() }} — which sqlglot
     # cannot parse. Strip it the same way the diff parser does, so validation checks
     # the SQL rather than failing on the templating.
+    stripped = strip_jinja(artifact.content)
+
+    # A model that is only a config block is not a model. A smaller model returned
+    # exactly that, and it passed — because every other check asks whether the columns
+    # present are correct, and there were none. Checked before parsing, since sqlglot
+    # rejects the empty string with a message that explains nothing.
+    no_query = (
+        f"{artifact.path}: contains no query. The generated file has no SELECT with "
+        "output columns, so it would replace a working model with nothing."
+    )
+    if not stripped.strip() or "select" not in stripped.lower():
+        return [no_query]
+
     try:
-        tree = sqlglot.parse_one(strip_jinja(artifact.content), read=dialect)
+        tree = sqlglot.parse_one(stripped, read=dialect)
     except Exception as exc:
         return [f"{artifact.path}: SQL does not parse as {dialect}: {exc}"]
+
+    select = tree if isinstance(tree, exp.Select) else (tree.find(exp.Select) if tree else None)
+    if select is None or not select.expressions:
+        return [no_query]
 
     referenced = {c.name.lower() for c in tree.find_all(exp.Column) if c.name}
     # Locally-defined names (CTE outputs, aliases) are legitimate even though DataHub
