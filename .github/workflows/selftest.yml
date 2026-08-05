@@ -29,14 +29,22 @@ jobs:
       - run: pip install -e ".[dev]"
 
       - name: Replay the ML scenario offline
-        run: |
-          fuse replay examples/03-ml-feature-break | tee /tmp/replay.txt
-          test -s /tmp/replay.txt
+        env:
+          # Rich wraps its table to the terminal width, which is 80 on a runner. Widen
+          # it so the log stays readable — the assertions below do not depend on it.
+          COLUMNS: "200"
+        run: fuse replay examples/03-ml-feature-break
 
-      - name: Check the verdict is the one the README claims
+      - name: Check the regenerated report, not the console output
         run: |
-          grep -q "BREAKING" /tmp/replay.txt
-          grep -q "prod-retention-service" /tmp/replay.txt
+          report=out/replay-03-ml-feature-break/PR_BODY.md
+          test -f "$report"
+          # The verdict and the deployment must come back from the recorded fixtures.
+          # Asserting on the file rather than the terminal means the check is about
+          # content, not about how Rich happened to wrap a column.
+          grep -q "BREAKING" "$report"
+          grep -q "prod-retention-service" "$report"
+          grep -q "not returned by lineage" "$report"
 
       - name: Comment the impact report on the PR
         if: github.event_name == 'pull_request'
