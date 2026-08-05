@@ -3,6 +3,7 @@
 **The blast-radius agent for DataHub.** Fuse reads a schema change in your data repo, walks DataHub to find what actually breaks — including the ML feature and the production deployment that ordinary lineage won't show you — then writes the remediation code, opens a PR, and records the verdict back in the catalog.
 
 [![ci](https://github.com/BriceZemba/fuse-datahub/actions/workflows/ci.yml/badge.svg)](https://github.com/BriceZemba/fuse-datahub/actions/workflows/ci.yml)
+[![selftest](https://github.com/BriceZemba/fuse-datahub/actions/workflows/selftest.yml/badge.svg)](https://github.com/BriceZemba/fuse-datahub/actions/workflows/selftest.yml)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
 > Built for [Build with DataHub: The Agent Hackathon](https://datahub.devpost.com/).
@@ -190,6 +191,7 @@ fuse spike --urn <urn>    # raw responses, for debugging against a live instance
 - Schema probing stops at 2 hops by default: past that, a schema match cannot reach RISKY anyway, and the report states how many assets were skipped.
 - ML entity discovery uses GMS GraphQL, and ML aspects the typed SDK, because the MCP surface doesn't expose either.
 - Native assertions are a DataHub Cloud feature, so verdicts are recorded as tags, structured properties and documents instead.
+- The GitHub Action in `.github/workflows/fuse.yml` needs a DataHub reachable from the runner, which a local quickstart is not. It is exercised in CI against recorded fixtures (`selftest.yml`) rather than against a hosted catalog, so treat the hosted path as untested.
 
 ## Development
 
@@ -197,7 +199,13 @@ fuse spike --urn <urn>    # raw responses, for debugging against a live instance
 pip install -e ".[dev]" && pytest -q
 ```
 
-73 tests, including offline replays of every committed example.
+159 tests, including offline replays of every committed example.
+
+Two workflows run on every pull request. `ci` runs the suite on Python 3.10–3.12.
+`selftest` installs the project from a clean checkout on a runner, replays the ML
+scenario with no DataHub and no API key, asserts the regenerated report still reaches
+`prod-retention-service`, and posts the impact table as a PR comment — so the path a
+judge takes is itself covered by CI.
 
 ## License
 
