@@ -51,7 +51,7 @@
 
 ## What Fuse changed
 
-- `models/compat/orders_compat.sql` - compat_view (the model returned nothing: compatibility view instead of a rewrite)
+- `models/order_details.sql` - dbt_model
 - `models/orders_schema.yml` - dbt_test
 - `MIGRATION.md` - migration_doc
 
@@ -68,22 +68,22 @@ _Dry run - Fuse read DataHub but wrote nothing. Re-run without `--dry-run` to re
 
 ```
 parse_change: 1 change(s)
-timing: parse_change took 0.2s
+timing: parse_change took 0.3s
 resolve: orders -> urn:li:dataset:(urn:li:dataPlatform:dbt,b2fd91.order_entry_db.order_entry.orders,PROD) (search_rank, confidence 0.99)
 resolve: 1/1 change(s) mapped to URNs
-timing: resolve took 8.6s
+timing: resolve took 14.3s
 lineage: no column-level edges for promotion_id, falling back to table-level
 lineage: no query history on the first 5 dataset(s), skipped the remaining 15
 lineage: schema checked within 2 hop(s); 18 more distant asset(s) cannot reach RISKY on a schema match alone
 lineage: 30 downstream asset(s), 0 ML entit(ies), 0 with query evidence, 2 carrying the column in their schema
-timing: lineage took 25.0s
+timing: lineage took 34.6s
 impact: 30 asset(s) - 1 breaking, 1 risky, 28 safe
-timing: impact took 0.0s
-plan: LLM planning failed (ValueError), using rules
-timing: plan took 1.5s
-codegen: the model was unavailable (RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day', 'code': 429, 'met); affected artifacts came from templates instead
+timing: impact took 0.1s
+plan: filled 28 gap(s) from rules
+plan: 30 strategy decision(s)
+timing: plan took 5.2s
 codegen: 3 artifact(s) (attempt 1)
-timing: codegen took 2.6s
+timing: codegen took 8.7s
 validate: 3 artifact(s) passed
 timing: validate took 0.0s
 writeback: dry run - nothing was written to DataHub
