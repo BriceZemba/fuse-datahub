@@ -16,15 +16,40 @@ wait_for_gms() {
     fi
     sleep 10
   done
-  echo "    GMS did not come up in 10 minutes. Check: docker ps -a" >&2
+  echo "    GMS did not come up in 10 minutes." >&2
+  echo "    Check which container died:  docker ps -a" >&2
+  echo "    Then read its log, e.g.:     docker logs --tail 40 \$(docker ps -aq --filter name=gms | head -1)" >&2
   return 1
 }
 
 existing="$(docker ps -aq --filter 'name=datahub' || true)"
 
 if [ -n "$existing" ]; then
-  echo "==> existing DataHub containers found, restarting them"
-  docker start $existing >/dev/null
+  # Order matters. GMS gives up and exits(1) if MySQL, OpenSearch and the schema
+  # migration are not ready before it starts, so starting everything at once leaves a
+  # healthy-looking stack with a dead GMS.
+  echo "==> existing DataHub containers found, restarting them in dependency order"
+
+  start_if_present() {
+    for name in $(docker ps -aq --filter "name=$1" 2>/dev/null); do
+      docker start "$name" >/dev/null 2>&1 || true
+    done
+  }
+
+  echo "    storage and messaging"
+  start_if_present mysql
+  start_if_present opensearch
+  start_if_present elasticsearch
+  start_if_present broker
+  start_if_present zookeeper
+  sleep 20
+
+  echo "    schema migration"
+  start_if_present system-update
+  sleep 30
+
+  echo "    gms, frontend and actions"
+  docker start $existing >/dev/null 2>&1 || true
 else
   echo "==> starting DataHub for the first time (pulls several GB, allow 10-15 minutes)"
   datahub docker quickstart
