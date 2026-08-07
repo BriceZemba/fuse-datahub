@@ -28,6 +28,12 @@ class Runtime:
             raise RuntimeError("No DataHub client bound. Did the CLI forget to set runtime.dh?")
         return self.dh
 
+    def has_recorded_llm(self, purpose: str) -> bool:
+        """Whether this run has any recorded answer of that kind to replay."""
+        if self.dh is None or getattr(self.dh, "cache", None) is None:
+            return False
+        return any(self.dh.cache.dir.glob(f"llm-{purpose}.*.json"))
+
     async def ask_llm(self, purpose: str, prompt: str) -> str | None:
         """Call the model, recording the response alongside the DataHub calls.
 

@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import json
 
-from fuse.llm.provider import get_llm
 from fuse.nodes.codegen import _consumer_sql
 from fuse.runtime import RT
 from fuse.state import FuseState, Impact, Strategy
@@ -88,6 +87,20 @@ def _extract_json(text: str) -> dict | None:
     return None
 
 
+def _rewritable(state: FuseState, impact: Impact) -> bool:
+    """Whether this consumer's own SQL is in the repo *and* reads the changed model.
+
+    Both halves matter. A consumer further downstream is affected by the change but
+    reads something in between, so rewriting it against the changed table's columns
+    produces nonsense rather than a fix.
+    """
+    model = next(
+        (a.change.model for a in state.get("resolved", []) if a.urn == impact.from_urn),
+        None,
+    )
+    return bool(_consumer_sql(state, impact, model))
+
+
 def _fallback(impacts: list[Impact], state: FuseState | None = None) -> dict[str, Strategy]:
     """Rules used when there is no LLM, or when the LLM answers badly."""
     plan: dict[str, Strategy] = {}
@@ -97,7 +110,7 @@ def _fallback(impacts: list[Impact], state: FuseState | None = None) -> dict[str
         elif impact.entity_type in {"mlFeature", "mlFeatureTable", "mlModel", "mlModelDeployment"}:
             # ML consumers cannot be hot-patched; keep the old shape and alert the owner.
             plan[impact.urn] = "add_compat_view"
-        elif state is not None and _consumer_sql(state, impact):
+        elif state is not None and _rewritable(state, impact):
             # Its definition is in this repo, so fix it here rather than shim around it.
             plan[impact.urn] = "rewrite_sql"
         elif impact.references_column:
@@ -110,9 +123,11 @@ def _fallback(impacts: list[Impact], state: FuseState | None = None) -> dict[str
 async def plan_remediation(state: FuseState) -> dict:
     impacts: list[Impact] = state.get("impacts", [])
     trace = list(state.get("trace", []))
-    llm = RT.llm or get_llm()
+    # Only what the CLI bound: constructing a client here would make a replay reach the
+    # network. A replay still gets its plan, from the recorded response.
+    llm = RT.llm
 
-    if llm is None:
+    if llm is None and not RT.has_recorded_llm("plan"):
         trace.append("plan: no LLM configured, using rule-based strategies")
         return {"plan": _fallback(impacts, state), "trace": trace}
 
@@ -126,7 +141,7 @@ async def plan_remediation(state: FuseState) -> dict:
 
     summary = "\n".join(
         f"- {i.urn} | {i.entity_type} | {i.severity} {i.score} | "
-        f"sql={'yes' if _consumer_sql(state, i) else 'no'} | "
+        f"sql={'yes' if _rewritable(state, i) else 'no'} | "
         f"refs_column={i.references_column} | {'; '.join(i.evidence[:2])}"
         for i in actionable
     )

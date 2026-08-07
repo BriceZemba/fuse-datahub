@@ -15,7 +15,6 @@ from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
 
-from fuse.llm.provider import get_llm
 from fuse.runtime import RT
 from fuse.state import Artifact, Change, FuseState, Impact, ResolvedAsset
 
@@ -136,7 +135,9 @@ async def generate_code(state: FuseState) -> dict:
     retries = state.get("retries", 0)
     trace = list(state.get("trace", []))
     dialect = state.get("dialect", "snowflake")
-    llm = RT.llm or get_llm()
+    # Only what the CLI bound. Falling back to get_llm() would build a client during a
+    # replay, turning an offline reproduction into live network calls.
+    llm = RT.llm
 
     by_urn = {asset.urn: asset for asset in resolved}
     default_asset = resolved[0] if resolved else None
@@ -218,9 +219,13 @@ async def generate_code(state: FuseState) -> dict:
                 ),
             )
         elif strategy == "rewrite_sql" and change:
-            sql = _consumer_sql(state, impact)
+            sql = _consumer_sql(state, impact, change.model)
+            # Ask whenever there is SQL to rewrite, even with no client configured: in
+            # replay there is none, but the recorded answer is in the fixtures, and a
+            # replay that silently swapped the model's SQL for a template would not be
+            # reproducing the run it claims to reproduce.
             rewritten = ""
-            if llm is not None and sql:
+            if sql:
                 rewritten = _strip_fences(
                     await RT.ask_llm(
                         "codegen",
@@ -246,7 +251,7 @@ async def generate_code(state: FuseState) -> dict:
 
             # An empty answer means the model failed or was unavailable. Writing the
             # empty string as a dbt model ships a file that would replace a working one
-            # with nothing — fall back to the shim, which is what "no rewrite available"
+            # with nothing â€” fall back to the shim, which is what "no rewrite available"
             # has always meant.
             if not rewritten:
                 # Nothing to rewrite from: a compatibility view is always safe, and one
@@ -333,7 +338,21 @@ def _consumers_for(
     return names[:CONSUMER_LIST_LIMIT], max(len(names) - CONSUMER_LIST_LIMIT, 0)
 
 
-def _consumer_sql(state: FuseState, impact: Impact) -> str:
+def _reads_from(sql: str, model: str) -> bool:
+    """Whether this SQL actually selects from the changed model.
+
+    A consumer two hops downstream is affected by the change but does not read the
+    changed table directly - it reads whatever sits in between. Handing the model that
+    consumer's SQL together with the *changed* table's columns invites exactly what it
+    produced once: `dob as order_date`, a mapping of one table's columns onto another's
+    output names. Only rewrite what genuinely reads the table that changed.
+    """
+    lowered = sql.lower()
+    name = model.lower()
+    return f"ref('{name}')" in lowered or f'ref("{name}")' in lowered or f" {name}" in lowered
+
+
+def _consumer_sql(state: FuseState, impact: Impact, model: str | None = None) -> str:
     """The SQL that defines an impacted consumer, so it can be rewritten.
 
     The repo comes first: in a real pull request the downstream models are right there,
@@ -346,7 +365,10 @@ def _consumer_sql(state: FuseState, impact: Impact) -> str:
         stem = impact.name.lower()
         for candidate in repo.rglob("*.sql"):
             if candidate.stem.lower() == stem:
-                return candidate.read_text(encoding="utf-8")
+                sql = candidate.read_text(encoding="utf-8")
+                if model and not _reads_from(sql, model):
+                    return ""
+                return sql
 
     entry = (state.get("lineage_graph") or {}).get(impact.urn, {})
     for row in entry.get("queries") or []:
