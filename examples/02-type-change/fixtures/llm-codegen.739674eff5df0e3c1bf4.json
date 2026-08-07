@@ -4,7 +4,7 @@
   },
   "response": {
     "model": "nvidia/nemotron-3-super-120b-a12b:free",
-    "text": "{{ config(materialized='table') }}\n\n-- Mirrors `analytics.order_details`, the wide reporting table every dashboard in the\n-- showcase catalog reads from.\n\nselect\n    order_id,\n    customer_id,\n    order_date,\n    order_total,\n    promotion_id,\n    payment_method_code,\n    cost_of_delivery\nfrom {{ ref('orders') }}"
+    "text": "{{ config(materialized='table') }}\n\nselect\n    order_id,\n    customer_id,\n    order_date,\n    order_total,\n    promotion_id,\n    payment_method_code,\n    cost_of_delivery\nfrom {{ ref('orders') }}"
   },
   "tool": "llm:codegen"
 }
