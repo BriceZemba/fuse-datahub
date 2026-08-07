@@ -14,7 +14,7 @@ invented one - the demo dbt project mirrors `order_entry.orders` and
 
 | Scenario | Input | Why it matters |
 |---|---|---|
-| `01-drop-column` | `promotion_id` removed from the `orders` mart | It propagates into `order_details` on dbt, Snowflake **and** PowerBI, plus the dashboards built on them |
+| `01-drop-column` | `promotion_id` removed from the `orders` mart | It propagates into `order_details` on dbt and Snowflake |
 | `02-type-change` | `order_total` narrowed from FLOAT to INT | Passes every test and silently truncates money |
 | `03-ml-feature-break` | `credit_limit` removed from `customers` | It is the strongest feature of a churn model serving production traffic |
 

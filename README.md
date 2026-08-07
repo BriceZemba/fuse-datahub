@@ -16,7 +16,7 @@
 pip install -e . && fuse replay examples/03-ml-feature-break
 ```
 
-Every DataHub response is recorded in `examples/*/fixtures/`, so the full pipeline runs offline and reproduces the committed artifacts exactly. CI runs this too, so it cannot rot.
+Every DataHub response - and every model response - is recorded in `examples/*/fixtures/`, so the full pipeline runs offline and regenerates the committed artifacts byte for byte. Only the timings in the trace differ, because a replay does not wait on a network. CI runs this too, so it cannot rot.
 
 ## What one run looks like
 
@@ -121,7 +121,7 @@ The MCP server is the primary surface. Two things it doesn't cover - ML entity d
 
 | Scenario | Change | Verdict |
 |---|---|---|
-| [01-drop-column](examples/01-drop-column) | `promotion_id` dropped from `orders` | propagates into `order_details` on dbt, Snowflake and PowerBI |
+| [01-drop-column](examples/01-drop-column) | `promotion_id` dropped from `orders` | propagates into `order_details` on dbt and Snowflake |
 | [02-type-change](examples/02-type-change) | `order_total` narrowed FLOAT → INT | passes every test and silently truncates money |
 | [03-ml-feature-break](examples/03-ml-feature-break) | `credit_limit` dropped from `customers` | reaches a model serving production traffic |
 
@@ -199,7 +199,7 @@ fuse spike --urn <urn>    # raw responses, for debugging against a live instance
 pip install -e ".[dev]" && pytest -q
 ```
 
-159 tests, including offline replays of every committed example.
+167 tests, including offline replays of every committed example.
 
 Two workflows run on every pull request. `ci` runs the suite on Python 3.10–3.12.
 `selftest` installs the project from a clean checkout on a runner, replays the ML
