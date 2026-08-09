@@ -5,6 +5,7 @@ from __future__ import annotations
 import pytest
 
 from fuse.nodes.writeback import (
+    _apply,
     _document_urn,
     _looks_like_error,
     _save_report,
@@ -71,6 +72,42 @@ class FakeDH:
         if rejected:
             return {"text": f"1 validation error for call[{tool}]: {sorted(rejected)}"}
         return {"text": f"Created document {DOC_URN}"}
+
+
+class BatchRejectingDH:
+    """Refuses any batch containing an entity it will not accept, like DataHub does."""
+
+    def __init__(self, unsupported: str) -> None:
+        self.unsupported = unsupported
+        self.calls: list[list[str]] = []
+
+    async def call(self, tool: str, *, entity_urns, **kwargs):
+        self.calls.append(list(entity_urns))
+        if any(self.unsupported in urn for urn in entity_urns):
+            return {"text": f"Error calling tool '{tool}': Unknown entityTypeUrn"}
+        return {"success": True}
+
+
+@pytest.mark.asyncio
+async def test_one_unsupported_entity_does_not_cost_the_others():
+    """A rejected batch is retried per entity, so eight writes survive the ninth."""
+    urns = ["urn:li:dataset:a", "urn:li:mlModelDeployment:bad", "urn:li:mlModel:c"]
+    dh = BatchRejectingDH("mlModelDeployment")
+    written, errors = await _apply(dh, "add_tags", urns, tag_urns=["urn:li:tag:t"])
+
+    assert written == ["urn:li:dataset:a", "urn:li:mlModel:c"]
+    assert len(errors) == 1
+    assert "mlModelDeployment" in errors[0]
+    assert len(dh.calls) == 4, "one batch, then one call per entity"
+
+
+@pytest.mark.asyncio
+async def test_a_batch_that_succeeds_is_not_retried_per_entity():
+    dh = BatchRejectingDH("nothing-matches-this")
+    written, errors = await _apply(dh, "add_tags", ["urn:li:dataset:a"], tag_urns=["t"])
+    assert written == ["urn:li:dataset:a"]
+    assert errors == []
+    assert len(dh.calls) == 1
 
 
 @pytest.mark.asyncio

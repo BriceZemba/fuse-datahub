@@ -39,6 +39,23 @@ PROPERTY_DEFINITIONS = (
     (FUSE_PROPERTY_URNS[3], "string", "When Fuse last scored this asset."),
 )
 
+# Every type Fuse scores that DataHub will actually accept a structured property on.
+# `mlModelDeployment` is deliberately absent: its `entityType` entity exists and
+# resolves, but GMS still answers `Unknown entityTypeUrn` when a definition names it,
+# and one rejected member fails the whole definition. The deployment is the asset this
+# project exists to reach, so it is still tagged and still in the report - it just
+# cannot carry the score. Measured on DataHub 1.5.0.6; see docs/upstream.
+PROPERTY_ENTITY_TYPES = (
+    "dataset",
+    "dashboard",
+    "chart",
+    "mlFeature",
+    "mlFeatureTable",
+    "mlModel",
+    "mlModelGroup",
+)
+SUPPORTS_PROPERTIES = frozenset(PROPERTY_ENTITY_TYPES)
+
 
 def _report_markdown(state: FuseState) -> str:
     impacts: list[Impact] = state.get("impacts", [])
@@ -149,6 +166,36 @@ def _wrote(response: object) -> bool:
     return not _skipped(response) and not _looks_like_error(response)
 
 
+async def _apply(dh, tool: str, urns: list[str], **kwargs) -> tuple[list[str], list[str]]:
+    """Write to every entity, batched, then one at a time if the batch is refused.
+
+    DataHub validates the whole batch before writing any of it, so a single entity
+    of a type the tool will not accept costs the write on all the others. Retrying
+    individually turns that from a total loss into a partial success plus a precise
+    error, which is also the difference between a report that can be trusted and one
+    that just says the run failed.
+    """
+    try:
+        response = await dh.call(tool, entity_urns=urns, **kwargs)
+    except Exception as exc:
+        response = {"text": f"{exc.__class__.__name__}: {exc}"}
+
+    if _wrote(response):
+        return list(urns), []
+    if _skipped(response):
+        return [], []
+    if len(urns) == 1:
+        return [], [f"{tool} on {urns[0]}: {str(response)[:200]}"]
+
+    written: list[str] = []
+    errors: list[str] = []
+    for urn in urns:
+        ok, failed = await _apply(dh, tool, [urn], **kwargs)
+        written += ok
+        errors += failed
+    return written, errors
+
+
 def _ensure_vocabulary(trace: list[str], errors: list[str]) -> None:
     """Define the tags and properties before using them, on a live run only.
 
@@ -159,7 +206,9 @@ def _ensure_vocabulary(trace: list[str], errors: list[str]) -> None:
     from fuse.datahub import sdk_writer
 
     try:
-        sdk_writer.ensure_vocabulary(TAG_DESCRIPTIONS, PROPERTY_DEFINITIONS)
+        sdk_writer.ensure_vocabulary(
+            TAG_DESCRIPTIONS, PROPERTY_DEFINITIONS, PROPERTY_ENTITY_TYPES
+        )
         trace.append("writeback: tag and structured-property definitions ensured")
     except Exception as exc:
         # Worth reporting, not worth losing the run over: the document still lands.
@@ -195,24 +244,21 @@ async def write_back(state: FuseState) -> dict:
                 "recording the analysis without tagging"
             )
 
-    # add_tags takes a list of entities, so the whole blast radius is one call.
+    # The whole blast radius goes in one call, and falls back to one call per asset.
     if targets:
-        try:
-            response = await dh.call(
-                "add_tags", tag_urns=[tag], entity_urns=[i.urn for i in targets]
-            )
-            if _wrote(response):
-                result.tagged = [i.urn for i in targets]
-            elif not _skipped(response):
-                result.errors.append(f"add_tags: {str(response)[:300]}")
-        except Exception as exc:
-            result.errors.append(f"add_tags: {exc.__class__.__name__}: {exc}")
+        result.tagged, errors = await _apply(
+            dh, "add_tags", [i.urn for i in targets], tag_urns=[tag]
+        )
+        result.errors += errors
 
         # The tool maps property urn -> values, not a list of {propertyUrn, values}
         # objects; the definitions themselves are ensured above.
-        try:
-            response = await dh.call(
+        scored = [i for i in targets if i.entity_type in SUPPORTS_PROPERTIES]
+        if scored:
+            result.properties_set, errors = await _apply(
+                dh,
                 "add_structured_properties",
+                [i.urn for i in scored],
                 property_values={
                     FUSE_PROPERTY_URNS[0]: [max(i.score for i in targets)],
                     FUSE_PROPERTY_URNS[1]: [state.get("max_severity", "SAFE")],
@@ -221,14 +267,15 @@ async def write_back(state: FuseState) -> dict:
                         datetime.now(timezone.utc).isoformat(timespec="seconds")
                     ],
                 },
-                entity_urns=[i.urn for i in targets],
             )
-            if _wrote(response):
-                result.properties_set = [i.urn for i in targets]
-            elif not _skipped(response):
-                result.errors.append(f"add_structured_properties: {str(response)[:300]}")
-        except Exception as exc:
-            result.errors.append(f"add_structured_properties: {exc.__class__.__name__}: {exc}")
+            result.errors += errors
+
+        unscorable = len(targets) - len(scored)
+        if unscorable:
+            trace.append(
+                f"writeback: {unscorable} asset(s) tagged but not scored - DataHub "
+                "rejects structured properties on their entity type"
+            )
 
     # Annotate the exact column being removed, where an engineer will actually see it.
     for asset in state.get("resolved", []):

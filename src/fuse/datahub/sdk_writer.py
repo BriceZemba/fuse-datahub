@@ -34,21 +34,11 @@ def emit_mcps(mcps: Any) -> None:
     graph().emit_mcps(mcps)
 
 
-# Every entity type Fuse ever scores. A structured property rejects a value on an
-# entity type its definition does not list, so this has to be the full set.
-PROPERTY_ENTITY_TYPES = (
-    "dataset",
-    "dashboard",
-    "chart",
-    "mlFeature",
-    "mlFeatureTable",
-    "mlModel",
-    "mlModelDeployment",
-    "mlModelGroup",
-)
-
-
-def ensure_vocabulary(tags: dict[str, str], properties: tuple[tuple[str, str, str], ...]) -> None:
+def ensure_vocabulary(
+    tags: dict[str, str],
+    properties: tuple[tuple[str, str, str], ...],
+    entity_types: tuple[str, ...],
+) -> None:
     """Create the tags and structured-property definitions Fuse writes with.
 
     DataHub refuses to apply a tag whose urn does not exist yet, and refuses a
@@ -81,9 +71,7 @@ def ensure_vocabulary(tags: dict[str, str], properties: tuple[tuple[str, str, st
                     qualifiedName=qualified_name,
                     displayName=qualified_name.split(".")[-1].replace("_", " ").title(),
                     valueType=f"urn:li:dataType:datahub.{value_type}",
-                    entityTypes=[
-                        f"urn:li:entityType:datahub.{t}" for t in PROPERTY_ENTITY_TYPES
-                    ],
+                    entityTypes=[f"urn:li:entityType:datahub.{t}" for t in entity_types],
                     cardinality="SINGLE",
                     description=description,
                 ),
