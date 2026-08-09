@@ -87,6 +87,16 @@ class DataHubMCP:
         self._client = None
         self._tools: dict[str, Any] = {}
 
+    @property
+    def live(self) -> bool:
+        """Whether a write through this client reaches a real catalog.
+
+        Nodes that need the SDK as well as the MCP tools ask this rather than
+        inferring it from missing attributes, so a test double stays inert by
+        default instead of reaching for the network.
+        """
+        return not self.replay and not self.dry_run
+
     async def __aenter__(self) -> DataHubMCP:
         if not self.replay:
             reachable, detail = await probe_gms()

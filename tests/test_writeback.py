@@ -4,7 +4,13 @@ from __future__ import annotations
 
 import pytest
 
-from fuse.nodes.writeback import _document_urn, _looks_like_error, _save_report, _skipped
+from fuse.nodes.writeback import (
+    _document_urn,
+    _looks_like_error,
+    _save_report,
+    _skipped,
+    _wrote,
+)
 
 DOC_URN = "urn:li:document:0195f0d2-9e0e-7c1f-a1c2-3d4e5f607182"
 
@@ -35,6 +41,21 @@ def test_validation_failures_arrive_as_text_not_exceptions():
 def test_dry_run_marker_is_not_a_success():
     assert _skipped({"dry_run": True}) is True
     assert _skipped({"urn": DOC_URN}) is False
+
+
+def test_a_rejected_tag_is_not_counted_as_written():
+    """The failure that made a run report `tagged 9, errors: []` while writing nothing.
+
+    DataHub refuses a tag whose urn does not exist, and says so in text rather than
+    raising, so a check for exceptions alone reads the refusal as a success.
+    """
+    refusal = {
+        "text": "Error calling tool 'add_tags': Failed to validate label with urn "
+        "urn:li:tag:fuse-pending-breaking-change. Urn does not exist."
+    }
+    assert _wrote(refusal) is False
+    assert _wrote({"dry_run": True}) is False
+    assert _wrote({"text": "Tags added"}) is True
 
 
 class FakeDH:

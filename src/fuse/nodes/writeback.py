@@ -25,6 +25,20 @@ FUSE_PROPERTY_URNS = (
     "urn:li:structuredProperty:fuse.last_checked",
 )
 
+TAG_DESCRIPTIONS = {
+    TAG_PENDING: "Fuse found an unmerged schema change that reaches this asset.",
+    TAG_SAFE: "Fuse analysed a schema change and found no impact on this asset.",
+}
+
+# (urn, DataHub value type, description) - the definitions the instance needs before
+# any of these properties can be set on an entity.
+PROPERTY_DEFINITIONS = (
+    (FUSE_PROPERTY_URNS[0], "number", "Fuse blast-radius score, 0-100."),
+    (FUSE_PROPERTY_URNS[1], "string", "Fuse severity: SAFE, RISKY or BREAKING."),
+    (FUSE_PROPERTY_URNS[2], "string", "The Fuse run that last scored this asset."),
+    (FUSE_PROPERTY_URNS[3], "string", "When Fuse last scored this asset."),
+)
+
 
 def _report_markdown(state: FuseState) -> str:
     impacts: list[Impact] = state.get("impacts", [])
@@ -125,6 +139,33 @@ def _skipped(response: object) -> bool:
     return isinstance(response, dict) and bool(response.get("dry_run"))
 
 
+def _wrote(response: object) -> bool:
+    """Whether a mutation actually changed the catalog.
+
+    A failed mutation is not an exception - it is an ordinary text response saying
+    what went wrong. Checking only for exceptions is how a run once reported
+    `tagged 9, errors: []` while writing nothing at all.
+    """
+    return not _skipped(response) and not _looks_like_error(response)
+
+
+def _ensure_vocabulary(trace: list[str], errors: list[str]) -> None:
+    """Define the tags and properties before using them, on a live run only.
+
+    A missing definition is not a partial failure - DataHub rejects every write
+    that references it - so it is worth one upsert per run to remove the class of
+    failure entirely.
+    """
+    from fuse.datahub import sdk_writer
+
+    try:
+        sdk_writer.ensure_vocabulary(TAG_DESCRIPTIONS, PROPERTY_DEFINITIONS)
+        trace.append("writeback: tag and structured-property definitions ensured")
+    except Exception as exc:
+        # Worth reporting, not worth losing the run over: the document still lands.
+        errors.append(f"ensure_vocabulary: {exc.__class__.__name__}: {exc}")
+
+
 async def write_back(state: FuseState) -> dict:
     dh = RT.require_dh()
     impacts: list[Impact] = state.get("impacts", [])
@@ -135,6 +176,9 @@ async def write_back(state: FuseState) -> dict:
 
     breaking = [i for i in impacts if i.severity in {"BREAKING", "RISKY"}]
     tag = TAG_PENDING if breaking else TAG_SAFE
+
+    if getattr(dh, "live", False):
+        _ensure_vocabulary(trace, result.errors)
 
     if breaking:
         targets = breaking
@@ -157,8 +201,10 @@ async def write_back(state: FuseState) -> dict:
             response = await dh.call(
                 "add_tags", tag_urns=[tag], entity_urns=[i.urn for i in targets]
             )
-            if not _skipped(response):
+            if _wrote(response):
                 result.tagged = [i.urn for i in targets]
+            elif not _skipped(response):
+                result.errors.append(f"add_tags: {str(response)[:300]}")
         except Exception as exc:
             result.errors.append(f"add_tags: {exc.__class__.__name__}: {exc}")
 
@@ -178,8 +224,10 @@ async def write_back(state: FuseState) -> dict:
                 ],
                 entity_urns=[i.urn for i in targets],
             )
-            if not _skipped(response):
+            if _wrote(response):
                 result.properties_set = [i.urn for i in targets]
+            elif not _skipped(response):
+                result.errors.append(f"add_structured_properties: {str(response)[:300]}")
         except Exception as exc:
             result.errors.append(f"add_structured_properties: {exc.__class__.__name__}: {exc}")
 
@@ -196,8 +244,10 @@ async def write_back(state: FuseState) -> dict:
                         f"{len(breaking)} downstream asset(s) affected. See the Fuse impact report."
                     ),
                 )
-                if not _skipped(response):
+                if _wrote(response):
                     result.described.append(asset.urn)
+                elif not _skipped(response):
+                    result.errors.append(f"update_description: {str(response)[:300]}")
             except Exception as exc:
                 result.errors.append(f"{asset.urn}: {exc.__class__.__name__}: {exc}")
 
