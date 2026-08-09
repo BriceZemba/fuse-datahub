@@ -208,20 +208,19 @@ async def write_back(state: FuseState) -> dict:
         except Exception as exc:
             result.errors.append(f"add_tags: {exc.__class__.__name__}: {exc}")
 
-        # Structured properties need the property definition registered up front; if the
-        # instance has not been bootstrapped for it, this is a warning, not a failure.
+        # The tool maps property urn -> values, not a list of {propertyUrn, values}
+        # objects; the definitions themselves are ensured above.
         try:
             response = await dh.call(
                 "add_structured_properties",
-                property_values=[
-                    {"propertyUrn": FUSE_PROPERTY_URNS[0],
-                     "values": [max(i.score for i in targets)]},
-                    {"propertyUrn": FUSE_PROPERTY_URNS[1],
-                     "values": [state.get("max_severity", "SAFE")]},
-                    {"propertyUrn": FUSE_PROPERTY_URNS[2], "values": [run_id]},
-                    {"propertyUrn": FUSE_PROPERTY_URNS[3],
-                     "values": [datetime.now(timezone.utc).isoformat(timespec="seconds")]},
-                ],
+                property_values={
+                    FUSE_PROPERTY_URNS[0]: [max(i.score for i in targets)],
+                    FUSE_PROPERTY_URNS[1]: [state.get("max_severity", "SAFE")],
+                    FUSE_PROPERTY_URNS[2]: [run_id],
+                    FUSE_PROPERTY_URNS[3]: [
+                        datetime.now(timezone.utc).isoformat(timespec="seconds")
+                    ],
+                },
                 entity_urns=[i.urn for i in targets],
             )
             if _wrote(response):

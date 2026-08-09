@@ -21,8 +21,17 @@ def upsert(entity: Any) -> None:
     client().entities.upsert(entity)
 
 
+def graph() -> Any:
+    """The lower-level client, which is the one that can emit aspects directly."""
+    from datahub.ingestion.graph.client import DatahubClientConfig, DataHubGraph
+
+    return DataHubGraph(
+        DatahubClientConfig(server=settings.gms_url, token=settings.gms_token or None)
+    )
+
+
 def emit_mcps(mcps: Any) -> None:
-    client()._emit_mcps(mcps)
+    graph().emit_mcps(mcps)
 
 
 # Every entity type Fuse ever scores. A structured property rejects a value on an
