@@ -13,9 +13,12 @@ from datetime import datetime, timezone
 from fuse.runtime import RT
 from fuse.state import FuseState, Impact, WriteBackResult
 
-TAG_PENDING = "urn:li:tag:fuse-pending-breaking-change"
-TAG_SAFE = "urn:li:tag:fuse-verified-safe"
-WRITEBACK_TAGS = (TAG_PENDING, TAG_SAFE)
+TAG_PENDING = "urn:li:tag:fuse-blast-radius-breaking"
+TAG_SAFE = "urn:li:tag:fuse-blast-radius-safe"
+
+# Earlier runs wrote these, so `fuse revert` still has to know how to remove them.
+RETIRED_TAGS = ("urn:li:tag:fuse-pending-breaking-change", "urn:li:tag:fuse-verified-safe")
+WRITEBACK_TAGS = (TAG_PENDING, TAG_SAFE, *RETIRED_TAGS)
 DOCUMENT_TYPE = "Analysis"
 
 FUSE_PROPERTY_URNS = (
