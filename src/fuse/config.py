@@ -22,6 +22,10 @@ class Settings:
     dialect: str = os.getenv("FUSE_DIALECT", "snowflake")
     fixtures_dir: Path = Path(os.getenv("FUSE_FIXTURES", "fixtures"))
     out_dir: Path = Path(os.getenv("FUSE_OUT", "out"))
+    # The MCP server logs every GraphQL query it builds at DEBUG, which buries Fuse's
+    # own output in a live run. Loguru reads this for its default handler; set
+    # FUSE_MCP_LOG_LEVEL=DEBUG to get the raw traffic back when diagnosing.
+    mcp_log_level: str = os.getenv("FUSE_MCP_LOG_LEVEL", "WARNING")
 
     def mcp_env(self) -> dict[str, str]:
         return {
@@ -29,6 +33,7 @@ class Settings:
             "DATAHUB_GMS_TOKEN": self.gms_token,
             "TOOLS_IS_MUTATION_ENABLED": "true" if self.mutations_enabled else "false",
             "TOOLS_IS_USER_ENABLED": "true",
+            "LOGURU_LEVEL": self.mcp_log_level,
         }
 
 

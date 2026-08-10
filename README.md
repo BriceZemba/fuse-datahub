@@ -141,6 +141,7 @@ Every column named is a real column of the `showcase-ecommerce` datapack. Nothin
 | `FUSE_MAX_REWRITES` | `3` | how many consumers get an LLM-written fix; the rest get a contract test |
 | `FUSE_FAIL_ON` | `BREAKING` | severity that fails CI |
 | `FUSE_DIALECT` | `snowflake` | sqlglot dialect |
+| `FUSE_MCP_LOG_LEVEL` | `WARNING` | how loudly the MCP server logs; `DEBUG` to see every GraphQL query it builds |
 
 With `FUSE_LLM_PROVIDER=none` the LLM nodes are skipped: strategies come from rules and artifacts from templates. Output is blunter, the pipeline still completes, and no API key is required.
 
