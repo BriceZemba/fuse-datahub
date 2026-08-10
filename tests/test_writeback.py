@@ -110,6 +110,20 @@ async def test_a_batch_that_succeeds_is_not_retried_per_entity():
     assert len(dh.calls) == 1
 
 
+def test_a_deployment_is_kept_out_of_the_documents_related_assets():
+    """DataHub refuses the whole document if one related asset is a deployment, and the
+    fallback then drops every related asset - so the accepted ones are lost too."""
+    from fuse.nodes.writeback import _relatable
+
+    urns = [
+        "urn:li:mlFeature:(customer_churn,credit_limit)",
+        "urn:li:mlModelDeployment:(urn:li:dataPlatform:mlflow,prod-retention-service,PROD)",
+        "urn:li:dataset:(urn:li:dataPlatform:dbt,shop.orders,PROD)",
+    ]
+    kept = _relatable(urns)
+    assert kept == [urns[0], urns[2]]
+
+
 @pytest.mark.asyncio
 async def test_the_report_still_saves_when_an_optional_argument_is_rejected():
     dh = FakeDH(accepts={"title", "content"})

@@ -59,6 +59,16 @@ PROPERTY_ENTITY_TYPES = (
 )
 SUPPORTS_PROPERTIES = frozenset(PROPERTY_ENTITY_TYPES)
 
+# A document's `relatedAssets` refuses the same entity type, and refuses the whole
+# document with it. Sending a urn we already know will be rejected costs the first
+# attempt, prints a stack trace, and lands us on the degraded call that drops every
+# related asset - so the ones that would have been accepted are lost too.
+UNRELATABLE_URN_PREFIXES = ("urn:li:mlModelDeployment:",)
+
+
+def _relatable(urns: list[str]) -> list[str]:
+    return [u for u in urns if not u.startswith(UNRELATABLE_URN_PREFIXES)]
+
 
 def _report_markdown(state: FuseState) -> str:
     impacts: list[Impact] = state.get("impacts", [])
@@ -304,7 +314,7 @@ async def write_back(state: FuseState) -> dict:
         dh,
         f"Fuse impact report - {run_id}",
         report,
-        [i.urn for i in impacts],
+        _relatable([i.urn for i in impacts]),
     )
     result.document_urn = urn
     if urn:

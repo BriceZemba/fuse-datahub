@@ -200,7 +200,7 @@ fuse spike --urn <urn>    # raw responses, for debugging against a live instance
 pip install -e ".[dev]" && pytest -q
 ```
 
-170 tests, including offline replays of every committed example.
+171 tests, including offline replays of every committed example.
 
 Two workflows run on every pull request. `ci` runs the suite on Python 3.10–3.12.
 `selftest` installs the project from a clean checkout on a runner, replays the ML
