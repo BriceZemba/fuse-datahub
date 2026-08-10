@@ -19,9 +19,9 @@ cat <<'EOF'
   fuse-datahub is installed.
 
   Next:
-    pytest -q                          # 19 tests, no DataHub needed
-    fuse replay examples/01-drop-column # offline demo, no DataHub needed
-    ./scripts/bootstrap-datahub.sh      # start DataHub + load sample catalog (~10 min)
+    fuse replay examples/03-ml-feature-break   # the demo, offline, no DataHub needed
+    pytest -q                                  # the suite, no DataHub needed
+    ./scripts/bootstrap-datahub.sh             # start DataHub + sample catalog (~10 min)
 
   Stop the codespace when you are done — it bills against your free core-hours.
 
