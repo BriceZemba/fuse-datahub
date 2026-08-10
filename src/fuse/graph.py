@@ -100,6 +100,26 @@ def build_graph(*, interrupt_before_writeback: bool = True):
     g.add_edge("pr", END)
 
     return g.compile(
-        checkpointer=MemorySaver(),
+        checkpointer=_checkpointer(),
         interrupt_before=["writeback"] if interrupt_before_writeback else None,
+    )
+
+
+def _checkpointer() -> MemorySaver:
+    """A saver that knows the state types it is being asked to store.
+
+    The state carries Fuse's own dataclasses, and LangGraph warns on every one it has
+    to deserialize from a checkpoint without being told it is allowed to - four
+    warnings per run today, and a hard failure in a later version. Declaring them is
+    both the fix and the documentation of what actually crosses the checkpoint.
+    """
+    from langgraph.checkpoint.serde.jsonplus import JsonPlusSerializer
+
+    return MemorySaver(
+        serde=JsonPlusSerializer(
+            allowed_msgpack_modules=[
+                ("fuse.state", name)
+                for name in ("Change", "ResolvedAsset", "Impact", "Artifact", "WriteBackResult")
+            ]
+        )
     )
