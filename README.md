@@ -191,6 +191,7 @@ fuse spike --urn <urn>    # raw responses, for debugging against a live instance
 - Schema probing stops at 2 hops by default: past that, a schema match cannot reach RISKY anyway, and the report states how many assets were skipped.
 - ML entity discovery uses GMS GraphQL, and ML aspects the typed SDK, because the MCP surface doesn't expose either.
 - Native assertions are a DataHub Cloud feature, so verdicts are recorded as tags, structured properties and documents instead.
+- DataHub rejects a structured property whose definition names `mlModelDeployment`, even though that entity type exists, so the deployment is tagged and reported but carries no score. Every other affected asset carries both.
 - The GitHub Action in `.github/workflows/fuse.yml` needs a DataHub reachable from the runner, which a local quickstart is not. It is exercised in CI against recorded fixtures (`selftest.yml`) rather than against a hosted catalog, so treat the hosted path as untested.
 
 ## Development

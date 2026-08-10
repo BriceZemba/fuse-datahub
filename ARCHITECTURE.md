@@ -186,7 +186,7 @@ Failures become `validation_errors` and route back to `codegen` with the errors 
 
 ### 4.8 `writeback` - MCP mutations + Python SDK
 On every run, regardless of severity:
-- `add_tags` on impacted assets → `urn:li:tag:fuse-pending-breaking-change` (and `fuse-verified-safe` on the SAFE path)
+- `add_tags` on impacted assets → `urn:li:tag:fuse-blast-radius-breaking` (and `fuse-blast-radius-safe` on the SAFE path). The tags and the structured-property definitions are created before first use, because DataHub refuses to apply a label it has never heard of.
 - `update_description` on the changed column/dataset with a deprecation note + PR link
 - `add_structured_properties`: `fuse.blast_radius_score`, `fuse.impacted_count`, `fuse.last_checked`, `fuse.pr_url`
 - `save_document`: the full impact report, so the next agent or human inherits the analysis via `search_documents` / `grep_documents`
